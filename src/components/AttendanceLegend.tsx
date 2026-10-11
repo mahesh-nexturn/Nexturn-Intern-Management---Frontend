@@ -22,10 +22,10 @@ function AttendanceLegend() {
       label: "Holiday",
       color: "#9c27b0",
     },
-    {
-      label: "WFH",
-      color: "#ff9800",
-    },
+    // {
+    //   label: "WFH",
+    //   color: "#ff9800",
+    // },
   ];
 
   return (

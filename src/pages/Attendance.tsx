@@ -244,7 +244,6 @@ function Attendance({
             <MenuItem value="Absent">Absent</MenuItem>
             <MenuItem value="Leave">Leave</MenuItem>
             <MenuItem value="Holiday">Holiday</MenuItem>
-            <MenuItem value="WFH">WFH</MenuItem>
           </Select>
         </FormControl>
       </Box>

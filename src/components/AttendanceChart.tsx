@@ -86,7 +86,7 @@ function AttendanceChart({
             Holiday
           </Typography>
         </Box>
-
+{/* 
         <Box sx={{ textAlign: "center" }}>
           <Typography
             variant="h4"
@@ -98,7 +98,7 @@ function AttendanceChart({
           <Typography>
             WFH
           </Typography>
-        </Box>
+        </Box> */}
       </Box>
     </Paper>
   );

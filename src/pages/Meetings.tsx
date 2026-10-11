@@ -93,7 +93,7 @@ function Meetings({
   const isHr = role === "HR";
   const isMentor = role === "MENTOR";
   const isIntern = role === "INTERN";
-  const canManageMeetings = isHr || isMentor;
+  const canManageMeetings = isMentor;
 
   useEffect(() => {
     meetingApi
@@ -231,7 +231,7 @@ function Meetings({
         }}
       >
         <TextField
-          label="Search Meeting"
+          label="Search by Mentor or Intern"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />

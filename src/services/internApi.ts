@@ -10,6 +10,8 @@ export type InternDto = {
   mentorId: number | null;
   mentorName: string | null;
   userId: number | null;
+  createTime?: string;
+  updateTime?: string;
 };
 
 export type InternPayload = {

@@ -67,7 +67,7 @@ function App() {
         mentorApi.listMentors(),
         internApi.listInterns(),
       ]);
-
+      
       const mentorList =
         mentorResult.status === "fulfilled"
           ? mentorResult.value.map((m) => ({
@@ -91,6 +91,8 @@ function App() {
               mentorId: i.mentorId,
               status: i.status ?? "Active",
               userId: i.userId,
+              createTime: i.createTime,
+              updateTime: i.updateTime,
             }))
           : [];
 

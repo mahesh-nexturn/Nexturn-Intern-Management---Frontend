@@ -135,8 +135,7 @@ function Tasks({
   const isMentor = role === "MENTOR";
   const isIntern = role === "INTERN";
 
-  const canManageTasks =
-    isHr || isMentor;
+  const canManageTasks = isMentor;
 
   const visibleTasks = isHr
     ? tasksWithMentor

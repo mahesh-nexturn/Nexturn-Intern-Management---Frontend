@@ -168,14 +168,29 @@ function Dashboard({
     }));
   }, [interns]);
 
-  const joiningTrend = [
-    { month: "Jan", joined: 2 },
-    { month: "Feb", joined: 4 },
-    { month: "Mar", joined: 6 },
-    { month: "Apr", joined: 5 },
-    { month: "May", joined: 8 },
-    { month: "Jun", joined: 7 },
+  const joiningTrend = (() => {
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
   ];
+
+  const monthlyCounts = Array(12).fill(0);
+
+  interns.forEach((intern) => {
+    if (intern.createTime) {
+      const date = new Date(intern.createTime);
+
+      if (!isNaN(date.getTime())) {
+        monthlyCounts[date.getMonth()]++;
+      }
+    }
+  });
+
+  return months.map((month, index) => ({
+    month,
+    joined: monthlyCounts[index],
+  }));
+})();
 
   const recentActivities = useMemo(() => {
     const items: string[] = [];
@@ -340,12 +355,12 @@ function Dashboard({
           subtitle="Assigned mentors"
           accent="#14b8a6"
         />
-        <MetricCard
+        {/* <MetricCard
           title="Attendance %"
           value={`${attendancePercentage}%`}
           subtitle="Present + WFH"
           accent="#0ea5e9"
-        />
+        /> */}
       </Box>
 
       <Box

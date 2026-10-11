@@ -50,7 +50,7 @@ function Sidebar() {
       { text: "Evaluations", icon: <FactCheckIcon />, path: "/evaluations" },
       { text: "Documents", icon: <DescriptionIcon />, path: "/documents" },
       { text: "Certificates", icon: <WorkspacePremiumIcon />, path: "/certificates" },
-      { text: "Announcements", icon: <CampaignIcon />, path: "/announcements" },
+      // { text: "Announcements", icon: <CampaignIcon />, path: "/announcements" },
       { text: "Notifications", icon: <NotificationsIcon />, path: "/notifications" },
       { text: "Reports", icon: <AssessmentIcon />, path: "/reports" },
       { text: "Settings", icon: <SettingsIcon />, path: "/settings" },
