@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-
+import React from "react";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
@@ -8,6 +8,7 @@ type Props = {
 };
 
 function MainLayout({ children }: Props) {
+  const [collapsed, setCollapsed] = React.useState(true);
   return (
     <Box
       sx={{
@@ -17,7 +18,7 @@ function MainLayout({ children }: Props) {
         overflow: "hidden",
       }}
     >
-      <Sidebar />
+      {collapsed && <Sidebar />}
 
       <Box
         sx={{
@@ -26,7 +27,7 @@ function MainLayout({ children }: Props) {
           flexDirection: "column",
         }}
       >
-        <Navbar />
+        <Navbar setCollapsed={setCollapsed} collapsed={collapsed} />
 
         <Box
           sx={{
