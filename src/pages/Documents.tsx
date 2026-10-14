@@ -68,7 +68,7 @@ function Documents({
     uploadDate: "",
   });
 
-  const userName = localStorage.getItem("name") || "";
+  const userName = sessionStorage.getItem("name") || "";
   const canManageDocuments = true;
 
   useEffect(() => {

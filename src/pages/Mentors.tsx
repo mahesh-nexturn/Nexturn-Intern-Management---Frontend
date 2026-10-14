@@ -32,6 +32,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 
 import type { Mentor } from "../types/Mentor";
 import * as mentorApi from "../services/mentorApi";
+import * as hrApi from "../services/hrApi";
+import type { Hr } from "../types/Hr";
 
 type MentorsProps = {
   mentors: Mentor[];
@@ -46,12 +48,16 @@ function toUiMentor(dto: mentorApi.MentorDto): Mentor {
     department: dto.department ?? "",
     designation: dto.designation ?? "",
     status: (dto.status as "Active" | "Inactive") ?? "Active",
+    hrId: dto.hrId ?? null,
+    hrName: dto.hrName ?? null,
   };
 }
 
 function Mentors({ mentors, setMentors }: MentorsProps) {
-  const role = localStorage.getItem("role") || "HR";
+  const role = sessionStorage.getItem("role") || "HR";
   const isHr = role === "HR";
+  const isAdmin = sessionStorage.getItem("backendRole") === "ADMIN";
+  const [hrs, setHrs] = useState<Hr[]>([]);
 
   const [open, setOpen] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
@@ -85,6 +91,11 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    hrApi.listHrs().then(setHrs).catch(() => {});
+  }, [isAdmin]);
 
   const departments = useMemo(() => {
     return [
@@ -178,6 +189,7 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
       designation: selectedMentor.designation,
       status: selectedMentor.status,
     };
+    if (isAdmin) payload.hrId = selectedMentor.hrId ?? null;
 
     if (editIndex !== null) {
       mentorApi
@@ -374,6 +386,7 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
                 <TableCell sx={{ fontWeight: 700 }}>Department</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Designation</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>HR</TableCell>
                 {isHr && (
                   <TableCell sx={{ fontWeight: 700 }} align="center">
                     Actions
@@ -387,7 +400,7 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
                 <TableRow>
                   <TableCell
                     align="center"
-                    colSpan={isHr ? 6 : 5}
+                    colSpan={isHr ? 7 : 6}
                     sx={{ py: 5 }}
                   >
                     <Typography color="text.secondary">
@@ -413,6 +426,7 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
                         size="small"
                       />
                     </TableCell>
+                    <TableCell>{mentor.hrName || "-"}</TableCell>
                     {isHr && (
                       <TableCell align="center">
                         <IconButton
@@ -511,6 +525,29 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
               <MenuItem value="Inactive">Inactive</MenuItem>
             </Select>
           </FormControl>
+
+          {isAdmin && (
+            <FormControl fullWidth margin="normal">
+              <InputLabel>HR</InputLabel>
+              <Select
+                value={selectedMentor.hrId ?? ""}
+                label="HR"
+                onChange={(e) =>
+                  setSelectedMentor({
+                    ...selectedMentor,
+                    hrId: String(e.target.value) === "" ? null : Number(e.target.value),
+                  })
+                }
+              >
+                <MenuItem value="">Unassigned</MenuItem>
+                {hrs.map((h) => (
+                  <MenuItem key={h.id} value={h.id}>
+                    {h.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
         </DialogContent>
 
         <DialogActions sx={{ p: 2 }}>

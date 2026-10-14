@@ -87,8 +87,8 @@ function Meetings({
     status: "Scheduled",
   });
 
-  const role = localStorage.getItem("role") as Role;
-  const userName = localStorage.getItem("name") || "";
+  const role = sessionStorage.getItem("role") as Role;
+  const userName = sessionStorage.getItem("name") || "";
 
   const isHr = role === "HR";
   const isMentor = role === "MENTOR";
@@ -231,7 +231,7 @@ function Meetings({
         }}
       >
         <TextField
-          label="Search by Mentor or Intern"
+          label={isMentor ? "Search by Intern" : "Search by Mentor or Intern"}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -256,8 +256,9 @@ function Meetings({
           <TableHead>
             <TableRow>
               <TableCell>Title</TableCell>
-              <TableCell>Intern</TableCell>
-              <TableCell>Mentor</TableCell>
+              <TableCell>Agenda</TableCell>
+              {!isIntern && <TableCell>Intern</TableCell>}
+              {!isMentor && <TableCell>Mentor</TableCell>}
               <TableCell>Date</TableCell>
               <TableCell>Time</TableCell>
               <TableCell>Status</TableCell>
@@ -268,7 +269,10 @@ function Meetings({
           <TableBody>
             {filteredMeetings.length === 0 ? (
               <TableRow>
-                <TableCell align="center" colSpan={canManageMeetings ? 7 : 6}>
+                <TableCell
+                  align="center"
+                  colSpan={5 + (isIntern ? 0 : 1) + (isMentor ? 0 : 1) + (canManageMeetings ? 1 : 0)}
+                >
                   No meetings found.
                 </TableCell>
               </TableRow>
@@ -276,8 +280,19 @@ function Meetings({
               filteredMeetings.map((meeting) => (
                 <TableRow key={meeting.id}>
                   <TableCell>{meeting.title}</TableCell>
-                  <TableCell>{meeting.intern}</TableCell>
-                  <TableCell>{meeting.mentor || "-"}</TableCell>
+                  <TableCell
+                    title={meeting.agenda}
+                    sx={{
+                      maxWidth: 280,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {meeting.agenda || "-"}
+                  </TableCell>
+                  {!isIntern && <TableCell>{meeting.intern}</TableCell>}
+                  {!isMentor && <TableCell>{meeting.mentor || "-"}</TableCell>}
                   <TableCell>{meeting.date}</TableCell>
                   <TableCell>{meeting.time}</TableCell>
                   <TableCell>

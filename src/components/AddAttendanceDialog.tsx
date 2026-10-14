@@ -16,10 +16,12 @@ import type { Intern } from "../types/Intern";
 type AddAttendanceDialogProps = {
   open: boolean;
   handleClose: () => void;
-  addAttendance: (attendance: Attendance) => void;
+  addAttendance: (attendance: Attendance, applyToAll?: boolean) => void;
   selectedAttendance: Attendance;
   interns: Intern[];
 };
+
+const ALL = "ALL";
 
 function AddAttendanceDialog({
   open,
@@ -28,9 +30,12 @@ function AddAttendanceDialog({
   selectedAttendance,
   interns,
 }: AddAttendanceDialogProps) {
-  const [internId, setInternId] = useState<number | "">("");
+  const [internId, setInternId] = useState<number | typeof ALL | "">("");
   const [date, setDate] = useState("");
   const [status, setStatus] = useState<Attendance["status"]>("Present");
+
+  const isEdit = selectedAttendance.id !== 0;
+  const isAll = internId === ALL;
 
   useEffect(() => {
     setInternId(selectedAttendance.internId ?? "");
@@ -38,7 +43,7 @@ function AddAttendanceDialog({
     setStatus(selectedAttendance.status || "Present");
   }, [selectedAttendance]);
 
-  const selectedIntern = interns.find((intern) => intern.id === internId);
+  const selectedIntern = isAll ? undefined : interns.find((intern) => intern.id === internId);
 
   const handleSave = () => {
     if (!internId) {
@@ -48,6 +53,15 @@ function AddAttendanceDialog({
 
     if (!date) {
       alert("Please select a date.");
+      return;
+    }
+
+    if (isAll) {
+      addAttendance(
+        { id: 0, intern: "", internId: null, mentor: "", mentorId: null, date, status },
+        true
+      );
+      handleClose();
       return;
     }
 
@@ -75,8 +89,20 @@ function AddAttendanceDialog({
           margin="dense"
           label="Intern"
           value={internId}
-          onChange={(e) => setInternId(e.target.value === "" ? "" : Number(e.target.value))}
+          helperText={
+            isAll
+              ? `Will be applied to all ${interns.length} intern${interns.length === 1 ? "" : "s"} assigned to you.`
+              : undefined
+          }
+          onChange={(e) =>
+            setInternId(
+              e.target.value === "" ? "" : e.target.value === ALL ? ALL : Number(e.target.value)
+            )
+          }
         >
+          {!isEdit && interns.length > 0 && (
+            <MenuItem value={ALL}>All Interns ({interns.length})</MenuItem>
+          )}
           {interns.map((intern) => (
             <MenuItem key={intern.id} value={intern.id}>
               {intern.name}
@@ -84,14 +110,15 @@ function AddAttendanceDialog({
           ))}
         </TextField>
 
-        <TextField
-          fullWidth
-          margin="dense"
-          label="Mentor"
-          value={selectedIntern?.mentor || ""}
-          disabled
-        />
-
+        {!isAll && (
+          <TextField
+            fullWidth
+            margin="dense"
+            label="Mentor"
+            value={selectedIntern?.mentor || ""}
+            disabled
+          />
+        )}
         <TextField
           fullWidth
           type="date"

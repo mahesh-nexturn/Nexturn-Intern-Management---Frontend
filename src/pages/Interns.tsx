@@ -34,6 +34,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import type { Intern } from "../types/Intern";
 import type { Mentor } from "../types/Mentor";
 import * as internApi from "../services/internApi";
+import * as hrApi from "../services/hrApi";
+import type { Hr } from "../types/Hr";
 
 type InternsProps = {
   interns: Intern[];
@@ -53,6 +55,8 @@ function toUiIntern(dto: internApi.InternDto): Intern {
     mentorId: dto.mentorId,
     status: dto.status ?? "Active",
     userId: dto.userId,
+    hrId: dto.hrId ?? null,
+    hrName: dto.hrName ?? null,
   };
 }
 
@@ -62,12 +66,14 @@ function Interns({
   mentors,
 }: InternsProps) {
   const role =
-    (localStorage.getItem("role") as Role) || "HR";
+    (sessionStorage.getItem("role") as Role) || "HR";
 
   const userName =
-    localStorage.getItem("name") || "";
+    sessionStorage.getItem("name") || "";
 
   const isHr = role === "HR";
+  const isAdmin = sessionStorage.getItem("backendRole") === "ADMIN";
+  const [hrs, setHrs] = useState<Hr[]>([]);
   const isMentor = role === "MENTOR";
   const isIntern = role === "INTERN";
 
@@ -111,6 +117,11 @@ function Interns({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    hrApi.listHrs().then(setHrs).catch(() => {});
+  }, [isAdmin]);
 
   const visibleInterns = useMemo(() => {
     if (isHr) return interns;
@@ -273,6 +284,7 @@ function Interns({
       status: selectedIntern.status,
       mentorId: matchedMentor ? matchedMentor.id : selectedIntern.mentorId ?? null,
     };
+    if (isAdmin) payload.hrId = selectedIntern.hrId ?? null;
 
     if (editIndex !== null) {
       internApi
@@ -535,6 +547,12 @@ function Interns({
                 Status
               </TableCell>
 
+              {isHr && (
+                <TableCell sx={{ fontWeight: 700 }}>
+                  HR
+                </TableCell>
+              )}
+
               {canManageInterns && (
                 <TableCell
                   align="center"
@@ -555,7 +573,7 @@ function Interns({
                 <TableCell
                   align="center"
                   colSpan={
-                    canManageInterns ? 6 : 5
+                    canManageInterns ? 7 : 5
                   }
                 >
                   No interns found.
@@ -605,6 +623,10 @@ function Interns({
                       />
 
                     </TableCell>
+
+                    {isHr && (
+                      <TableCell>{intern.hrName || "-"}</TableCell>
+                    )}
 
                     {canManageInterns && (
 
@@ -754,6 +776,31 @@ function Interns({
               </Select>
             </FormControl>
           </Grid>
+
+          {isAdmin && (
+            <Grid size={12}>
+              <FormControl fullWidth>
+                <InputLabel>HR</InputLabel>
+                <Select
+                  label="HR"
+                  value={selectedIntern.hrId ?? ""}
+                  onChange={(e) =>
+                    setSelectedIntern({
+                      ...selectedIntern,
+                      hrId: String(e.target.value) === "" ? null : Number(e.target.value),
+                    })
+                  }
+                >
+                  <MenuItem value="">Unassigned</MenuItem>
+                  {hrs.map((h) => (
+                    <MenuItem key={h.id} value={h.id}>
+                      {h.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+          )}
 
         </Grid>
       </DialogContent>

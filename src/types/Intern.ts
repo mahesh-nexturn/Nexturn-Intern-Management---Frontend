@@ -7,6 +7,8 @@ export type Intern = {
   status: string;
   email?: string;
   userId?: number | null;
+  hrId?: number | null;
+  hrName?: string | null;
   createTime?: string;
   updateTime?: string;
 };

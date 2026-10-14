@@ -85,9 +85,8 @@ function MentorDashboard({
   interns = [],
   meetings = [],
   tasks = [],
-  evaluations = [],
 }: MentorDashboardProps) {
-  const mentorName = localStorage.getItem("name") || "Rahul";
+  const mentorName = sessionStorage.getItem("name") || "Rahul";
 
   const myInterns = interns.filter(
     (intern) => intern.mentor === mentorName
@@ -99,10 +98,6 @@ function MentorDashboard({
 
   const myMeetings = meetings.filter(
     (meeting) => meeting.mentor === mentorName
-  );
-
-  const myEvaluations = evaluations.filter(
-    (evaluation) => evaluation.mentor === mentorName
   );
 
   const totalInterns = myInterns.length;
@@ -119,14 +114,6 @@ function MentorDashboard({
   const inProgressTasks = myTasks.filter(
     (task) => task.status === "In Progress"
   ).length;
-
-  const evaluationAverage =
-    myEvaluations.length === 0
-      ? 0
-      : myEvaluations.reduce(
-          (sum, item) => sum + item.overallRating,
-          0
-        ) / myEvaluations.length;
 
   const internProgressData = [
     {
@@ -259,9 +246,9 @@ function MentorDashboard({
         />
 
         <StatCard
-          title="Avg Evaluation"
-          value={evaluationAverage.toFixed(1)}
-          subtitle="Overall rating"
+          title="Completed Tasks"
+          value={completedTasks}
+          subtitle="Finished tasks"
           color="#8b5cf6"
         />
       </Box>

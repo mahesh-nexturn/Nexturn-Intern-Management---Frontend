@@ -9,11 +9,13 @@ import type { ReactNode } from "react";
 import * as authApi from "../services/authApi";
 import { clearTokens, getAccessToken } from "../services/api";
 
-// UI-facing role: backend "ADMIN" is displayed/labeled as "HR" everywhere in the UI.
+// UI-facing role: "HR" means a management user (backend "ADMIN" or backend "HR").
+// Pages check role === "HR" for manage permissions. The exact backend role is kept
+// in AuthUser.backendRole / sessionStorage "backendRole" to tell ADMIN from HR users.
 export type UserRole = "HR" | "MENTOR" | "INTERN";
 
 export function backendRoleToUi(role: authApi.BackendRole): UserRole {
-  return role === "ADMIN" ? "HR" : role;
+  return role === "ADMIN" || role === "HR" ? "HR" : role;
 }
 
 export function uiRoleToBackend(role: UserRole): authApi.BackendRole {
@@ -23,6 +25,7 @@ export function uiRoleToBackend(role: UserRole): authApi.BackendRole {
 type AuthUser = {
   id: number;
   role: UserRole;
+  backendRole: authApi.BackendRole;
   email: string;
   name: string;
 };
@@ -41,17 +44,19 @@ type Props = {
 };
 
 function persistUser(user: AuthUser) {
-  localStorage.setItem("role", user.role);
-  localStorage.setItem("email", user.email);
-  localStorage.setItem("name", user.name);
-  localStorage.setItem("userId", String(user.id));
+  sessionStorage.setItem("role", user.role);
+  sessionStorage.setItem("backendRole", user.backendRole);
+  sessionStorage.setItem("email", user.email);
+  sessionStorage.setItem("name", user.name);
+  sessionStorage.setItem("userId", String(user.id));
 }
 
 function clearUser() {
-  localStorage.removeItem("role");
-  localStorage.removeItem("email");
-  localStorage.removeItem("name");
-  localStorage.removeItem("userId");
+  sessionStorage.removeItem("role");
+  sessionStorage.removeItem("backendRole");
+  sessionStorage.removeItem("email");
+  sessionStorage.removeItem("name");
+  sessionStorage.removeItem("userId");
 }
 
 export function AuthProvider({ children }: Props) {
@@ -60,7 +65,7 @@ export function AuthProvider({ children }: Props) {
 
   useEffect(() => {
     // On app load, if we still hold an access token, re-hydrate the session
-    // from the backend (/auth/me) instead of trusting stale localStorage values.
+    // from the backend (/auth/me) instead of trusting stale sessionStorage values.
     const token = getAccessToken();
     if (!token) {
       setLoading(false);
@@ -73,6 +78,7 @@ export function AuthProvider({ children }: Props) {
         const authUser: AuthUser = {
           id: current.id,
           role: backendRoleToUi(current.role),
+          backendRole: current.role,
           email: current.email,
           name: current.name,
         };
@@ -92,6 +98,7 @@ export function AuthProvider({ children }: Props) {
     const authUser: AuthUser = {
       id: result.userId,
       role: backendRoleToUi(result.role),
+      backendRole: result.role,
       email: result.email,
       name: result.name,
     };

@@ -11,13 +11,13 @@ import {
 
 import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import AvatarUploadDialog from "./AvatarUploadDialog";
 
-function Navbar() {
+function Navbar({ setCollapsed, collapsed }: { setCollapsed: (collapsed: boolean) => void; collapsed: boolean }) {
   const navigate = useNavigate();
   const { logout } = useAuth();
 
@@ -26,8 +26,18 @@ function Navbar() {
 
   const open = Boolean(anchorEl);
 
-  const name = localStorage.getItem("name") || "User";
-  const role = localStorage.getItem("role") || "";
+  const avatarKey = `avatar_${sessionStorage.getItem("userId") ?? "me"}`;
+  const [avatar, setAvatar] = useState(localStorage.getItem(avatarKey) || "");
+  const [uploadOpen, setUploadOpen] = useState(false);
+
+  useEffect(() => {
+    const sync = () => setAvatar(localStorage.getItem(avatarKey) || "");
+    window.addEventListener("avatar-changed", sync);
+    return () => window.removeEventListener("avatar-changed", sync);
+  }, [avatarKey]);
+
+  const name = sessionStorage.getItem("name") || "User";
+  const role = sessionStorage.getItem("role") || "";
 
   const handleMenuOpen = (
     event: React.MouseEvent<HTMLElement>
@@ -39,6 +49,15 @@ function Navbar() {
     setAnchorEl(null);
   };
 
+  const handleProfile = () => {
+    setAnchorEl(null);
+    navigate("/profile");
+  };
+
+  
+  const handleMenuSettings = () => {
+    navigate("/settings");
+  };
   const handleLogout = async () => {
     await logout();
     navigate("/");
@@ -60,8 +79,8 @@ function Navbar() {
           justifyContent: "space-between",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <IconButton edge="start" color="inherit">
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }} >
+          <IconButton edge="start" color="inherit" onClick={() => setCollapsed(!collapsed)}>
             <MenuIcon />
           </IconButton>
 
@@ -84,8 +103,11 @@ function Navbar() {
           </Box>
 
           <IconButton onClick={handleMenuOpen}>
-            <Avatar sx={{ bgcolor: "#2563eb" }}>
-              <AccountCircleIcon />
+            <Avatar
+              src={avatar || undefined}
+              sx={{ bgcolor: "#2563eb", fontWeight: 700 }}
+            >
+              {name.charAt(0).toUpperCase()}
             </Avatar>
           </IconButton>
 
@@ -94,13 +116,32 @@ function Navbar() {
             open={open}
             onClose={handleMenuClose}
           >
-            <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-            <MenuItem onClick={handleMenuClose}>Settings</MenuItem>
+            <MenuItem onClick={handleProfile}>Profile</MenuItem>
+            <MenuItem
+              onClick={() => {
+                setAnchorEl(null);
+                setUploadOpen(true);
+              }}
+            >
+              Upload Photo
+            </MenuItem>
+            <MenuItem onClick={handleMenuSettings}>Settings</MenuItem>
             <MenuItem onClick={handleLogout}>
               <LogoutIcon sx={{ mr: 1 }} />
               Logout
             </MenuItem>
           </Menu>
+
+          <AvatarUploadDialog
+            open={uploadOpen}
+            current={avatar}
+            onClose={() => setUploadOpen(false)}
+            onSave={(url) => {
+              if (url) localStorage.setItem(avatarKey, url);
+              else localStorage.removeItem(avatarKey);
+              window.dispatchEvent(new Event("avatar-changed"));
+            }}
+          />
         </Box>
       </Toolbar>
     </AppBar>

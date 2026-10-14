@@ -8,6 +8,7 @@ import InternDashboard from "../pages/InternDashboard";
 import Mentors from "../pages/Mentors";
 import Interns from "../pages/Interns";
 import Tasks from "../pages/Tasks";
+import TaskDetail from "../pages/TaskDetail";
 import Meetings from "../pages/Meetings";
 import Attendance from "../pages/Attendance";
 import Feedback from "../pages/Feedback";
@@ -20,6 +21,8 @@ import Certificates from "../pages/Certificates";
 import Notifications from "../pages/Notifications";
 import Reports from "../pages/Reports";
 import Settings from "../pages/Settings";
+import Profile from "../pages/Profile";
+import HrManagement from "../pages/HrManagement";
 
 import MainLayout from "../layouts/MainLayout";
 import ProtectedRoute from "../components/ProtectedRoute";
@@ -200,6 +203,17 @@ function AppRoutes({
         />
 
         <Route
+          path="/tasks/:id"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <TaskDetail />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/meetings"
           element={
             <ProtectedRoute>
@@ -342,6 +356,28 @@ function AppRoutes({
             <ProtectedRoute>
               <MainLayout>
                 <Reports reports={reports} />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/hr"
+          element={
+            <ProtectedRoute adminOnly>
+              <MainLayout>
+                <HrManagement />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Profile />
               </MainLayout>
             </ProtectedRoute>
           }

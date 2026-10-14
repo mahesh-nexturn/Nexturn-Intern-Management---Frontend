@@ -4,10 +4,12 @@ import { useAuth } from "../context/AuthContext";
 
 type ProtectedRouteProps = {
   children: React.ReactNode;
+  adminOnly?: boolean;
 };
 
 function ProtectedRoute({
   children,
+  adminOnly = false,
 }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
 
@@ -21,6 +23,16 @@ function ProtectedRoute({
 
   if (!user) {
     return <Navigate to="/" />;
+  }
+
+  if (adminOnly && user.backendRole !== "ADMIN") {
+    const home =
+      user.role === "MENTOR"
+        ? "/mentor-dashboard"
+        : user.role === "INTERN"
+          ? "/intern-dashboard"
+          : "/dashboard";
+    return <Navigate to={home} replace />;
   }
 
   return <>{children}</>;

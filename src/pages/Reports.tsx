@@ -61,7 +61,7 @@ function Reports({
     severity: "success" | "error";
   } | null>(null);
 
-  const role = localStorage.getItem(
+  const role = sessionStorage.getItem(
     "role"
   ) as Role;
 

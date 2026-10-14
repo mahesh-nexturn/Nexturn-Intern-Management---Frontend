@@ -204,6 +204,27 @@ This aligns with `ARCHITECTURE_ANALYSIS.md`'s recommended restructure:
   anti-pattern.
 - Add a real API/data-fetching layer once a backend is available.
 
+## HR Module & Role Matrix
+
+Backend roles: `ADMIN` (super user), `HR`, `MENTOR`, `INTERN`. In the UI, both `ADMIN`
+and `HR` map to the UI role `"HR"` (localStorage `role`), so every existing page treats
+them as managers. The exact backend role is stored in localStorage `backendRole`
+(helpers `isAdminUser()` / `isHrUser()` in `authService.ts`, `user.backendRole` in
+`AuthContext`).
+
+| Capability | ADMIN | HR | MENTOR | INTERN |
+|---|---|---|---|---|
+| Admin dashboard (`/dashboard`), all existing modules | all data | own mentors/interns only (scoped by backend) | mentor views | intern views |
+| HR Management (`/hr`, sidebar "HR Management") | yes | no (redirected to `/dashboard`) | no | no |
+| HR column in Mentors / Interns tables | yes | yes | - | - |
+| HR select in Add/Edit Mentor and Intern dialogs | yes | hidden (backend forces own HR) | - | - |
+
+HR Management page (`pages/HrManagement.tsx`): stats (Total HRs, mentors/interns
+assigned), search, table (Name, Email, Mentors, Interns), Add/Edit dialog (password
+optional), delete with confirm, and "Manage assignments" (`components/HrAssignmentsDialog.tsx`)
+with multi-selects of mentors and interns saved through `PUT /api/hr/{id}/mentors|interns`.
+Service: `services/hrApi.ts`; type: `types/Hr.ts`; route guard: `<ProtectedRoute adminOnly>`.
+
 ## Backend Mapping
 
 See `BACKEND_ARCHITECTURE.md` for the proposed Java Spring Boot + PostgreSQL

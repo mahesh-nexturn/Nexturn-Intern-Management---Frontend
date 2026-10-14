@@ -118,8 +118,8 @@ function Dashboard({
   evaluations,
   notifications,
 }: DashboardProps) {
-  const role = (localStorage.getItem("role") as Role) || "HR";
-  const userName = localStorage.getItem("name") || "Gayathri";
+  const role = (sessionStorage.getItem("role") as Role) || "HR";
+  const userName = sessionStorage.getItem("name") || "Gayathri";
 
   const dashboardTitle =
     role === "HR"

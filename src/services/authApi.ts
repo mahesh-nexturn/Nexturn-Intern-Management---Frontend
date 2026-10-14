@@ -1,7 +1,7 @@
 import api, { setTokens, clearTokens } from "./api";
 import type { ApiResponse } from "./api";
 
-export type BackendRole = "ADMIN" | "MENTOR" | "INTERN";
+export type BackendRole = "ADMIN" | "HR" | "MENTOR" | "INTERN";
 
 export type AuthResponseData = {
   accessToken: string;
@@ -35,7 +35,7 @@ export async function me() {
 }
 
 export async function logout() {
-  const refreshToken = localStorage.getItem("refreshToken");
+  const refreshToken = sessionStorage.getItem("refreshToken");
   try {
     if (refreshToken) {
       await api.post("/auth/logout", { refreshToken });

@@ -68,8 +68,8 @@ function toUiIntern(dto: internApi.InternDto): Intern {
 }
 
 function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
-  const role = localStorage.getItem("role") as Role;
-  const userName = localStorage.getItem("name") || "";
+  const role = sessionStorage.getItem("role") as Role;
+  const userName = sessionStorage.getItem("name") || "";
 
   const isHr = role === "HR";
   const isMentor = role === "MENTOR";

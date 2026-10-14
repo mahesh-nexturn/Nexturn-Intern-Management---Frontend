@@ -9,6 +9,7 @@ export type Task = {
   priority: "High" | "Medium" | "Low";
   dueDate: string;
   status:
+    | "Not Started"
     | "Pending"
     | "In Progress"
     | "Completed";

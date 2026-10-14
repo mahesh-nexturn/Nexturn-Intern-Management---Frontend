@@ -40,7 +40,7 @@ function Feedback() {
   const { user } = useAuth();
 
   const role = (user?.role ??
-    (localStorage.getItem("role") as UserRole | null));
+    (sessionStorage.getItem("role") as UserRole | null));
   const isHr = role === "HR";
 
   const [feedback, setFeedback] =

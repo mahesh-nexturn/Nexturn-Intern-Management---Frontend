@@ -1,6 +1,6 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 
-export const API_BASE_URL = "http://localhost:8080/api";
+export const API_BASE_URL =  import.meta.env.VITE_API_BASE_URL;
 
 // Generic envelope returned by every backend endpoint: { success, data, message }
 export type ApiResponse<T> = {
@@ -17,21 +17,21 @@ const api = axios.create({
 });
 
 export function getAccessToken() {
-  return localStorage.getItem("accessToken");
+  return sessionStorage.getItem("accessToken");
 }
 
 export function getRefreshToken() {
-  return localStorage.getItem("refreshToken");
+  return sessionStorage.getItem("refreshToken");
 }
 
 export function setTokens(accessToken: string, refreshToken: string) {
-  localStorage.setItem("accessToken", accessToken);
-  localStorage.setItem("refreshToken", refreshToken);
+  sessionStorage.setItem("accessToken", accessToken);
+  sessionStorage.setItem("refreshToken", refreshToken);
 }
 
 export function clearTokens() {
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
+  sessionStorage.removeItem("accessToken");
+  sessionStorage.removeItem("refreshToken");
 }
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
@@ -42,8 +42,35 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return config;
 });
 
-let isRefreshing = false;
-let pendingQueue: Array<() => void> = [];
+let refreshPromise: Promise<void> | null = null;
+
+// Single shared refresh so concurrent requests don't each rotate the token.
+function refreshTokens(): Promise<void> {
+  if (!refreshPromise) {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) return Promise.reject(new Error("No refresh token"));
+
+    refreshPromise = axios
+      .post<ApiResponse<{ accessToken: string; refreshToken: string }>>(
+        `${API_BASE_URL}/auth/refresh`,
+        { refreshToken }
+      )
+      .then(({ data }) => setTokens(data.data.accessToken, data.data.refreshToken))
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+}
+
+function isAuthUrl(url?: string) {
+  return !!url && (url.includes("/auth/login") || url.includes("/auth/refresh"));
+}
+
+function logoutToLogin() {
+  clearTokens();
+  window.location.href = "/";
+}
 
 api.interceptors.response.use(
   (response) => response,
@@ -52,50 +79,28 @@ api.interceptors.response.use(
       | (InternalAxiosRequestConfig & { _retry?: boolean })
       | undefined;
 
-    const isAuthEndpoint = originalRequest?.url?.includes("/auth/login") ||
-      originalRequest?.url?.includes("/auth/refresh");
-
+    // The backend answers 403 (not 401) for a missing/expired token, so refresh on both.
+    const status = error.response?.status;
     if (
-      error.response?.status === 401 &&
+      (status === 401 || status === 403) &&
       originalRequest &&
       !originalRequest._retry &&
-      !isAuthEndpoint
+      !isAuthUrl(originalRequest.url)
     ) {
-      const refreshToken = getRefreshToken();
-      if (!refreshToken) {
-        clearTokens();
-        window.location.href = "/";
+      if (!getRefreshToken()) {
+        logoutToLogin();
         return Promise.reject(error);
       }
 
       originalRequest._retry = true;
 
-      if (isRefreshing) {
-        // Wait for the in-flight refresh to finish, then retry.
-        return new Promise((resolve) => {
-          pendingQueue.push(() => resolve(api(originalRequest)));
-        });
-      }
-
-      isRefreshing = true;
       try {
-        const { data } = await axios.post<ApiResponse<{
-          accessToken: string;
-          refreshToken: string;
-        }>>(`${API_BASE_URL}/auth/refresh`, { refreshToken });
-
-        setTokens(data.data.accessToken, data.data.refreshToken);
-        pendingQueue.forEach((cb) => cb());
-        pendingQueue = [];
-
-        return api(originalRequest);
+        await refreshTokens();
       } catch (refreshError) {
-        clearTokens();
-        window.location.href = "/";
+        logoutToLogin();
         return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
       }
+      return api(originalRequest);
     }
 
     return Promise.reject(error);

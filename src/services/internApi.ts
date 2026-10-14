@@ -10,6 +10,8 @@ export type InternDto = {
   mentorId: number | null;
   mentorName: string | null;
   userId: number | null;
+  hrId?: number | null;
+  hrName?: string | null;
   createTime?: string;
   updateTime?: string;
 };
@@ -21,6 +23,7 @@ export type InternPayload = {
   status: string;
   mentorId?: number | null;
   userId?: number | null;
+  hrId?: number | null;
 };
 
 export async function listInterns() {

@@ -9,6 +9,7 @@ import {
 
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
+import BadgeIcon from "@mui/icons-material/Badge";
 import GroupIcon from "@mui/icons-material/Group";
 import TaskIcon from "@mui/icons-material/Task";
 import EventIcon from "@mui/icons-material/Event";
@@ -34,7 +35,7 @@ function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const role = localStorage.getItem("role");
+  const role = sessionStorage.getItem("role");
 
   let menu: MenuItem[] = [];
 
@@ -55,6 +56,14 @@ function Sidebar() {
       { text: "Reports", icon: <AssessmentIcon />, path: "/reports" },
       { text: "Settings", icon: <SettingsIcon />, path: "/settings" },
     ];
+
+    if (sessionStorage.getItem("backendRole") === "ADMIN") {
+      menu.splice(1, 0, {
+        text: "HR Management",
+        icon: <BadgeIcon />,
+        path: "/hr",
+      });
+    }
   }
 
   if (role === "MENTOR") {
@@ -64,6 +73,7 @@ function Sidebar() {
       { text: "Tasks", icon: <TaskIcon />, path: "/tasks" },
       { text: "Meetings", icon: <EventIcon />, path: "/meetings" },
       { text: "Evaluations", icon: <FactCheckIcon />, path: "/evaluations" },
+      { text: "Notifications", icon: <NotificationsIcon />, path: "/notifications" },
       { text: "Reports", icon: <AssessmentIcon />, path: "/reports" },
       { text: "Settings", icon: <SettingsIcon />, path: "/settings" },
     ];
@@ -74,6 +84,7 @@ function Sidebar() {
       { text: "Dashboard", icon: <DashboardIcon />, path: "/intern-dashboard" },
       { text: "Tasks", icon: <TaskIcon />, path: "/tasks" },
       { text: "Meetings", icon: <EventIcon />, path: "/meetings" },
+      { text: "Attendance", icon: <CalendarMonthIcon />, path: "/attendance" },
       { text: "Training", icon: <SchoolIcon />, path: "/training" },
       { text: "Documents", icon: <DescriptionIcon />, path: "/documents" },
       { text: "Certificates", icon: <WorkspacePremiumIcon />, path: "/certificates" },

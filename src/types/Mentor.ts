@@ -5,4 +5,6 @@ export type Mentor = {
   department: string;
   designation: string;
   status: "Active" | "Inactive";
+  hrId?: number | null;
+  hrName?: string | null;
 }

@@ -38,8 +38,8 @@ type AnnouncementsProps = {
 type Role = "HR" | "MENTOR" | "INTERN" | null;
 
 function userLabelForId(userId?: number | null) {
-  const currentUserId = Number(localStorage.getItem("userId") || "0");
-  const currentUserName = localStorage.getItem("name") || "";
+  const currentUserId = Number(sessionStorage.getItem("userId") || "0");
+  const currentUserName = sessionStorage.getItem("name") || "";
 
   if (userId && userId === currentUserId && currentUserName) {
     return currentUserName;
@@ -67,9 +67,9 @@ function todayString() {
 }
 
 function Announcements({ announcements, setAnnouncements }: AnnouncementsProps) {
-  const role = localStorage.getItem("role") as Role;
-  const userName = localStorage.getItem("name") || "";
-  const currentUserId = Number(localStorage.getItem("userId") || "0");
+  const role = sessionStorage.getItem("role") as Role;
+  const userName = sessionStorage.getItem("name") || "";
+  const currentUserId = Number(sessionStorage.getItem("userId") || "0");
   const isHr = role === "HR";
 
   const [open, setOpen] = useState(false);

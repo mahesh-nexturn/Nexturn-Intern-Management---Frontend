@@ -5,20 +5,14 @@ import {
   Box,
   Button,
   Divider,
-  FormControl,
   FormControlLabel,
-  InputLabel,
-  MenuItem,
   Paper,
-  Select,
   Snackbar,
   Switch,
   TextField,
   Typography,
 } from "@mui/material";
 
-import { useAuth } from "../context/AuthContext";
-import { backendRoleToUi } from "../context/AuthContext";
 import * as authApi from "../services/authApi";
 import * as settingsApi from "../services/settingsApi";
 
@@ -41,7 +35,6 @@ const defaultPasswordForm: PasswordFormState =
   };
 
 function Settings() {
-  const { user } = useAuth();
 
   const [settings, setSettings] =
     useState<settingsApi.SettingsDto | null>(
@@ -94,27 +87,6 @@ function Settings() {
       cancelled = true;
     };
   }, []);
-
-  const displayName =
-    settings?.name ??
-    user?.name ??
-    localStorage.getItem("name") ??
-    "";
-
-  const displayEmail =
-    settings?.email ??
-    user?.email ??
-    localStorage.getItem("email") ??
-    "";
-
-  const displayRole =
-    settings?.role
-      ? backendRoleToUi(
-          settings.role as authApi.BackendRole
-        )
-      : user?.role ??
-        localStorage.getItem("role") ??
-        "";
 
   const handleSaveSettings =
     async () => {
@@ -222,8 +194,7 @@ function Settings() {
             mt: 0.5,
           }}
         >
-          Manage your profile,
-          preferences, and password.
+          Manage your notifications and password.
         </Typography>
       </Box>
 
@@ -232,7 +203,7 @@ function Settings() {
           display: "grid",
           gridTemplateColumns: {
             xs: "1fr",
-            lg: "1.2fr 1fr",
+            lg: "minmax(0, 640px)",
           },
           gap: 3,
         }}
@@ -248,178 +219,7 @@ function Settings() {
             variant="h6"
             sx={{ fontWeight: 700, mb: 2 }}
           >
-            Profile & Preferences
-          </Typography>
-
-          <Box
-            sx={{
-              display: "grid",
-              gap: 2,
-            }}
-          >
-            <TextField
-              label="Name"
-              value={displayName}
-              disabled
-            />
-
-            <TextField
-              label="Email"
-              value={displayEmail}
-              disabled
-            />
-
-            <TextField
-              label="Role"
-              value={displayRole}
-              disabled
-            />
-
-            <Divider sx={{ my: 1 }} />
-
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={
-                    settings?.emailNotifications ??
-                    false
-                  }
-                  onChange={(e) =>
-                    setSettings((current) =>
-                      current
-                        ? {
-                            ...current,
-                            emailNotifications:
-                              e.target
-                                .checked,
-                          }
-                        : current
-                    )
-                  }
-                />
-              }
-              label="Email notifications"
-            />
-
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={
-                    settings?.pushNotifications ??
-                    false
-                  }
-                  onChange={(e) =>
-                    setSettings((current) =>
-                      current
-                        ? {
-                            ...current,
-                            pushNotifications:
-                              e.target
-                                .checked,
-                          }
-                        : current
-                    )
-                  }
-                />
-              }
-              label="Push notifications"
-            />
-
-            <FormControl fullWidth>
-              <InputLabel>
-                Theme
-              </InputLabel>
-              <Select
-                value={
-                  settings?.theme ??
-                  "light"
-                }
-                label="Theme"
-                onChange={(e) =>
-                  setSettings((current) =>
-                    current
-                      ? {
-                          ...current,
-                          theme:
-                            e.target
-                              .value,
-                        }
-                      : current
-                  )
-                }
-              >
-                <MenuItem value="light">
-                  Light
-                </MenuItem>
-                <MenuItem value="dark">
-                  Dark
-                </MenuItem>
-                <MenuItem value="system">
-                  System
-                </MenuItem>
-              </Select>
-            </FormControl>
-
-            <TextField
-              label="Phone"
-              value={
-                settings?.phone ?? ""
-              }
-              onChange={(e) =>
-                setSettings((current) =>
-                  current
-                    ? {
-                        ...current,
-                        phone:
-                          e.target.value,
-                      }
-                    : current
-                )
-              }
-              placeholder="Enter phone number"
-            />
-
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent:
-                  "flex-end",
-              }}
-            >
-              <Button
-                variant="contained"
-                onClick={() => {
-                  void handleSaveSettings();
-                }}
-                disabled={
-                  saving || loading || !settings
-                }
-                sx={{
-                  textTransform:
-                    "none",
-                  fontWeight: 700,
-                }}
-              >
-                {saving
-                  ? "Saving..."
-                  : "Save Settings"}
-              </Button>
-            </Box>
-          </Box>
-        </Paper>
-
-        <Paper
-          elevation={2}
-          sx={{
-            p: 3,
-            borderRadius: 4,
-          }}
-        >
-          <Typography
-            variant="h6"
-            sx={{ fontWeight: 700, mb: 2 }}
-          >
-            Change Password
+            Security & Notifications
           </Typography>
 
           <Box
@@ -493,6 +293,88 @@ function Settings() {
                 {changingPassword
                   ? "Updating..."
                   : "Change Password"}
+              </Button>
+            </Box>
+
+            <Divider sx={{ my: 1 }} />
+
+            <Typography
+              variant="h6"
+              sx={{ fontWeight: 700 }}
+            >
+              Notifications
+            </Typography>
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={
+                    settings?.emailNotifications ??
+                    false
+                  }
+                  onChange={(e) =>
+                    setSettings((current) =>
+                      current
+                        ? {
+                            ...current,
+                            emailNotifications:
+                              e.target.checked,
+                          }
+                        : current
+                    )
+                  }
+                />
+              }
+              label="Email notifications"
+            />
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={
+                    settings?.pushNotifications ??
+                    false
+                  }
+                  onChange={(e) =>
+                    setSettings((current) =>
+                      current
+                        ? {
+                            ...current,
+                            pushNotifications:
+                              e.target.checked,
+                          }
+                        : current
+                    )
+                  }
+                />
+              }
+              label="Push notifications"
+            />
+
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent:
+                  "flex-end",
+              }}
+            >
+              <Button
+                variant="contained"
+                onClick={() => {
+                  void handleSaveSettings();
+                }}
+                disabled={
+                  saving || loading || !settings
+                }
+                sx={{
+                  textTransform:
+                    "none",
+                  fontWeight: 700,
+                }}
+              >
+                {saving
+                  ? "Saving..."
+                  : "Save Notifications"}
               </Button>
             </Box>
           </Box>

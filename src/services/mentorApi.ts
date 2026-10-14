@@ -9,6 +9,8 @@ export type MentorDto = {
   designation: string;
   status: string;
   userId: number | null;
+  hrId?: number | null;
+  hrName?: string | null;
 };
 
 export type MentorPayload = {
@@ -18,6 +20,7 @@ export type MentorPayload = {
   designation: string;
   status: string;
   userId?: number | null;
+  hrId?: number | null;
 };
 
 export async function listMentors() {

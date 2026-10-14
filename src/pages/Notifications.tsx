@@ -42,8 +42,8 @@ function formatDate(value?: string | null) {
 }
 
 function userLabelForId(userId?: number | null) {
-  const currentUserId = Number(localStorage.getItem("userId") || "0");
-  const currentUserName = localStorage.getItem("name") || "";
+  const currentUserId = Number(sessionStorage.getItem("userId") || "0");
+  const currentUserName = sessionStorage.getItem("name") || "";
 
   if (userId && userId === currentUserId && currentUserName) {
     return currentUserName;
@@ -58,7 +58,7 @@ export function toUiNotification(dto: notificationApi.NotificationDto): Notifica
     title: dto.title,
     message: dto.message,
     recipient: dto.recipient as Notification["recipient"],
-    createdBy: userLabelForId(dto.createdByUserId),
+    createdBy: dto.createdByName || userLabelForId(dto.createdByUserId),
     createdByUserId: dto.createdByUserId,
     date: formatDate(dto.notificationDate),
     status: dto.status as Notification["status"],
@@ -70,9 +70,9 @@ function todayString() {
 }
 
 function Notifications({ notifications, setNotifications }: NotificationsProps) {
-  const role = localStorage.getItem("role") as Role;
-  const userName = localStorage.getItem("name") || "";
-  const currentUserId = Number(localStorage.getItem("userId") || "0");
+  const role = sessionStorage.getItem("role") as Role;
+  const userName = sessionStorage.getItem("name") || "";
+  const currentUserId = Number(sessionStorage.getItem("userId") || "0");
   const isHr = role === "HR";
 
   const [open, setOpen] = useState(false);

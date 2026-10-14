@@ -19,6 +19,7 @@ import MonthlyAttendanceGrid from "./MonthlyAttendanceGrid";
 type Props = {
   attendance: Attendance[];
   interns: Intern[];
+  onInternChange?: (name: string) => void;
 };
 
 type Role = "HR" | "MENTOR" | "INTERN" | null;
@@ -26,13 +27,14 @@ type Role = "HR" | "MENTOR" | "INTERN" | null;
 function AttendanceCalendar({
   attendance,
   interns,
+  onInternChange,
 }: Props) {
-  const role = localStorage.getItem(
+  const role = sessionStorage.getItem(
     "role"
   ) as Role;
 
   const userName =
-    localStorage.getItem("name") || "";
+    sessionStorage.getItem("name") || "";
 
   const visibleInterns =
     role === "HR"
@@ -79,6 +81,11 @@ function AttendanceCalendar({
     visibleInterns,
   ]);
 
+  useEffect(() => {
+    onInternChange?.(selectedIntern);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIntern]);
+
   const filteredAttendance = attendance.filter(
     (item) => {
       const itemDate = new Date(item.date);
@@ -93,6 +100,32 @@ function AttendanceCalendar({
     }
   );
 
+  const startDate = (
+    interns.find((intern) => intern.name === selectedIntern)?.createTime || ""
+  ).slice(0, 10);
+
+  const missingAbsentCount = (() => {
+    if (!startDate) return 0;
+    const now = new Date();
+    const todayString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
+    let count = 0;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateString = `${selectedYear}-${String(selectedMonth).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const dow = new Date(selectedYear, selectedMonth - 1, d).getDay();
+      if (
+        dow !== 0 &&
+        dow !== 6 &&
+        dateString >= startDate &&
+        dateString < todayString &&
+        !filteredAttendance.some((item) => item.date === dateString)
+      ) {
+        count++;
+      }
+    }
+    return count;
+  })();
+
   const presentCount =
     filteredAttendance.filter(
       (item) => item.status === "Present"
@@ -100,8 +133,10 @@ function AttendanceCalendar({
 
   const absentCount =
     filteredAttendance.filter(
-      (item) => item.status === "Absent"
-    ).length;
+      (item) =>
+        item.status === "Absent" &&
+        !(item.checkInTime && !item.checkOutTime)
+    ).length + missingAbsentCount;
 
   const leaveCount =
     filteredAttendance.filter(
@@ -273,6 +308,9 @@ function AttendanceCalendar({
         >
           <MonthlyAttendanceGrid
             attendance={filteredAttendance}
+            startDate={startDate}
+            year={selectedYear}
+            month={selectedMonth}
           />
         </Box>
 

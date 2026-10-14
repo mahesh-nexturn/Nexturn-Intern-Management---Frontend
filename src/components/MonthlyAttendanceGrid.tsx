@@ -3,6 +3,11 @@ import type { Attendance } from "../types/Attendance";
 
 type Props = {
   attendance: Attendance[];
+  /** First day (YYYY-MM-DD) of the intern; past days without a record from here on count as Absent. */
+  startDate?: string;
+  /** Selected year and 1-based month; falls back to the first record's month. */
+  year?: number;
+  month?: number;
 };
 
 type StatusType =
@@ -13,11 +18,14 @@ type StatusType =
   | "WFH"
   | "";
 
-function MonthlyAttendanceGrid({ attendance }: Props) {
+function MonthlyAttendanceGrid({ attendance, startDate, year: yearProp, month: monthProp }: Props) {
   const today = new Date();
+  const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
   const baseDate =
-    attendance.length > 0
+    yearProp && monthProp
+      ? new Date(yearProp, monthProp - 1, 1)
+      : attendance.length > 0
       ? new Date(attendance[0].date)
       : today;
 
@@ -131,7 +139,16 @@ function MonthlyAttendanceGrid({ attendance }: Props) {
             (item) => item.date === dateString
           );
 
+          const dow = new Date(year, month, day).getDay();
+          const missingAbsent =
+            !record && dow !== 0 && dow !== 6 && !!startDate && dateString >= startDate && dateString < todayString;
+
           const status = (record?.status || "") as StatusType;
+          const inProgress = !!record?.checkInTime && !record?.checkOutTime && status !== "Present";
+          const formatTime = (iso?: string | null) =>
+            iso
+              ? new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+              : "--:--";
 
           return (
             <Paper
@@ -142,8 +159,12 @@ function MonthlyAttendanceGrid({ attendance }: Props) {
                 p: 1.5,
                 borderRadius: 2,
                 border: "1px solid #e0e0e0",
-                bgcolor: record
+                bgcolor: inProgress
+                  ? "#fffde7"
+                  : record
                   ? getStatusColor(status)
+                  : missingAbsent
+                  ? getStatusColor("Absent")
                   : "#fafafa",
               }}
             >
@@ -158,19 +179,47 @@ function MonthlyAttendanceGrid({ attendance }: Props) {
               </Typography>
 
               {record ? (
+                <>
+                  <Box
+                    sx={{
+                      display: "inline-block",
+                      px: 1,
+                      py: 0.4,
+                      borderRadius: 1,
+                      bgcolor: inProgress ? "#fff9c4" : getStatusColor(status),
+                      color: inProgress ? "#f57f17" : getStatusTextColor(status),
+                      fontSize: 12,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {inProgress ? "In progress" : record.status}
+                  </Box>
+
+                  {record.checkInTime && (
+                    <Typography sx={{ fontSize: 11, color: "#555", mt: 0.5 }}>
+                      In: {formatTime(record.checkInTime)}
+                    </Typography>
+                  )}
+                  {record.checkInTime && (
+                    <Typography sx={{ fontSize: 11, color: "#555" }}>
+                      Out: {formatTime(record.checkOutTime)}
+                    </Typography>
+                  )}
+                </>
+              ) : missingAbsent ? (
                 <Box
                   sx={{
                     display: "inline-block",
                     px: 1,
                     py: 0.4,
                     borderRadius: 1,
-                    bgcolor: getStatusColor(status),
-                    color: getStatusTextColor(status),
+                    bgcolor: getStatusColor("Absent"),
+                    color: getStatusTextColor("Absent"),
                     fontSize: 12,
                     fontWeight: 700,
                   }}
                 >
-                  {record.status}
+                  Absent
                 </Box>
               ) : (
                 <Typography
@@ -179,7 +228,7 @@ function MonthlyAttendanceGrid({ attendance }: Props) {
                     color: "#999",
                   }}
                 >
-                  No Record
+                  {dow === 0 || dow === 6 ? "Weekend" : "No Record"}
                 </Typography>
               )}
             </Paper>

@@ -40,7 +40,7 @@ function AddTaskDialog({
   const [dueDate, setDueDate] = useState("");
 
   const [status, setStatus] =
-    useState<Task["status"]>("Pending");
+    useState<Task["status"]>("Not Started");
 
   const [progress, setProgress] =
     useState(0);
@@ -78,6 +78,8 @@ function AddTaskDialog({
 
     const intern = interns.find((i) => i.id === internId);
 
+    const isNew = !selectedTask.id;
+
     addTask({
       id: selectedTask.id,
       title,
@@ -88,8 +90,8 @@ function AddTaskDialog({
       mentorId: intern?.mentorId ?? null,
       priority,
       dueDate,
-      status,
-      progress,
+      status: isNew ? "Not Started" : status,
+      progress: isNew ? 0 : progress,
     });
 
     handleClose();
@@ -151,16 +153,6 @@ function AddTaskDialog({
         </TextField>
 
         <TextField
-          fullWidth
-          label="Mentor"
-          margin="dense"
-          value={
-            interns.find((i) => i.id === internId)?.mentor || ""
-          }
-          disabled
-        />
-
-        <TextField
           select
           fullWidth
           label="Priority"
@@ -197,44 +189,6 @@ function AddTaskDialog({
           }}
           onChange={(e) =>
             setDueDate(e.target.value)
-          }
-        />
-
-        <TextField
-          select
-          fullWidth
-          label="Status"
-          margin="dense"
-          value={status}
-          onChange={(e) =>
-            setStatus(
-              e.target.value as Task["status"]
-            )
-          }
-        >
-          <MenuItem value="Pending">
-            Pending
-          </MenuItem>
-
-          <MenuItem value="In Progress">
-            In Progress
-          </MenuItem>
-
-          <MenuItem value="Completed">
-            Completed
-          </MenuItem>
-        </TextField>
-
-        <TextField
-          fullWidth
-          type="number"
-          label="Progress (%)"
-          margin="dense"
-          value={progress}
-          onChange={(e) =>
-            setProgress(
-              Number(e.target.value)
-            )
           }
         />
       </DialogContent>

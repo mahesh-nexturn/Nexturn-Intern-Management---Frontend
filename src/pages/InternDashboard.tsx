@@ -90,7 +90,7 @@ function InternDashboard({
 }: InternDashboardProps) {
 
   const internName =
-    localStorage.getItem("name") || "John";
+    sessionStorage.getItem("name") || "John";
 
   const myTasks = tasks.filter(
     (t) => t.assignedTo === internName

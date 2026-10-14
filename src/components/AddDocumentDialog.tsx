@@ -26,7 +26,7 @@ function AddDocumentDialog({
   addDocument,
   selectedDocument,
 }: AddDocumentDialogProps) {
-  const userName = localStorage.getItem("name") || "";
+  const userName = sessionStorage.getItem("name") || "";
 
   const [documentType, setDocumentType] = useState<Document["documentType"]>("Resume");
   const [file, setFile] = useState<File | null>(null);

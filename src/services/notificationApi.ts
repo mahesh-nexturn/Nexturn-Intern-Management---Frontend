@@ -7,6 +7,7 @@ export type NotificationDto = {
   message: string;
   recipient: string;
   createdByUserId: number | null;
+  createdByName?: string | null;
   notificationDate: string;
   status: string;
 };

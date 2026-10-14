@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
   Alert,
@@ -25,6 +26,7 @@ import {
 
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
 import AddTaskDialog from "../components/AddTaskDialog";
 import TaskChart from "../components/TaskChart";
@@ -74,6 +76,7 @@ function Tasks({
   setTasks,
   interns,
 }: TasksProps) {
+  const navigate = useNavigate();
   const [open, setOpen] =
     useState(false);
 
@@ -81,6 +84,9 @@ function Tasks({
     useState<number | null>(null);
 
   const [searchTerm, setSearchTerm] =
+    useState("");
+
+  const [internSearch, setInternSearch] =
     useState("");
 
   const [statusFilter, setStatusFilter] =
@@ -124,12 +130,12 @@ function Tasks({
       interns.find((i) => i.id === t.internId)?.mentor || t.mentor,
   }));
 
-  const role = localStorage.getItem(
+  const role = sessionStorage.getItem(
     "role"
   ) as Role;
 
   const userName =
-    localStorage.getItem("name") || "";
+    sessionStorage.getItem("name") || "";
 
   const isHr = role === "HR";
   const isMentor = role === "MENTOR";
@@ -158,6 +164,10 @@ function Tasks({
         .includes(
           searchTerm.toLowerCase()
         )
+    )
+    .filter((task) =>
+      !internSearch ||
+      task.assignedTo === internSearch
     )
     .filter(
       (task) =>
@@ -204,7 +214,7 @@ function Tasks({
       mentor: userName,
       priority: "Medium",
       dueDate: "",
-      status: "Pending",
+      status: "Not Started",
       progress: 0,
     });
 
@@ -326,6 +336,46 @@ function Tasks({
           }
         />
 
+        {!isIntern && (
+          <TextField
+            select
+            label="Intern"
+            value={internSearch}
+            onChange={(e) =>
+              setInternSearch(
+                e.target.value
+              )
+            }
+            sx={{ minWidth: 180 }}
+          >
+            <MenuItem value="">
+              All
+            </MenuItem>
+
+            {[
+              ...new Set(
+                interns
+                  .filter(
+                    (i) =>
+                      !isMentor ||
+                      i.mentor === userName
+                  )
+                  .map((i) => i.name)
+                  .filter(Boolean)
+              ),
+            ]
+              .sort()
+              .map((name) => (
+                <MenuItem
+                  key={name}
+                  value={name}
+                >
+                  {name}
+                </MenuItem>
+              ))}
+          </TextField>
+        )}
+
         <FormControl
           sx={{
             minWidth: 180,
@@ -346,6 +396,10 @@ function Tasks({
           >
             <MenuItem value="All">
               All
+            </MenuItem>
+
+            <MenuItem value="Not Started">
+              Not Started
             </MenuItem>
 
             <MenuItem value="Pending">
@@ -413,9 +467,11 @@ function Tasks({
                 Assigned To
               </TableCell>
 
-              <TableCell>
-                Mentor
-              </TableCell>
+              {!isMentor && (
+                <TableCell>
+                  Mentor
+                </TableCell>
+              )}
 
               <TableCell>
                 Priority
@@ -433,6 +489,10 @@ function Tasks({
                 Progress
               </TableCell>
 
+              <TableCell>
+                Open
+              </TableCell>
+
               {canManageTasks && (
                 <TableCell>
                   Actions
@@ -442,6 +502,20 @@ function Tasks({
           </TableHead>
 
           <TableBody>
+            {filteredTasks.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={9}
+                  align="center"
+                  sx={{ py: 4, color: "text.secondary" }}
+                >
+                  {internSearch
+                    ? `No tasks assigned to ${internSearch}.`
+                    : "No tasks found."}
+                </TableCell>
+              </TableRow>
+            )}
+
             {filteredTasks.map(
               (
                 task,
@@ -451,7 +525,21 @@ function Tasks({
                   key={index}
                 >
                   <TableCell>
-                    {task.title}
+                    <Typography
+                      component="span"
+                      onClick={() =>
+                        navigate(`/tasks/${task.id}`)
+                      }
+                      sx={{
+                        cursor: "pointer",
+                        color: "primary.main",
+                        "&:hover": {
+                          textDecoration: "underline",
+                        },
+                      }}
+                    >
+                      {task.title}
+                    </Typography>
                   </TableCell>
 
                   <TableCell>
@@ -460,9 +548,11 @@ function Tasks({
                     }
                   </TableCell>
 
-                  <TableCell>
-                    {task.mentor}
-                  </TableCell>
+                  {!isMentor && (
+                    <TableCell>
+                      {task.mentor}
+                    </TableCell>
+                  )}
 
                   <TableCell>
                     <Chip
@@ -497,6 +587,9 @@ function Tasks({
                           : task.status ===
                             "In Progress"
                           ? "primary"
+                          : task.status ===
+                            "Not Started"
+                          ? "default"
                           : "warning"
                       }
                     />
@@ -522,6 +615,16 @@ function Tasks({
                       }
                       %
                     </Typography>
+                  </TableCell>
+
+                  <TableCell>
+                    <IconButton
+                      color="primary"
+                      title="Open task"
+                      onClick={() => navigate(`/tasks/${task.id}`)}
+                    >
+                      <OpenInNewIcon />
+                    </IconButton>
                   </TableCell>
 
                   {canManageTasks && (

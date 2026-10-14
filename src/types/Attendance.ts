@@ -5,6 +5,9 @@ export type Attendance = {
   mentor: string;
   mentorId?: number | null;
   date: string;
+  checkInTime?: string | null;
+  checkOutTime?: string | null;
+  workedSeconds?: number;
   status:
     | "Present"
     | "Absent"

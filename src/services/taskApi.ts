@@ -63,3 +63,40 @@ export async function updateTask(id: number, payload: TaskPayload) {
 export async function deleteTask(id: number) {
   await api.delete(`/tasks/${id}`);
 }
+
+export type TaskCommentDto = {
+  id: number;
+  authorId: number;
+  authorName: string;
+  authorRole: string;
+  content: string;
+  createdAt: string;
+};
+
+export async function getTask(id: number) {
+  const { data } = await api.get<ApiResponse<TaskDto>>(`/tasks/${id}`);
+  return data.data;
+}
+
+export async function listComments(taskId: number) {
+  const { data } = await api.get<ApiResponse<TaskCommentDto[]>>(`/tasks/${taskId}/comments`);
+  return data.data;
+}
+
+export async function addComment(taskId: number, content: string) {
+  const { data } = await api.post<ApiResponse<TaskCommentDto>>(`/tasks/${taskId}/comments`, { content });
+  return data.data;
+}
+
+export async function editComment(taskId: number, commentId: number, content: string) {
+  const { data } = await api.put<ApiResponse<TaskCommentDto>>(`/tasks/${taskId}/comments/${commentId}`, { content });
+  return data.data;
+}
+
+export async function updateTaskWork(
+  id: number,
+  payload: { status?: string; progress?: number; description?: string; title?: string }
+) {
+  const { data } = await api.patch<ApiResponse<TaskDto>>(`/tasks/${id}/work`, payload);
+  return data.data;
+}

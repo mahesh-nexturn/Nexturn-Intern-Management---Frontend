@@ -45,6 +45,10 @@ function AddMeetingDialog({
   }, [selectedMeeting]);
 
   const selectedIntern = interns.find((intern) => intern.id === internId);
+  const statusOnly =
+    selectedMeeting.id !== 0 &&
+    !!selectedMeeting.date &&
+    new Date(`${selectedMeeting.date}T${selectedMeeting.time || "00:00"}`).getTime() <= Date.now();
 
   const handleSave = () => {
     if (!title.trim()) {
@@ -88,6 +92,7 @@ function AddMeetingDialog({
           margin="dense"
           label="Title"
           value={title}
+          disabled={statusOnly}
           onChange={(e) => setTitle(e.target.value)}
         />
 
@@ -98,6 +103,7 @@ function AddMeetingDialog({
           rows={3}
           label="Agenda"
           value={agenda}
+          disabled={statusOnly}
           onChange={(e) => setAgenda(e.target.value)}
         />
 
@@ -107,6 +113,7 @@ function AddMeetingDialog({
           margin="dense"
           label="Intern"
           value={internId}
+          disabled={statusOnly}
           onChange={(e) => setInternId(e.target.value === "" ? "" : Number(e.target.value))}
         >
           {interns.map((intern) => (
@@ -119,16 +126,9 @@ function AddMeetingDialog({
         <TextField
           fullWidth
           margin="dense"
-          label="Mentor"
-          value={selectedIntern?.mentor || ""}
-          disabled
-        />
-
-        <TextField
-          fullWidth
-          margin="dense"
           type="date"
           value={date}
+          disabled={statusOnly}
           slotProps={{ inputLabel: { shrink: true } }}
           onChange={(e) => setDate(e.target.value)}
         />
@@ -138,6 +138,7 @@ function AddMeetingDialog({
           margin="dense"
           type="time"
           value={time}
+          disabled={statusOnly}
           slotProps={{ inputLabel: { shrink: true } }}
           onChange={(e) => setTime(e.target.value)}
         />
