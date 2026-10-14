@@ -46,11 +46,6 @@ function Navbar({ setCollapsed, collapsed }: { setCollapsed: (collapsed: boolean
   };
 
   const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleProfile = () => {
-    setAnchorEl(null);
     navigate("/profile");
   };
 
@@ -116,15 +111,7 @@ function Navbar({ setCollapsed, collapsed }: { setCollapsed: (collapsed: boolean
             open={open}
             onClose={handleMenuClose}
           >
-            <MenuItem onClick={handleProfile}>Profile</MenuItem>
-            <MenuItem
-              onClick={() => {
-                setAnchorEl(null);
-                setUploadOpen(true);
-              }}
-            >
-              Upload Photo
-            </MenuItem>
+            <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
             <MenuItem onClick={handleMenuSettings}>Settings</MenuItem>
             <MenuItem onClick={handleLogout}>
               <LogoutIcon sx={{ mr: 1 }} />
