@@ -40,13 +40,20 @@ function Navbar({
   }
 
   const handleMenuClose = () => {
+    setAnchorEl(null)
+  }
+
+  const handleMenuProfile = () => {
+    setAnchorEl(null)
     navigate('/profile')
   }
 
   const handleMenuSettings = () => {
+    setAnchorEl(null)
     navigate('/settings')
   }
   const handleLogout = async () => {
+    setAnchorEl(null)
     await logout()
     navigate('/')
   }
@@ -97,7 +104,7 @@ function Navbar({
           </IconButton>
 
           <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
-            <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
+            <MenuItem onClick={handleMenuProfile}>Profile</MenuItem>
             <MenuItem onClick={handleMenuSettings}>Settings</MenuItem>
             <MenuItem onClick={handleLogout}>
               <LogoutIcon sx={{ mr: 1 }} />

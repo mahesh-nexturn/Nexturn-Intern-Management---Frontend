@@ -10,6 +10,7 @@ export type NotificationDto = {
   createdByName?: string | null
   notificationDate: string
   status: string
+  link?: string | null
 }
 
 export type NotificationPayload = {

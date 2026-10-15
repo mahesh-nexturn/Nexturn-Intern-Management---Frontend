@@ -26,5 +26,6 @@ export function toUiNotification(dto: notificationApi.NotificationDto): Notifica
     createdByUserId: dto.createdByUserId,
     date: formatDate(dto.notificationDate),
     status: dto.status as Notification['status'],
+    link: dto.link ?? null,
   }
 }

@@ -12,6 +12,7 @@ export type InternDto = {
   userId: number | null
   hrId?: number | null
   hrName?: string | null
+  endDate?: string | null
   createTime?: string
   updateTime?: string
 }
@@ -24,6 +25,7 @@ export type InternPayload = {
   mentorId?: number | null
   userId?: number | null
   hrId?: number | null
+  endDate?: string | null
 }
 
 export async function listInterns() {

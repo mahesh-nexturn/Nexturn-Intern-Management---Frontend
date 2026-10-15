@@ -6,6 +6,7 @@ export type Intern = {
   mentorId?: number | null
   status: string
   email?: string
+  endDate?: string | null
   userId?: number | null
   hrId?: number | null
   hrName?: string | null

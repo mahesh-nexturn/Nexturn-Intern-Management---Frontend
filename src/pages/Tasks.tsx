@@ -387,7 +387,7 @@ function Tasks({ tasks, setTasks, interns }: TasksProps) {
                           ? 'primary'
                           : task.status === 'Not Started'
                             ? 'default'
-                            : 'warning'
+                            : 'secondary'
                     }
                   />
                 </TableCell>

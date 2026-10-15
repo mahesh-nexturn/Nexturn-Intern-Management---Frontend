@@ -89,7 +89,13 @@ function App() {
               department: i.department ?? '',
               mentor: i.mentorName ?? '',
               mentorId: i.mentorId,
-              status: i.status ?? 'Active',
+              status:
+                i.endDate &&
+                i.endDate.slice(0, 10) < new Date().toLocaleDateString('sv-SE') &&
+                (i.status ?? 'Active') === 'Active'
+                  ? 'Completed'
+                  : (i.status ?? 'Active'),
+              endDate: i.endDate ? i.endDate.slice(0, 10) : null,
               userId: i.userId,
               createTime: i.createTime,
               updateTime: i.updateTime,

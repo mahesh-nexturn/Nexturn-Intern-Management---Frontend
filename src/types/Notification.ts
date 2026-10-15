@@ -7,4 +7,5 @@ export type Notification = {
   createdByUserId?: number | null
   date: string
   status: 'Unread' | 'Read'
+  link?: string | null
 }

@@ -1,4 +1,5 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
+import { endRequest, startRequest } from './loadingStore'
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
@@ -35,6 +36,7 @@ export function clearTokens() {
 }
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  startRequest()
   const token = getAccessToken()
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`
@@ -73,8 +75,12 @@ function logoutToLogin() {
 }
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    endRequest()
+    return response
+  },
   async (error: AxiosError) => {
+    endRequest()
     const originalRequest = error.config as
       (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined
 

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import {
   Alert,
@@ -47,6 +48,7 @@ function Notifications({ notifications, setNotifications }: NotificationsProps) 
   const userName = sessionStorage.getItem('name') || ''
   const currentUserId = Number(sessionStorage.getItem('userId') || '0')
   const isHr = role === 'HR'
+  const navigate = useNavigate()
 
   const [open, setOpen] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
@@ -168,6 +170,21 @@ function Notifications({ notifications, setNotifications }: NotificationsProps) 
     }
   }
 
+  const openNotification = async (notification: Notification) => {
+    if (notification.status === 'Unread') {
+      try {
+        await notificationApi.markNotificationRead(notification.id)
+        setNotifications((prev) =>
+          prev.map((item) => (item.id === notification.id ? { ...item, status: 'Read' } : item)),
+        )
+      } catch {
+        // navigation should still work if marking read fails
+      }
+    }
+
+    if (notification.link) navigate(notification.link)
+  }
+
   return (
     <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -226,8 +243,21 @@ function Notifications({ notifications, setNotifications }: NotificationsProps) 
               </TableRow>
             ) : (
               filteredNotifications.map((notification, index) => (
-                <TableRow key={notification.id}>
-                  <TableCell>{notification.title}</TableCell>
+                <TableRow
+                  key={notification.id}
+                  hover={!!notification.link}
+                  onClick={() => openNotification(notification)}
+                  sx={{ cursor: notification.link ? 'pointer' : 'default' }}
+                >
+                  <TableCell
+                    sx={
+                      notification.link
+                        ? { color: 'primary.main', textDecoration: 'underline' }
+                        : undefined
+                    }
+                  >
+                    {notification.title}
+                  </TableCell>
                   <TableCell>{notification.message}</TableCell>
                   <TableCell>{notification.recipient}</TableCell>
                   <TableCell>{notification.createdBy || '-'}</TableCell>
@@ -240,7 +270,7 @@ function Notifications({ notifications, setNotifications }: NotificationsProps) 
                     />
                   </TableCell>
                   {isHr && (
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <IconButton color="primary" onClick={() => editNotification(index)}>
                         <EditIcon />
                       </IconButton>

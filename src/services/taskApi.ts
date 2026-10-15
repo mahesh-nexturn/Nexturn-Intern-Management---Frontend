@@ -71,6 +71,7 @@ export type TaskCommentDto = {
   authorRole: string
   content: string
   createdAt: string
+  edited?: boolean
 }
 
 export async function getTask(id: number) {

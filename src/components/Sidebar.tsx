@@ -93,6 +93,18 @@ function Sidebar() {
         color: '#fff',
         display: 'flex',
         flexDirection: 'column',
+        overflowY: 'auto',
+        minHeight: 0,
+        '&::-webkit-scrollbar': { width: 8 },
+        '&::-webkit-scrollbar-track': { background: '#1e293b' },
+        '&::-webkit-scrollbar-thumb': { background: 'transparent', borderRadius: 4 },
+        '&:hover::-webkit-scrollbar-thumb': { background: '#475569' },
+        '&::-webkit-scrollbar-button': { display: 'none' },
+        '@supports not selector(::-webkit-scrollbar)': {
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'transparent #1e293b',
+          '&:hover': { scrollbarColor: '#475569 #1e293b' },
+        },
       }}
     >
       <Typography

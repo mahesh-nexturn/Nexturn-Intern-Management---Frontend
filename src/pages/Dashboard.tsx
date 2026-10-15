@@ -118,9 +118,7 @@ function Dashboard({
   const totalInterns = interns.length
   const activeInterns = interns.filter((i) => i.status === 'Active').length
   const inactiveInterns = interns.filter((i) => i.status === 'Inactive').length
-  const completedInternships = trainings.filter(
-    (t) => t.status === 'Completed' || t.progress >= 100,
-  ).length
+  const completedInternships = interns.filter((i) => i.status === 'Completed').length
   const pendingEvaluations = Math.max(interns.length - evaluations.length, 0)
   const departments = new Set(interns.map((i) => i.department)).size
   const mentors = new Set(interns.map((i) => i.mentor)).size

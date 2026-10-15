@@ -45,7 +45,19 @@ type InternsProps = {
 
 type Role = 'HR' | 'MENTOR' | 'INTERN' | null
 
+function defaultEndDate() {
+  return `${new Date().getFullYear()}-12-31`
+}
+
+function todayStr() {
+  const d = new Date()
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+
 function toUiIntern(dto: internApi.InternDto): Intern {
+  const endDate = dto.endDate ? dto.endDate.slice(0, 10) : null
+  const status = dto.status ?? 'Active'
   return {
     id: dto.id,
     name: dto.name,
@@ -53,7 +65,8 @@ function toUiIntern(dto: internApi.InternDto): Intern {
     department: dto.department ?? '',
     mentor: dto.mentorName ?? '',
     mentorId: dto.mentorId,
-    status: dto.status ?? 'Active',
+    status: endDate && endDate < todayStr() && status === 'Active' ? 'Completed' : status,
+    endDate,
     userId: dto.userId,
     hrId: dto.hrId ?? null,
     hrName: dto.hrName ?? null,
@@ -91,6 +104,7 @@ function Interns({ interns, setInterns, mentors }: InternsProps) {
     department: '',
     mentor: userName,
     status: 'Active',
+    endDate: defaultEndDate(),
   })
 
   useEffect(() => {
@@ -158,6 +172,7 @@ function Interns({ interns, setInterns, mentors }: InternsProps) {
       department: '',
       mentor: '',
       status: 'Active',
+      endDate: defaultEndDate(),
     })
 
     setOpen(true)
@@ -201,11 +216,18 @@ function Interns({ interns, setInterns, mentors }: InternsProps) {
 
     const matchedMentor = mentors.find((m) => m.name === selectedIntern.mentor)
 
+    const endDate = selectedIntern.endDate || defaultEndDate()
+    const status =
+      endDate < todayStr() && selectedIntern.status === 'Active'
+        ? 'Completed'
+        : selectedIntern.status
+
     const payload: internApi.InternPayload = {
       name: selectedIntern.name,
       email: selectedIntern.email || '',
       department: selectedIntern.department,
-      status: selectedIntern.status,
+      status,
+      endDate,
       mentorId: matchedMentor ? matchedMentor.id : (selectedIntern.mentorId ?? null),
     }
     if (isAdmin) payload.hrId = selectedIntern.hrId ?? null
@@ -398,6 +420,8 @@ function Interns({ interns, setInterns, mentors }: InternsProps) {
                 <MenuItem value="Active">Active</MenuItem>
 
                 <MenuItem value="Inactive">Inactive</MenuItem>
+
+                <MenuItem value="Completed">Completed</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -463,7 +487,13 @@ function Interns({ interns, setInterns, mentors }: InternsProps) {
                     <TableCell>
                       <Chip
                         label={intern.status}
-                        color={intern.status === 'Active' ? 'success' : 'default'}
+                        color={
+                          intern.status === 'Active'
+                            ? 'success'
+                            : intern.status === 'Completed'
+                              ? 'info'
+                              : 'default'
+                        }
                         size="small"
                       />
                     </TableCell>
@@ -563,6 +593,23 @@ function Interns({ interns, setInterns, mentors }: InternsProps) {
             </Grid>
 
             <Grid size={12}>
+              <TextField
+                fullWidth
+                type="date"
+                label="End Date"
+                helperText="Defaults to 31 Dec of this year. Account becomes Completed after this date."
+                slotProps={{ inputLabel: { shrink: true } }}
+                value={selectedIntern.endDate ?? ''}
+                onChange={(e) =>
+                  setSelectedIntern({
+                    ...selectedIntern,
+                    endDate: e.target.value,
+                  })
+                }
+              />
+            </Grid>
+
+            <Grid size={12}>
               <FormControl fullWidth>
                 <InputLabel>Status</InputLabel>
 
@@ -579,6 +626,8 @@ function Interns({ interns, setInterns, mentors }: InternsProps) {
                   <MenuItem value="Active">Active</MenuItem>
 
                   <MenuItem value="Inactive">Inactive</MenuItem>
+
+                  <MenuItem value="Completed">Completed</MenuItem>
                 </Select>
               </FormControl>
             </Grid>

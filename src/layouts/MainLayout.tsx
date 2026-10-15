@@ -13,7 +13,8 @@ function MainLayout({ children }: Props) {
     <Box
       sx={{
         display: 'flex',
-        height: '100vh',
+        position: 'fixed',
+        inset: 0,
         bgcolor: '#f5f7fb',
         overflow: 'hidden',
       }}
@@ -23,6 +24,8 @@ function MainLayout({ children }: Props) {
       <Box
         sx={{
           flex: 1,
+          minWidth: 0,
+          minHeight: 0,
           display: 'flex',
           flexDirection: 'column',
         }}
@@ -32,7 +35,9 @@ function MainLayout({ children }: Props) {
         <Box
           sx={{
             flex: 1,
+            minHeight: 0,
             overflowY: 'auto',
+            scrollBehavior: 'smooth',
             p: 3,
           }}
         >

@@ -356,6 +356,7 @@ function TaskDetail() {
                     <Typography variant="caption" color="text.secondary">
                       {c.authorRole.charAt(0) + c.authorRole.slice(1).toLowerCase()} ·{' '}
                       {new Date(c.createdAt).toLocaleString()}
+                      {c.edited ? ' · Edited' : ''}
                     </Typography>
                   </Box>
                   {editingCommentId === c.id ? (
