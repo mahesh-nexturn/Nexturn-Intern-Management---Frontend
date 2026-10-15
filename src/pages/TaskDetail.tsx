@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   Alert,
   Avatar,
@@ -15,27 +15,27 @@ import {
   Slider,
   TextField,
   Typography,
-} from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import AssignmentIcon from "@mui/icons-material/Assignment";
+} from '@mui/material'
+import EditIcon from '@mui/icons-material/Edit'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import AssignmentIcon from '@mui/icons-material/Assignment'
 
-import * as taskApi from "../services/taskApi";
-import * as mentorApi from "../services/mentorApi";
+import * as taskApi from '../services/taskApi'
+import * as mentorApi from '../services/mentorApi'
 
-const MAX_COMMENT = 2000;
+const MAX_COMMENT = 2000
 
 function statusColor(status: string) {
-  if (status === "Completed") return "success";
-  if (status === "In Progress") return "primary";
-  if (status === "Not Started") return "default";
-  return "warning";
+  if (status === 'Completed') return 'success'
+  if (status === 'In Progress') return 'primary'
+  if (status === 'Not Started') return 'default'
+  return 'warning'
 }
 
 function priorityColor(priority: string) {
-  if (priority === "High") return "error";
-  if (priority === "Medium") return "warning";
-  return "default";
+  if (priority === 'High') return 'error'
+  if (priority === 'Medium') return 'warning'
+  return 'default'
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -46,159 +46,162 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       </Typography>
       <Box sx={{ mt: 0.25 }}>{children}</Box>
     </Box>
-  );
+  )
 }
 
 function TaskDetail() {
-  const { id } = useParams();
-  const taskId = Number(id);
-  const navigate = useNavigate();
+  const { id } = useParams()
+  const taskId = Number(id)
+  const navigate = useNavigate()
 
-  const [task, setTask] = useState<taskApi.TaskDto | null>(null);
-  const [mentorName, setMentorName] = useState("");
-  const [comments, setComments] = useState<taskApi.TaskCommentDto[]>([]);
-  const [text, setText] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [posting, setPosting] = useState(false);
+  const [task, setTask] = useState<taskApi.TaskDto | null>(null)
+  const [mentorName, setMentorName] = useState('')
+  const [comments, setComments] = useState<taskApi.TaskCommentDto[]>([])
+  const [text, setText] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [posting, setPosting] = useState(false)
 
-  const myUserId = Number(sessionStorage.getItem("userId"));
+  const myUserId = Number(sessionStorage.getItem('userId'))
 
-  const [editingReq, setEditingReq] = useState(false);
-  const [reqDraft, setReqDraft] = useState("");
-  const [editingTitle, setEditingTitle] = useState(false);
-  const [titleDraft, setTitleDraft] = useState("");
-  const [editingPlan, setEditingPlan] = useState(false);
-  const [statusDraft, setStatusDraft] = useState("Not Started");
-  const [progressDraft, setProgressDraft] = useState(0);
-  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
-  const [commentDraft, setCommentDraft] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [editingReq, setEditingReq] = useState(false)
+  const [reqDraft, setReqDraft] = useState('')
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [titleDraft, setTitleDraft] = useState('')
+  const [editingPlan, setEditingPlan] = useState(false)
+  const [statusDraft, setStatusDraft] = useState('Not Started')
+  const [progressDraft, setProgressDraft] = useState(0)
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
+  const [commentDraft, setCommentDraft] = useState('')
+  const [saving, setSaving] = useState(false)
 
-  const saveWork = async (payload: { status?: string; progress?: number; description?: string; title?: string }) => {
-    setSaving(true);
+  const saveWork = async (payload: {
+    status?: string
+    progress?: number
+    description?: string
+    title?: string
+  }) => {
+    setSaving(true)
     try {
-      setTask(await taskApi.updateTaskWork(taskId, payload));
-      return true;
+      setTask(await taskApi.updateTaskWork(taskId, payload))
+      return true
     } catch {
-      setError("Failed to save changes.");
-      return false;
+      setError('Failed to save changes.')
+      return false
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   const saveTitle = async () => {
-    if (await saveWork({ title: titleDraft.trim() })) setEditingTitle(false);
-  };
+    if (await saveWork({ title: titleDraft.trim() })) setEditingTitle(false)
+  }
 
   const saveRequirements = async () => {
-    if (await saveWork({ description: reqDraft })) setEditingReq(false);
-  };
+    if (await saveWork({ description: reqDraft })) setEditingReq(false)
+  }
 
   const savePlanning = async () => {
-    const progress = Math.min(100, Math.max(0, progressDraft));
-    if (await saveWork({ status: taskApi.statusToBackend(statusDraft), progress })) setEditingPlan(false);
-  };
+    const progress = Math.min(100, Math.max(0, progressDraft))
+    if (await saveWork({ status: taskApi.statusToBackend(statusDraft), progress }))
+      setEditingPlan(false)
+  }
 
   const saveComment = async (commentId: number) => {
-    const content = commentDraft.trim();
-    if (!content) return;
-    setSaving(true);
+    const content = commentDraft.trim()
+    if (!content) return
+    setSaving(true)
     try {
-      const updated = await taskApi.editComment(taskId, commentId, content);
-      setComments((prev) => prev.map((c) => (c.id === commentId ? updated : c)));
-      setEditingCommentId(null);
+      const updated = await taskApi.editComment(taskId, commentId, content)
+      setComments((prev) => prev.map((c) => (c.id === commentId ? updated : c)))
+      setEditingCommentId(null)
     } catch {
-      setError("Failed to update comment.");
+      setError('Failed to update comment.')
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
-
-  const load = useCallback(async () => {
-    try {
-      const [t, c] = await Promise.all([
-        taskApi.getTask(taskId),
-        taskApi.listComments(taskId),
-      ]);
-      setTask(t);
-      setComments(c);
-
-      if (t.mentorId) {
-        mentorApi
-          .listMentors()
-          .then((list) => setMentorName(list.find((m) => m.id === t.mentorId)?.name ?? ""))
-          .catch(() => undefined);
-      }
-    } catch {
-      setError("Unable to load this task.");
-    } finally {
-      setLoading(false);
-    }
-  }, [taskId]);
+  }
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    Promise.all([taskApi.getTask(taskId), taskApi.listComments(taskId)])
+      .then(([t, c]) => {
+        setTask(t)
+        setComments(c)
+
+        if (t.mentorId) {
+          mentorApi
+            .listMentors()
+            .then((list) => setMentorName(list.find((m) => m.id === t.mentorId)?.name ?? ''))
+            .catch(() => undefined)
+        }
+      })
+      .catch(() => {
+        setError('Unable to load this task.')
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }, [taskId])
 
   const post = async () => {
-    const content = text.trim();
-    if (!content) return;
-    setPosting(true);
+    const content = text.trim()
+    if (!content) return
+    setPosting(true)
     try {
-      const created = await taskApi.addComment(taskId, content);
-      setComments((prev) => [...prev, created]);
-      setText("");
+      const created = await taskApi.addComment(taskId, content)
+      setComments((prev) => [...prev, created])
+      setText('')
     } catch {
-      setError("Failed to post comment.");
+      setError('Failed to post comment.')
     } finally {
-      setPosting(false);
+      setPosting(false)
     }
-  };
+  }
 
   if (loading) {
     return (
-      <Box sx={{ p: 4, textAlign: "center" }}>
+      <Box sx={{ p: 4, textAlign: 'center' }}>
         <CircularProgress />
       </Box>
-    );
+    )
   }
 
   if (!task) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert severity="error">{error || "Task not found."}</Alert>
-        <Button sx={{ mt: 2 }} startIcon={<ArrowBackIcon />} onClick={() => navigate("/tasks")}>
+        <Alert severity="error">{error || 'Task not found.'}</Alert>
+        <Button sx={{ mt: 2 }} startIcon={<ArrowBackIcon />} onClick={() => navigate('/tasks')}>
           Back to tasks
         </Button>
       </Box>
-    );
+    )
   }
 
-  const status = taskApi.statusToUi(task.status);
+  const status = taskApi.statusToUi(task.status)
 
   return (
     <Box
       sx={{
         p: { xs: 2, md: 3 },
-        "& .edit-btn": { opacity: 0, transition: "opacity 0.15s" },
-        "& .hover-edit:hover .edit-btn, & .hover-edit:hover.edit-btn, & .edit-btn:focus-visible": { opacity: 1 },
+        '& .edit-btn': { opacity: 0, transition: 'opacity 0.15s' },
+        '& .hover-edit:hover .edit-btn, & .hover-edit:hover.edit-btn, & .edit-btn:focus-visible': {
+          opacity: 1,
+        },
       }}
     >
-      <Button startIcon={<ArrowBackIcon />} onClick={() => navigate("/tasks")} sx={{ mb: 2 }}>
+      <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/tasks')} sx={{ mb: 2 }}>
         Back to tasks
       </Button>
 
-      <Paper sx={{ p: 3, borderRadius: 3, mb: 3, borderLeft: "6px solid #b8860b" }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, color: "primary.main", mb: 1 }}>
+      <Paper sx={{ p: 3, borderRadius: 3, mb: 3, borderLeft: '6px solid #b8860b' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main', mb: 1 }}>
           <AssignmentIcon fontSize="small" />
           <Typography variant="body2" sx={{ fontWeight: 600 }}>
             TASK {task.id}
           </Typography>
         </Box>
         {editingTitle ? (
-          <Box sx={{ display: "flex", gap: 1, alignItems: "center", mb: 2, flexWrap: "wrap" }}>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 2, flexWrap: 'wrap' }}>
             <TextField
               size="small"
               value={titleDraft}
@@ -210,12 +213,16 @@ function TaskDetail() {
             <Button onClick={() => setEditingTitle(false)} disabled={saving}>
               Cancel
             </Button>
-            <Button variant="contained" onClick={() => void saveTitle()} disabled={saving || !titleDraft.trim()}>
+            <Button
+              variant="contained"
+              onClick={() => void saveTitle()}
+              disabled={saving || !titleDraft.trim()}
+            >
               Save
             </Button>
           </Box>
         ) : (
-          <Box className="hover-edit" sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+          <Box className="hover-edit" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
             <Typography variant="h5" sx={{ fontWeight: 700 }}>
               {task.title}
             </Typography>
@@ -225,38 +232,45 @@ function TaskDetail() {
               color="primary"
               aria-label="Edit title"
               onClick={() => {
-                setTitleDraft(task.title);
-                setEditingTitle(true);
+                setTitleDraft(task.title)
+                setEditingTitle(true)
               }}
             >
               <EditIcon fontSize="small" />
             </IconButton>
           </Box>
         )}
-        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
           <Chip label={status} color={statusColor(status)} size="small" />
-          <Chip label={`${task.priority} priority`} color={priorityColor(task.priority)} size="small" />
+          <Chip
+            label={`${task.priority} priority`}
+            color={priorityColor(task.priority)}
+            size="small"
+          />
           <Chip label={`${comments.length} Comments`} variant="outlined" size="small" />
         </Box>
       </Paper>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
           {error}
         </Alert>
       )}
 
       <Box
         sx={{
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", md: "2fr 1fr" },
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' },
           gap: 3,
-          alignItems: "start",
+          alignItems: 'start',
         }}
       >
         <Box>
           <Paper sx={{ p: 3, borderRadius: 3, mb: 3 }}>
-            <Box className="hover-edit" sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <Box
+              className="hover-edit"
+              sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+            >
               <Typography variant="h6" sx={{ fontWeight: 700 }}>
                 Requirements
               </Typography>
@@ -267,8 +281,8 @@ function TaskDetail() {
                   color="primary"
                   aria-label="Edit requirements"
                   onClick={() => {
-                    setReqDraft(task.description || "");
-                    setEditingReq(true);
+                    setReqDraft(task.description || '')
+                    setEditingReq(true)
                   }}
                 >
                   <EditIcon fontSize="small" />
@@ -287,18 +301,25 @@ function TaskDetail() {
                   onChange={(e) => setReqDraft(e.target.value)}
                   slotProps={{ htmlInput: { maxLength: 5000 } }}
                 />
-                <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 1 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
                   <Button onClick={() => setEditingReq(false)} disabled={saving}>
                     Cancel
                   </Button>
-                  <Button variant="contained" onClick={() => void saveRequirements()} disabled={saving}>
+                  <Button
+                    variant="contained"
+                    onClick={() => void saveRequirements()}
+                    disabled={saving}
+                  >
                     Save
                   </Button>
                 </Box>
               </>
             ) : (
-              <Typography sx={{ whiteSpace: "pre-wrap" }} color={task.description ? "text.primary" : "text.secondary"}>
-                {task.description || "No requirements added."}
+              <Typography
+                sx={{ whiteSpace: 'pre-wrap' }}
+                color={task.description ? 'text.primary' : 'text.secondary'}
+              >
+                {task.description || 'No requirements added.'}
               </Typography>
             )}
           </Paper>
@@ -316,15 +337,24 @@ function TaskDetail() {
             )}
 
             {comments.map((c) => (
-              <Box key={c.id} sx={{ display: "flex", gap: 1.5, mb: 2 }}>
-                <Avatar sx={{ width: 36, height: 36, bgcolor: c.authorId === myUserId ? "#2563eb" : "#6b7280" }}>
+              <Box key={c.id} sx={{ display: 'flex', gap: 1.5, mb: 2 }}>
+                <Avatar
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    bgcolor: c.authorId === myUserId ? '#2563eb' : '#6b7280',
+                  }}
+                >
                   {c.authorName.charAt(0).toUpperCase()}
                 </Avatar>
-                <Box className="hover-edit" sx={{ flex: 1, bgcolor: "#f5f7fb", borderRadius: 2, p: 1.5 }}>
-                  <Box sx={{ display: "flex", gap: 1, alignItems: "baseline", flexWrap: "wrap" }}>
+                <Box
+                  className="hover-edit"
+                  sx={{ flex: 1, bgcolor: '#f5f7fb', borderRadius: 2, p: 1.5 }}
+                >
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline', flexWrap: 'wrap' }}>
                     <Typography sx={{ fontWeight: 700 }}>{c.authorName}</Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {c.authorRole.charAt(0) + c.authorRole.slice(1).toLowerCase()} ·{" "}
+                      {c.authorRole.charAt(0) + c.authorRole.slice(1).toLowerCase()} ·{' '}
                       {new Date(c.createdAt).toLocaleString()}
                     </Typography>
                   </Box>
@@ -337,10 +367,14 @@ function TaskDetail() {
                         value={commentDraft}
                         onChange={(e) => setCommentDraft(e.target.value)}
                         slotProps={{ htmlInput: { maxLength: MAX_COMMENT } }}
-                        sx={{ mt: 0.5, bgcolor: "#fff" }}
+                        sx={{ mt: 0.5, bgcolor: '#fff' }}
                       />
-                      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 1 }}>
-                        <Button size="small" onClick={() => setEditingCommentId(null)} disabled={saving}>
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
+                        <Button
+                          size="small"
+                          onClick={() => setEditingCommentId(null)}
+                          disabled={saving}
+                        >
                           Cancel
                         </Button>
                         <Button
@@ -355,7 +389,7 @@ function TaskDetail() {
                     </>
                   ) : (
                     <>
-                      <Typography sx={{ whiteSpace: "pre-wrap", mt: 0.5 }}>{c.content}</Typography>
+                      <Typography sx={{ whiteSpace: 'pre-wrap', mt: 0.5 }}>{c.content}</Typography>
                       {c.authorId === myUserId && (
                         <IconButton
                           className="edit-btn"
@@ -364,8 +398,8 @@ function TaskDetail() {
                           aria-label="Edit comment"
                           sx={{ mt: 0.5 }}
                           onClick={() => {
-                            setCommentDraft(c.content);
-                            setEditingCommentId(c.id);
+                            setCommentDraft(c.content)
+                            setEditingCommentId(c.id)
                           }}
                         >
                           <EditIcon fontSize="small" />
@@ -387,16 +421,23 @@ function TaskDetail() {
               slotProps={{ htmlInput: { maxLength: MAX_COMMENT } }}
               helperText={`${text.length}/${MAX_COMMENT}`}
             />
-            <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
-              <Button variant="contained" onClick={() => void post()} disabled={posting || !text.trim()}>
-                {posting ? "Posting..." : "Post comment"}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+              <Button
+                variant="contained"
+                onClick={() => void post()}
+                disabled={posting || !text.trim()}
+              >
+                {posting ? 'Posting...' : 'Post comment'}
               </Button>
             </Box>
           </Paper>
         </Box>
 
         <Paper sx={{ p: 3, borderRadius: 3 }}>
-          <Box className="hover-edit" sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Box
+            className="hover-edit"
+            sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+          >
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
               Planning
             </Typography>
@@ -407,9 +448,9 @@ function TaskDetail() {
                 color="primary"
                 aria-label="Edit planning"
                 onClick={() => {
-                  setStatusDraft(status);
-                  setProgressDraft(task.progress);
-                  setEditingPlan(true);
+                  setStatusDraft(status)
+                  setProgressDraft(task.progress)
+                  setEditingPlan(true)
                 }}
               >
                 <EditIcon fontSize="small" />
@@ -418,18 +459,24 @@ function TaskDetail() {
           </Box>
           <Divider sx={{ my: 1.5 }} />
           <Field label="Assigned To">
-            <Typography>{task.internName || "-"}</Typography>
+            <Typography>{task.internName || '-'}</Typography>
           </Field>
           <Field label="Mentor">
-            <Typography>{mentorName || "-"}</Typography>
+            <Typography>{mentorName || '-'}</Typography>
           </Field>
           <Field label="Priority">
             <Typography>{task.priority}</Typography>
           </Field>
           <Field label="Status">
             {editingPlan ? (
-              <TextField select fullWidth size="small" value={statusDraft} onChange={(e) => setStatusDraft(e.target.value)}>
-                {["Not Started", "Pending", "In Progress", "Completed"].map((s) => (
+              <TextField
+                select
+                fullWidth
+                size="small"
+                value={statusDraft}
+                onChange={(e) => setStatusDraft(e.target.value)}
+              >
+                {['Not Started', 'Pending', 'In Progress', 'Completed'].map((s) => (
                   <MenuItem key={s} value={s}>
                     {s}
                   </MenuItem>
@@ -440,7 +487,7 @@ function TaskDetail() {
             )}
           </Field>
           <Field label="Due Date">
-            <Typography>{task.dueDate || "-"}</Typography>
+            <Typography>{task.dueDate || '-'}</Typography>
           </Field>
           <Field label="Progress">
             {editingPlan ? (
@@ -463,7 +510,7 @@ function TaskDetail() {
             )}
           </Field>
           {editingPlan && (
-            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
               <Button onClick={() => setEditingPlan(false)} disabled={saving}>
                 Cancel
               </Button>
@@ -475,7 +522,7 @@ function TaskDetail() {
         </Paper>
       </Box>
     </Box>
-  );
+  )
 }
 
-export default TaskDetail;
+export default TaskDetail

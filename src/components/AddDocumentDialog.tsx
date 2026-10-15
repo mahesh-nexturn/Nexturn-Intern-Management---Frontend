@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from 'react'
 
 import {
   Button,
@@ -9,16 +9,16 @@ import {
   MenuItem,
   TextField,
   Typography,
-} from "@mui/material";
+} from '@mui/material'
 
-import type { Document } from "../types/Document";
+import type { Document } from '../types/Document'
 
 type AddDocumentDialogProps = {
-  open: boolean;
-  handleClose: () => void;
-  addDocument: (document: Document, file?: File | null) => void;
-  selectedDocument: Document;
-};
+  open: boolean
+  handleClose: () => void
+  addDocument: (document: Document, file?: File | null) => void
+  selectedDocument: Document
+}
 
 function AddDocumentDialog({
   open,
@@ -26,20 +26,22 @@ function AddDocumentDialog({
   addDocument,
   selectedDocument,
 }: AddDocumentDialogProps) {
-  const userName = sessionStorage.getItem("name") || "";
+  const userName = sessionStorage.getItem('name') || ''
 
-  const [documentType, setDocumentType] = useState<Document["documentType"]>("Resume");
-  const [file, setFile] = useState<File | null>(null);
+  const [documentType, setDocumentType] = useState<Document['documentType']>('Resume')
+  const [file, setFile] = useState<File | null>(null)
 
-  useEffect(() => {
-    setDocumentType(selectedDocument.documentType || "Resume");
-    setFile(null);
-  }, [selectedDocument]);
+  const [prevSelected, setPrevSelected] = useState<Document | null>(null)
+  if (prevSelected !== selectedDocument) {
+    setPrevSelected(selectedDocument)
+    setDocumentType(selectedDocument.documentType || 'Resume')
+    setFile(null)
+  }
 
   const handleSave = () => {
     if (!file) {
-      alert("Please choose a file.");
-      return;
+      alert('Please choose a file.')
+      return
     }
 
     addDocument(
@@ -50,13 +52,13 @@ function AddDocumentDialog({
         documentType,
         uploadedBy: userName,
         uploadedByUserId: selectedDocument.uploadedByUserId ?? null,
-        uploadDate: selectedDocument.uploadDate || "",
+        uploadDate: selectedDocument.uploadDate || '',
       },
-      file
-    );
+      file,
+    )
 
-    handleClose();
-  };
+    handleClose()
+  }
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
@@ -69,7 +71,7 @@ function AddDocumentDialog({
           margin="dense"
           label="Document Type"
           value={documentType}
-          onChange={(e) => setDocumentType(e.target.value as Document["documentType"])}
+          onChange={(e) => setDocumentType(e.target.value as Document['documentType'])}
         >
           <MenuItem value="Resume">Resume</MenuItem>
           <MenuItem value="Certificate">Certificate</MenuItem>
@@ -80,15 +82,11 @@ function AddDocumentDialog({
 
         <Button component="label" variant="outlined" sx={{ mt: 2 }}>
           Choose File
-          <input
-            hidden
-            type="file"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          />
+          <input hidden type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         </Button>
 
         <Typography sx={{ mt: 1 }} color="text.secondary">
-          {file?.name || "No file selected"}
+          {file?.name || 'No file selected'}
         </Typography>
       </DialogContent>
 
@@ -99,7 +97,7 @@ function AddDocumentDialog({
         </Button>
       </DialogActions>
     </Dialog>
-  );
+  )
 }
 
-export default AddDocumentDialog;
+export default AddDocumentDialog

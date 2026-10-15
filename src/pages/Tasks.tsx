@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import {
   Alert,
@@ -22,208 +22,127 @@ import {
   TableRow,
   TextField,
   Typography,
-} from "@mui/material";
+} from '@mui/material'
 
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import EditIcon from '@mui/icons-material/Edit'
+import DeleteIcon from '@mui/icons-material/Delete'
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 
-import AddTaskDialog from "../components/AddTaskDialog";
-import TaskChart from "../components/TaskChart";
+import AddTaskDialog from '../components/AddTaskDialog'
+import TaskChart from '../components/TaskChart'
 
-import type { Task } from "../types/Task";
-import type { Intern } from "../types/Intern";
-import * as taskApi from "../services/taskApi";
-import { statusToBackend, statusToUi } from "../services/taskApi";
+import type { Task } from '../types/Task'
+import type { Intern } from '../types/Intern'
+import * as taskApi from '../services/taskApi'
+import { statusToBackend } from '../services/taskApi'
+import { toUiTask } from '../utils/mappers/taskMapper'
 
 type TasksProps = {
-  tasks: Task[];
-  setTasks: React.Dispatch<
-    React.SetStateAction<Task[]>
-  >;
-  interns: Intern[];
-};
-
-export function toUiTask(
-  dto: taskApi.TaskDto,
-  interns: Intern[] = []
-): Task {
-  const intern = interns.find((item) => item.id === dto.internId);
-
-  return {
-    id: dto.id,
-    title: dto.title,
-    description: dto.description || "",
-    assignedTo: dto.internName || "",
-    internId: dto.internId,
-    mentor: intern?.mentor ?? "",
-    mentorId: dto.mentorId ?? intern?.mentorId ?? null,
-    priority: dto.priority as Task["priority"],
-    dueDate: dto.dueDate || "",
-    status: statusToUi(dto.status) as Task["status"],
-    progress: dto.progress,
-  };
+  tasks: Task[]
+  setTasks: React.Dispatch<React.SetStateAction<Task[]>>
+  interns: Intern[]
 }
 
-type Role =
-  | "HR"
-  | "MENTOR"
-  | "INTERN"
-  | null;
+type Role = 'HR' | 'MENTOR' | 'INTERN' | null
 
-function Tasks({
-  tasks,
-  setTasks,
-  interns,
-}: TasksProps) {
-  const navigate = useNavigate();
-  const [open, setOpen] =
-    useState(false);
+function Tasks({ tasks, setTasks, interns }: TasksProps) {
+  const navigate = useNavigate()
+  const [open, setOpen] = useState(false)
 
-  const [editId, setEditId] =
-    useState<number | null>(null);
+  const [editId, setEditId] = useState<number | null>(null)
 
-  const [searchTerm, setSearchTerm] =
-    useState("");
+  const [searchTerm, setSearchTerm] = useState('')
 
-  const [internSearch, setInternSearch] =
-    useState("");
+  const [internSearch, setInternSearch] = useState('')
 
-  const [statusFilter, setStatusFilter] =
-    useState("All");
+  const [statusFilter, setStatusFilter] = useState('All')
 
-  const [priorityFilter, setPriorityFilter] =
-    useState("All");
+  const [priorityFilter, setPriorityFilter] = useState('All')
 
   const [toast, setToast] = useState<{
-    message: string;
-    severity: "success" | "error";
-  } | null>(null);
+    message: string
+    severity: 'success' | 'error'
+  } | null>(null)
 
-  const [selectedTask, setSelectedTask] =
-    useState<Task>({
-      id: 0,
-      title: "",
-      description: "",
-      assignedTo: "",
-      mentor: "",
-      priority: "Medium",
-      dueDate: "",
-      status: "Pending",
-      progress: 0,
-    });
+  const [selectedTask, setSelectedTask] = useState<Task>({
+    id: 0,
+    title: '',
+    description: '',
+    assignedTo: '',
+    mentor: '',
+    priority: 'Medium',
+    dueDate: '',
+    status: 'Pending',
+    progress: 0,
+  })
 
   useEffect(() => {
     taskApi
       .listTasks()
       .then((list) => setTasks(list.map((item) => toUiTask(item))))
-      .catch(() =>
-        setToast({ message: "Failed to load tasks.", severity: "error" })
-      );
+      .catch(() => setToast({ message: 'Failed to load tasks.', severity: 'error' }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [])
 
   // Resolve mentor names via the interns list (task DTOs only carry mentorId).
   const tasksWithMentor = tasks.map((t) => ({
     ...t,
-    mentor:
-      interns.find((i) => i.id === t.internId)?.mentor || t.mentor,
-  }));
+    mentor: interns.find((i) => i.id === t.internId)?.mentor || t.mentor,
+  }))
 
-  const role = sessionStorage.getItem(
-    "role"
-  ) as Role;
+  const role = sessionStorage.getItem('role') as Role
 
-  const userName =
-    sessionStorage.getItem("name") || "";
+  const userName = sessionStorage.getItem('name') || ''
 
-  const isHr = role === "HR";
-  const isMentor = role === "MENTOR";
-  const isIntern = role === "INTERN";
+  const isHr = role === 'HR'
+  const isMentor = role === 'MENTOR'
+  const isIntern = role === 'INTERN'
 
-  const canManageTasks = isMentor;
+  const canManageTasks = isMentor
 
   const visibleTasks = isHr
     ? tasksWithMentor
     : isMentor
-    ? tasksWithMentor.filter(
-        (task) =>
-          task.mentor === userName
-      )
-    : isIntern
-    ? tasksWithMentor.filter(
-        (task) =>
-          task.assignedTo === userName
-      )
-    : [];
+      ? tasksWithMentor.filter((task) => task.mentor === userName)
+      : isIntern
+        ? tasksWithMentor.filter((task) => task.assignedTo === userName)
+        : []
 
   const filteredTasks = visibleTasks
-    .filter((task) =>
-      task.title
-        .toLowerCase()
-        .includes(
-          searchTerm.toLowerCase()
-        )
-    )
-    .filter((task) =>
-      !internSearch ||
-      task.assignedTo === internSearch
-    )
-    .filter(
-      (task) =>
-        statusFilter === "All" ||
-        task.status === statusFilter
-    )
-    .filter(
-      (task) =>
-        priorityFilter === "All" ||
-        task.priority ===
-          priorityFilter
-    );
+    .filter((task) => task.title.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter((task) => !internSearch || task.assignedTo === internSearch)
+    .filter((task) => statusFilter === 'All' || task.status === statusFilter)
+    .filter((task) => priorityFilter === 'All' || task.priority === priorityFilter)
 
-  const totalTasks =
-    visibleTasks.length;
+  const totalTasks = visibleTasks.length
 
-  const pendingCount =
-    visibleTasks.filter(
-      (task) =>
-        task.status === "Pending"
-    ).length;
+  const pendingCount = visibleTasks.filter((task) => task.status === 'Pending').length
 
-  const inProgressCount =
-    visibleTasks.filter(
-      (task) =>
-        task.status ===
-        "In Progress"
-    ).length;
+  const inProgressCount = visibleTasks.filter((task) => task.status === 'In Progress').length
 
-  const completedCount =
-    visibleTasks.filter(
-      (task) =>
-        task.status === "Completed"
-    ).length;
+  const completedCount = visibleTasks.filter((task) => task.status === 'Completed').length
 
   const handleOpen = () => {
-    setEditId(null);
+    setEditId(null)
 
     setSelectedTask({
       id: 0,
-      title: "",
-      description: "",
-      assignedTo: "",
+      title: '',
+      description: '',
+      assignedTo: '',
       mentor: userName,
-      priority: "Medium",
-      dueDate: "",
-      status: "Not Started",
+      priority: 'Medium',
+      dueDate: '',
+      status: 'Not Started',
       progress: 0,
-    });
+    })
 
-    setOpen(true);
-  };
+    setOpen(true)
+  }
 
   const handleClose = () => {
-    setOpen(false);
-  };
+    setOpen(false)
+  }
 
   const saveTask = async (task: Task) => {
     const payload: taskApi.TaskPayload = {
@@ -235,73 +154,59 @@ function Tasks({
       dueDate: task.dueDate,
       status: statusToBackend(task.status),
       progress: task.progress,
-    };
+    }
 
     try {
       if (editId !== null) {
-        const updated = await taskApi.updateTask(editId, payload);
-        setTasks((prev) =>
-          prev.map((t) => (t.id === editId ? toUiTask(updated, interns) : t))
-        );
-        setToast({ message: "Task updated successfully.", severity: "success" });
+        const updated = await taskApi.updateTask(editId, payload)
+        setTasks((prev) => prev.map((t) => (t.id === editId ? toUiTask(updated, interns) : t)))
+        setToast({ message: 'Task updated successfully.', severity: 'success' })
       } else {
-        const created = await taskApi.createTask(payload);
-        setTasks((prev) => [...prev, toUiTask(created, interns)]);
-        setToast({ message: "Task created successfully.", severity: "success" });
+        const created = await taskApi.createTask(payload)
+        setTasks((prev) => [...prev, toUiTask(created, interns)])
+        setToast({ message: 'Task created successfully.', severity: 'success' })
       }
 
-      setEditId(null);
-      setOpen(false);
+      setEditId(null)
+      setOpen(false)
     } catch {
-      setToast({ message: "Failed to save task.", severity: "error" });
+      setToast({ message: 'Failed to save task.', severity: 'error' })
     }
-  };
+  }
 
-  const editTask = (
-    index: number
-  ) => {
-    const taskToEdit =
-      filteredTasks[index];
+  const editTask = (index: number) => {
+    const taskToEdit = filteredTasks[index]
 
-    setEditId(taskToEdit.id);
-    setSelectedTask(taskToEdit);
-    setOpen(true);
-  };
+    setEditId(taskToEdit.id)
+    setSelectedTask(taskToEdit)
+    setOpen(true)
+  }
 
-  const deleteTask = async (
-    index: number
-  ) => {
-    const taskToDelete =
-      filteredTasks[index];
+  const deleteTask = async (index: number) => {
+    const taskToDelete = filteredTasks[index]
 
     try {
-      await taskApi.deleteTask(taskToDelete.id);
-      setTasks((prev) => prev.filter((t) => t.id !== taskToDelete.id));
-      setToast({ message: "Task deleted successfully.", severity: "success" });
+      await taskApi.deleteTask(taskToDelete.id)
+      setTasks((prev) => prev.filter((t) => t.id !== taskToDelete.id))
+      setToast({ message: 'Task deleted successfully.', severity: 'success' })
     } catch {
-      setToast({ message: "Failed to delete task.", severity: "error" });
+      setToast({ message: 'Failed to delete task.', severity: 'error' })
     }
-  };
+  }
 
   return (
     <>
       <Box
         sx={{
-          display: "flex",
-          justifyContent:
-            "space-between",
+          display: 'flex',
+          justifyContent: 'space-between',
           mb: 3,
         }}
       >
-        <Typography variant="h4">
-          Tasks
-        </Typography>
+        <Typography variant="h4">Tasks</Typography>
 
         {canManageTasks && (
-          <Button
-            variant="contained"
-            onClick={handleOpen}
-          >
+          <Button variant="contained" onClick={handleOpen}>
             Add Task
           </Button>
         )}
@@ -310,30 +215,22 @@ function Tasks({
       <TaskChart
         total={totalTasks}
         pending={pendingCount}
-        inProgress={
-          inProgressCount
-        }
-        completed={
-          completedCount
-        }
+        inProgress={inProgressCount}
+        completed={completedCount}
       />
 
       <Box
         sx={{
-          display: "flex",
+          display: 'flex',
           gap: 2,
           mb: 3,
-          flexWrap: "wrap",
+          flexWrap: 'wrap',
         }}
       >
         <TextField
           label="Search Task"
           value={searchTerm}
-          onChange={(e) =>
-            setSearchTerm(
-              e.target.value
-            )
-          }
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
 
         {!isIntern && (
@@ -341,35 +238,22 @@ function Tasks({
             select
             label="Intern"
             value={internSearch}
-            onChange={(e) =>
-              setInternSearch(
-                e.target.value
-              )
-            }
+            onChange={(e) => setInternSearch(e.target.value)}
             sx={{ minWidth: 180 }}
           >
-            <MenuItem value="">
-              All
-            </MenuItem>
+            <MenuItem value="">All</MenuItem>
 
             {[
               ...new Set(
                 interns
-                  .filter(
-                    (i) =>
-                      !isMentor ||
-                      i.mentor === userName
-                  )
+                  .filter((i) => !isMentor || i.mentor === userName)
                   .map((i) => i.name)
-                  .filter(Boolean)
+                  .filter(Boolean),
               ),
             ]
               .sort()
               .map((name) => (
-                <MenuItem
-                  key={name}
-                  value={name}
-                >
+                <MenuItem key={name} value={name}>
                   {name}
                 </MenuItem>
               ))}
@@ -381,38 +265,22 @@ function Tasks({
             minWidth: 180,
           }}
         >
-          <InputLabel>
-            Status
-          </InputLabel>
+          <InputLabel>Status</InputLabel>
 
           <Select
             value={statusFilter}
             label="Status"
-            onChange={(e) =>
-              setStatusFilter(
-                e.target.value
-              )
-            }
+            onChange={(e) => setStatusFilter(e.target.value)}
           >
-            <MenuItem value="All">
-              All
-            </MenuItem>
+            <MenuItem value="All">All</MenuItem>
 
-            <MenuItem value="Not Started">
-              Not Started
-            </MenuItem>
+            <MenuItem value="Not Started">Not Started</MenuItem>
 
-            <MenuItem value="Pending">
-              Pending
-            </MenuItem>
+            <MenuItem value="Pending">Pending</MenuItem>
 
-            <MenuItem value="In Progress">
-              In Progress
-            </MenuItem>
+            <MenuItem value="In Progress">In Progress</MenuItem>
 
-            <MenuItem value="Completed">
-              Completed
-            </MenuItem>
+            <MenuItem value="Completed">Completed</MenuItem>
           </Select>
         </FormControl>
 
@@ -421,253 +289,151 @@ function Tasks({
             minWidth: 180,
           }}
         >
-          <InputLabel>
-            Priority
-          </InputLabel>
+          <InputLabel>Priority</InputLabel>
 
           <Select
             value={priorityFilter}
             label="Priority"
-            onChange={(e) =>
-              setPriorityFilter(
-                e.target.value
-              )
-            }
+            onChange={(e) => setPriorityFilter(e.target.value)}
           >
-            <MenuItem value="All">
-              All
-            </MenuItem>
+            <MenuItem value="All">All</MenuItem>
 
-            <MenuItem value="High">
-              High
-            </MenuItem>
+            <MenuItem value="High">High</MenuItem>
 
-            <MenuItem value="Medium">
-              Medium
-            </MenuItem>
+            <MenuItem value="Medium">Medium</MenuItem>
 
-            <MenuItem value="Low">
-              Low
-            </MenuItem>
+            <MenuItem value="Low">Low</MenuItem>
           </Select>
         </FormControl>
       </Box>
 
-      <TableContainer
-        component={Paper}
-      >
+      <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>
-                Title
-              </TableCell>
+              <TableCell>Title</TableCell>
 
-              <TableCell>
-                Assigned To
-              </TableCell>
+              <TableCell>Assigned To</TableCell>
 
-              {!isMentor && (
-                <TableCell>
-                  Mentor
-                </TableCell>
-              )}
+              {!isMentor && <TableCell>Mentor</TableCell>}
 
-              <TableCell>
-                Priority
-              </TableCell>
+              <TableCell>Priority</TableCell>
 
-              <TableCell>
-                Due Date
-              </TableCell>
+              <TableCell>Due Date</TableCell>
 
-              <TableCell>
-                Status
-              </TableCell>
+              <TableCell>Status</TableCell>
 
-              <TableCell>
-                Progress
-              </TableCell>
+              <TableCell>Progress</TableCell>
 
-              <TableCell>
-                Open
-              </TableCell>
+              <TableCell>Open</TableCell>
 
-              {canManageTasks && (
-                <TableCell>
-                  Actions
-                </TableCell>
-              )}
+              {canManageTasks && <TableCell>Actions</TableCell>}
             </TableRow>
           </TableHead>
 
           <TableBody>
             {filteredTasks.length === 0 && (
               <TableRow>
-                <TableCell
-                  colSpan={9}
-                  align="center"
-                  sx={{ py: 4, color: "text.secondary" }}
-                >
-                  {internSearch
-                    ? `No tasks assigned to ${internSearch}.`
-                    : "No tasks found."}
+                <TableCell colSpan={9} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                  {internSearch ? `No tasks assigned to ${internSearch}.` : 'No tasks found.'}
                 </TableCell>
               </TableRow>
             )}
 
-            {filteredTasks.map(
-              (
-                task,
-                index
-              ) => (
-                <TableRow
-                  key={index}
-                >
-                  <TableCell>
-                    <Typography
-                      component="span"
-                      onClick={() =>
-                        navigate(`/tasks/${task.id}`)
-                      }
-                      sx={{
-                        cursor: "pointer",
-                        color: "primary.main",
-                        "&:hover": {
-                          textDecoration: "underline",
-                        },
-                      }}
-                    >
-                      {task.title}
-                    </Typography>
-                  </TableCell>
-
-                  <TableCell>
-                    {
-                      task.assignedTo
-                    }
-                  </TableCell>
-
-                  {!isMentor && (
-                    <TableCell>
-                      {task.mentor}
-                    </TableCell>
-                  )}
-
-                  <TableCell>
-                    <Chip
-                      label={
-                        task.priority
-                      }
-                      color={
-                        task.priority ===
-                        "High"
-                          ? "error"
-                          : task.priority ===
-                            "Medium"
-                          ? "warning"
-                          : "success"
-                      }
-                    />
-                  </TableCell>
-
-                  <TableCell>
-                    {task.dueDate}
-                  </TableCell>
-
-                  <TableCell>
-                    <Chip
-                      label={
-                        task.status
-                      }
-                      color={
-                        task.status ===
-                        "Completed"
-                          ? "success"
-                          : task.status ===
-                            "In Progress"
-                          ? "primary"
-                          : task.status ===
-                            "Not Started"
-                          ? "default"
-                          : "warning"
-                      }
-                    />
-                  </TableCell>
-
-                  <TableCell
+            {filteredTasks.map((task, index) => (
+              <TableRow key={index}>
+                <TableCell>
+                  <Typography
+                    component="span"
+                    onClick={() => navigate(`/tasks/${task.id}`)}
                     sx={{
-                      minWidth: 150,
+                      cursor: 'pointer',
+                      color: 'primary.main',
+                      '&:hover': {
+                        textDecoration: 'underline',
+                      },
                     }}
                   >
-                    <LinearProgress
-                      variant="determinate"
-                      value={
-                        task.progress
-                      }
-                    />
+                    {task.title}
+                  </Typography>
+                </TableCell>
 
-                    <Typography
-                      variant="body2"
-                    >
-                      {
-                        task.progress
-                      }
-                      %
-                    </Typography>
-                  </TableCell>
+                <TableCell>{task.assignedTo}</TableCell>
 
+                {!isMentor && <TableCell>{task.mentor}</TableCell>}
+
+                <TableCell>
+                  <Chip
+                    label={task.priority}
+                    color={
+                      task.priority === 'High'
+                        ? 'error'
+                        : task.priority === 'Medium'
+                          ? 'warning'
+                          : 'success'
+                    }
+                  />
+                </TableCell>
+
+                <TableCell>{task.dueDate}</TableCell>
+
+                <TableCell>
+                  <Chip
+                    label={task.status}
+                    color={
+                      task.status === 'Completed'
+                        ? 'success'
+                        : task.status === 'In Progress'
+                          ? 'primary'
+                          : task.status === 'Not Started'
+                            ? 'default'
+                            : 'warning'
+                    }
+                  />
+                </TableCell>
+
+                <TableCell
+                  sx={{
+                    minWidth: 150,
+                  }}
+                >
+                  <LinearProgress variant="determinate" value={task.progress} />
+
+                  <Typography variant="body2">{task.progress}%</Typography>
+                </TableCell>
+
+                <TableCell>
+                  <IconButton
+                    color="primary"
+                    title="Open task"
+                    onClick={() => navigate(`/tasks/${task.id}`)}
+                  >
+                    <OpenInNewIcon />
+                  </IconButton>
+                </TableCell>
+
+                {canManageTasks && (
                   <TableCell>
-                    <IconButton
-                      color="primary"
-                      title="Open task"
-                      onClick={() => navigate(`/tasks/${task.id}`)}
-                    >
-                      <OpenInNewIcon />
+                    <IconButton color="primary" onClick={() => editTask(index)}>
+                      <EditIcon />
+                    </IconButton>
+
+                    <IconButton color="error" onClick={() => deleteTask(index)}>
+                      <DeleteIcon />
                     </IconButton>
                   </TableCell>
-
-                  {canManageTasks && (
-                    <TableCell>
-                      <IconButton
-                        color="primary"
-                        onClick={() =>
-                          editTask(
-                            index
-                          )
-                        }
-                      >
-                        <EditIcon />
-                      </IconButton>
-
-                      <IconButton
-                        color="error"
-                        onClick={() =>
-                          deleteTask(
-                            index
-                          )
-                        }
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  )}
-                </TableRow>
-              )
-            )}
+                )}
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </TableContainer>
 
       <AddTaskDialog
         open={open}
-        handleClose={
-          handleClose
-        }
+        handleClose={handleClose}
         addTask={saveTask}
-        selectedTask={
-          selectedTask
-        }
+        selectedTask={selectedTask}
         interns={interns}
       />
 
@@ -675,7 +441,7 @@ function Tasks({
         open={!!toast}
         autoHideDuration={3000}
         onClose={() => setToast(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
         {toast ? (
           <Alert severity={toast.severity} onClose={() => setToast(null)}>
@@ -684,7 +450,7 @@ function Tasks({
         ) : undefined}
       </Snackbar>
     </>
-  );
+  )
 }
 
-export default Tasks;
+export default Tasks

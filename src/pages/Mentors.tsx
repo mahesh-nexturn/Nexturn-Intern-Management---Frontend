@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react'
 
 import {
   Box,
@@ -24,152 +24,146 @@ import {
   Typography,
   Snackbar,
   Alert,
-} from "@mui/material";
+} from '@mui/material'
 
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import AddIcon from '@mui/icons-material/Add'
+import EditIcon from '@mui/icons-material/Edit'
+import DeleteIcon from '@mui/icons-material/Delete'
 
-import type { Mentor } from "../types/Mentor";
-import * as mentorApi from "../services/mentorApi";
-import * as hrApi from "../services/hrApi";
-import type { Hr } from "../types/Hr";
+import type { Mentor } from '../types/Mentor'
+import * as mentorApi from '../services/mentorApi'
+import * as hrApi from '../services/hrApi'
+import type { Hr } from '../types/Hr'
 
 type MentorsProps = {
-  mentors: Mentor[];
-  setMentors: Dispatch<SetStateAction<Mentor[]>>;
-};
+  mentors: Mentor[]
+  setMentors: Dispatch<SetStateAction<Mentor[]>>
+}
 
 function toUiMentor(dto: mentorApi.MentorDto): Mentor {
   return {
     id: dto.id,
     name: dto.name,
     email: dto.email,
-    department: dto.department ?? "",
-    designation: dto.designation ?? "",
-    status: (dto.status as "Active" | "Inactive") ?? "Active",
+    department: dto.department ?? '',
+    designation: dto.designation ?? '',
+    status: (dto.status as 'Active' | 'Inactive') ?? 'Active',
     hrId: dto.hrId ?? null,
     hrName: dto.hrName ?? null,
-  };
+  }
 }
 
 function Mentors({ mentors, setMentors }: MentorsProps) {
-  const role = sessionStorage.getItem("role") || "HR";
-  const isHr = role === "HR";
-  const isAdmin = sessionStorage.getItem("backendRole") === "ADMIN";
-  const [hrs, setHrs] = useState<Hr[]>([]);
+  const role = sessionStorage.getItem('role') || 'HR'
+  const isHr = role === 'HR'
+  const isAdmin = sessionStorage.getItem('backendRole') === 'ADMIN'
+  const [hrs, setHrs] = useState<Hr[]>([])
 
-  const [open, setOpen] = useState(false);
-  const [editIndex, setEditIndex] = useState<number | null>(null);
-  const [toast, setToast] = useState<{ message: string; severity: "success" | "error" } | null>(null);
+  const [open, setOpen] = useState(false)
+  const [editIndex, setEditIndex] = useState<number | null>(null)
+  const [toast, setToast] = useState<{ message: string; severity: 'success' | 'error' } | null>(
+    null,
+  )
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [departmentFilter, setDepartmentFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [searchTerm, setSearchTerm] = useState('')
+  const [departmentFilter, setDepartmentFilter] = useState('All')
+  const [statusFilter, setStatusFilter] = useState('All')
 
   const [selectedMentor, setSelectedMentor] = useState<Mentor>({
     id: 0,
-    name: "",
-    email: "",
-    department: "",
-    designation: "",
-    status: "Active",
-  });
+    name: '',
+    email: '',
+    department: '',
+    designation: '',
+    status: 'Active',
+  })
 
   useEffect(() => {
-    let cancelled = false;
+    let cancelled = false
     mentorApi
       .listMentors()
       .then((list) => {
-        if (!cancelled) setMentors(list.map(toUiMentor));
+        if (!cancelled) setMentors(list.map(toUiMentor))
       })
       .catch(() => {
-        if (!cancelled) setToast({ message: "Failed to load mentors.", severity: "error" });
-      });
+        if (!cancelled) setToast({ message: 'Failed to load mentors.', severity: 'error' })
+      })
     return () => {
-      cancelled = true;
-    };
+      cancelled = true
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [])
 
   useEffect(() => {
-    if (!isAdmin) return;
-    hrApi.listHrs().then(setHrs).catch(() => {});
-  }, [isAdmin]);
+    if (!isAdmin) return
+    hrApi
+      .listHrs()
+      .then(setHrs)
+      .catch(() => {})
+  }, [isAdmin])
 
   const departments = useMemo(() => {
-    return [
-      "All",
-      ...Array.from(new Set(mentors.map((m) => m.department))),
-    ];
-  }, [mentors]);
+    return ['All', ...Array.from(new Set(mentors.map((m) => m.department)))]
+  }, [mentors])
 
   const filteredMentors = useMemo(() => {
     return mentors
       .filter((mentor) => {
-        const search = searchTerm.toLowerCase();
+        const search = searchTerm.toLowerCase()
         return (
-          mentor.name.toLowerCase().includes(search) ||
-          mentor.email.toLowerCase().includes(search)
-        );
+          mentor.name.toLowerCase().includes(search) || mentor.email.toLowerCase().includes(search)
+        )
       })
-      .filter(
-        (mentor) =>
-          departmentFilter === "All" ||
-          mentor.department === departmentFilter
-      )
-      .filter(
-        (mentor) =>
-          statusFilter === "All" || mentor.status === statusFilter
-      );
-  }, [mentors, searchTerm, departmentFilter, statusFilter]);
+      .filter((mentor) => departmentFilter === 'All' || mentor.department === departmentFilter)
+      .filter((mentor) => statusFilter === 'All' || mentor.status === statusFilter)
+  }, [mentors, searchTerm, departmentFilter, statusFilter])
 
-  const totalMentors = mentors.length;
-  const activeMentors = mentors.filter((m) => m.status === "Active").length;
-  const inactiveMentors = mentors.filter((m) => m.status === "Inactive").length;
-  const uniqueDepartments = new Set(mentors.map((m) => m.department)).size;
+  const totalMentors = mentors.length
+  const activeMentors = mentors.filter((m) => m.status === 'Active').length
+  const inactiveMentors = mentors.filter((m) => m.status === 'Inactive').length
+  const uniqueDepartments = new Set(mentors.map((m) => m.department)).size
 
   const handleOpenAdd = () => {
-    setEditIndex(null);
+    setEditIndex(null)
     setSelectedMentor({
       id: Date.now(),
-      name: "",
-      email: "",
-      department: "",
-      designation: "",
-      status: "Active",
-    });
-    setOpen(true);
-  };
+      name: '',
+      email: '',
+      department: '',
+      designation: '',
+      status: 'Active',
+    })
+    setOpen(true)
+  }
 
   const handleOpenEdit = (index: number) => {
-    const selected = filteredMentors[index];
-    const actualIndex = mentors.findIndex((m) => m.id === selected.id);
+    const selected = filteredMentors[index]
+    const actualIndex = mentors.findIndex((m) => m.id === selected.id)
 
     if (actualIndex !== -1) {
-      setEditIndex(actualIndex);
-      setSelectedMentor(mentors[actualIndex]);
-      setOpen(true);
+      setEditIndex(actualIndex)
+      setSelectedMentor(mentors[actualIndex])
+      setOpen(true)
     }
-  };
+  }
 
   const handleDelete = (index: number) => {
-    const selected = filteredMentors[index];
-    const actualIndex = mentors.findIndex((m) => m.id === selected.id);
+    const selected = filteredMentors[index]
+    const actualIndex = mentors.findIndex((m) => m.id === selected.id)
 
     if (actualIndex !== -1) {
-      const ok = window.confirm(`Delete mentor "${selected.name}"?`);
+      const ok = window.confirm(`Delete mentor "${selected.name}"?`)
       if (ok) {
         mentorApi
           .deleteMentor(selected.id)
           .then(() => {
-            setMentors(mentors.filter((_, i) => i !== actualIndex));
-            setToast({ message: "Mentor deleted.", severity: "success" });
+            setMentors(mentors.filter((_, i) => i !== actualIndex))
+            setToast({ message: 'Mentor deleted.', severity: 'success' })
           })
-          .catch(() => setToast({ message: "Failed to delete mentor.", severity: "error" }));
+          .catch(() => setToast({ message: 'Failed to delete mentor.', severity: 'error' }))
       }
     }
-  };
+  }
 
   const handleSave = () => {
     if (
@@ -178,8 +172,8 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
       !selectedMentor.department.trim() ||
       !selectedMentor.designation.trim()
     ) {
-      alert("Please fill all fields.");
-      return;
+      alert('Please fill all fields.')
+      return
     }
 
     const payload: mentorApi.MentorPayload = {
@@ -188,52 +182,52 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
       department: selectedMentor.department,
       designation: selectedMentor.designation,
       status: selectedMentor.status,
-    };
-    if (isAdmin) payload.hrId = selectedMentor.hrId ?? null;
+    }
+    if (isAdmin) payload.hrId = selectedMentor.hrId ?? null
 
     if (editIndex !== null) {
       mentorApi
         .updateMentor(selectedMentor.id, payload)
         .then((dto) => {
-          const updated = [...mentors];
-          updated[editIndex] = toUiMentor(dto);
-          setMentors(updated);
-          setToast({ message: "Mentor updated.", severity: "success" });
+          const updated = [...mentors]
+          updated[editIndex] = toUiMentor(dto)
+          setMentors(updated)
+          setToast({ message: 'Mentor updated.', severity: 'success' })
         })
-        .catch(() => setToast({ message: "Failed to update mentor.", severity: "error" }));
+        .catch(() => setToast({ message: 'Failed to update mentor.', severity: 'error' }))
     } else {
       mentorApi
         .createMentor(payload)
         .then((dto) => {
-          setMentors([...mentors, toUiMentor(dto)]);
-          setToast({ message: "Mentor created.", severity: "success" });
+          setMentors([...mentors, toUiMentor(dto)])
+          setToast({ message: 'Mentor created.', severity: 'success' })
         })
-        .catch(() => setToast({ message: "Failed to create mentor.", severity: "error" }));
+        .catch(() => setToast({ message: 'Failed to create mentor.', severity: 'error' }))
     }
 
-    setOpen(false);
-    setEditIndex(null);
-  };
+    setOpen(false)
+    setEditIndex(null)
+  }
 
   const handleClose = () => {
-    setOpen(false);
-  };
+    setOpen(false)
+  }
 
   return (
     <Box
       sx={{
         p: { xs: 2, md: 4 },
-        bgcolor: "#f5f7fb",
-        minHeight: "100vh",
+        bgcolor: '#f5f7fb',
+        minHeight: '100vh',
       }}
     >
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: { xs: "flex-start", md: "center" },
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: { xs: 'flex-start', md: 'center' },
           gap: 2,
-          flexWrap: "wrap",
+          flexWrap: 'wrap',
           mb: 3,
         }}
       >
@@ -241,7 +235,7 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
           <Typography variant="h4" sx={{ fontWeight: 800 }}>
             Mentor Management
           </Typography>
-          <Typography sx={{ color: "text.secondary", mt: 0.5 }}>
+          <Typography sx={{ color: 'text.secondary', mt: 0.5 }}>
             Manage mentors, departments, and status.
           </Typography>
         </Box>
@@ -255,7 +249,7 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
               px: 3,
               py: 1.3,
               borderRadius: 2,
-              textTransform: "none",
+              textTransform: 'none',
               fontWeight: 700,
             }}
           >
@@ -274,13 +268,13 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
       >
         <Box
           sx={{
-            display: "grid",
+            display: 'grid',
             gridTemplateColumns: {
-              xs: "repeat(2, 1fr)",
-              md: "repeat(4, 1fr)",
+              xs: 'repeat(2, 1fr)',
+              md: 'repeat(4, 1fr)',
             },
             gap: 2,
-            textAlign: "center",
+            textAlign: 'center',
           }}
         >
           <Box>
@@ -301,9 +295,7 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
             <Typography variant="h3" sx={{ fontWeight: 800 }}>
               {inactiveMentors}
             </Typography>
-            <Typography color="text.secondary">
-              Inactive Mentors
-            </Typography>
+            <Typography color="text.secondary">Inactive Mentors</Typography>
           </Box>
 
           <Box>
@@ -325,10 +317,10 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
       >
         <Box
           sx={{
-            display: "grid",
+            display: 'grid',
             gridTemplateColumns: {
-              xs: "1fr",
-              md: "repeat(3, 1fr)",
+              xs: '1fr',
+              md: 'repeat(3, 1fr)',
             },
             gap: 2,
           }}
@@ -374,12 +366,12 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
         elevation={2}
         sx={{
           borderRadius: 4,
-          overflow: "hidden",
+          overflow: 'hidden',
         }}
       >
         <TableContainer>
           <Table>
-            <TableHead sx={{ bgcolor: "#f8fafc" }}>
+            <TableHead sx={{ bgcolor: '#f8fafc' }}>
               <TableRow>
                 <TableCell sx={{ fontWeight: 700 }}>Name</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Email</TableCell>
@@ -398,23 +390,15 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
             <TableBody>
               {filteredMentors.length === 0 ? (
                 <TableRow>
-                  <TableCell
-                    align="center"
-                    colSpan={isHr ? 7 : 6}
-                    sx={{ py: 5 }}
-                  >
-                    <Typography color="text.secondary">
-                      No mentors found.
-                    </Typography>
+                  <TableCell align="center" colSpan={isHr ? 7 : 6} sx={{ py: 5 }}>
+                    <Typography color="text.secondary">No mentors found.</Typography>
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredMentors.map((mentor, index) => (
                   <TableRow key={mentor.id} hover>
                     <TableCell>
-                      <Typography sx={{ fontWeight: 700 }}>
-                        {mentor.name}
-                      </Typography>
+                      <Typography sx={{ fontWeight: 700 }}>{mentor.name}</Typography>
                     </TableCell>
                     <TableCell>{mentor.email}</TableCell>
                     <TableCell>{mentor.department}</TableCell>
@@ -422,23 +406,17 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
                     <TableCell>
                       <Chip
                         label={mentor.status}
-                        color={mentor.status === "Active" ? "success" : "default"}
+                        color={mentor.status === 'Active' ? 'success' : 'default'}
                         size="small"
                       />
                     </TableCell>
-                    <TableCell>{mentor.hrName || "-"}</TableCell>
+                    <TableCell>{mentor.hrName || '-'}</TableCell>
                     {isHr && (
                       <TableCell align="center">
-                        <IconButton
-                          color="primary"
-                          onClick={() => handleOpenEdit(index)}
-                        >
+                        <IconButton color="primary" onClick={() => handleOpenEdit(index)}>
                           <EditIcon />
                         </IconButton>
-                        <IconButton
-                          color="error"
-                          onClick={() => handleDelete(index)}
-                        >
+                        <IconButton color="error" onClick={() => handleDelete(index)}>
                           <DeleteIcon />
                         </IconButton>
                       </TableCell>
@@ -453,7 +431,7 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
 
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
         <DialogTitle sx={{ fontWeight: 700 }}>
-          {editIndex !== null ? "Edit Mentor" : "Add Mentor"}
+          {editIndex !== null ? 'Edit Mentor' : 'Add Mentor'}
         </DialogTitle>
 
         <DialogContent dividers>
@@ -517,7 +495,7 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
               onChange={(e) =>
                 setSelectedMentor({
                   ...selectedMentor,
-                  status: e.target.value as "Active" | "Inactive",
+                  status: e.target.value as 'Active' | 'Inactive',
                 })
               }
             >
@@ -530,12 +508,12 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
             <FormControl fullWidth margin="normal">
               <InputLabel>HR</InputLabel>
               <Select
-                value={selectedMentor.hrId ?? ""}
+                value={selectedMentor.hrId ?? ''}
                 label="HR"
                 onChange={(e) =>
                   setSelectedMentor({
                     ...selectedMentor,
-                    hrId: String(e.target.value) === "" ? null : Number(e.target.value),
+                    hrId: String(e.target.value) === '' ? null : Number(e.target.value),
                   })
                 }
               >
@@ -555,7 +533,7 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
             Cancel
           </Button>
           <Button variant="contained" onClick={handleSave}>
-            {editIndex !== null ? "Update Mentor" : "Add Mentor"}
+            {editIndex !== null ? 'Update Mentor' : 'Add Mentor'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -564,7 +542,7 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
         open={!!toast}
         autoHideDuration={3000}
         onClose={() => setToast(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
         {toast ? (
           <Alert severity={toast.severity} onClose={() => setToast(null)}>
@@ -573,7 +551,7 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
         ) : undefined}
       </Snackbar>
     </Box>
-  );
+  )
 }
 
-export default Mentors;
+export default Mentors

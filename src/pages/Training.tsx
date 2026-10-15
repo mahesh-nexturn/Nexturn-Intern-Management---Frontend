@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from 'react'
 
 import {
   Alert,
@@ -21,135 +21,116 @@ import {
   TableRow,
   TextField,
   Typography,
-} from "@mui/material";
+} from '@mui/material'
 
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from '@mui/icons-material/Edit'
+import DeleteIcon from '@mui/icons-material/Delete'
 
-import type { Training as TrainingType } from "../types/Training";
-import type { Intern } from "../types/Intern";
-import type { Mentor } from "../types/Mentor";
+import type { Training as TrainingType } from '../types/Training'
+import type { Intern } from '../types/Intern'
+import type { Mentor } from '../types/Mentor'
 
-import AddTrainingDialog from "../components/AddTrainingDialog";
-import TrainingChart from "../components/TrainingChart";
-import * as trainingApi from "../services/trainingApi";
-import { statusToBackend, statusToUi } from "../services/trainingApi";
+import AddTrainingDialog from '../components/AddTrainingDialog'
+import TrainingChart from '../components/TrainingChart'
+import * as trainingApi from '../services/trainingApi'
+import { statusToBackend } from '../services/trainingApi'
+import { toUiTraining } from '../utils/mappers/trainingMapper'
 
 type TrainingProps = {
-  trainings: TrainingType[];
-  setTrainings: React.Dispatch<React.SetStateAction<TrainingType[]>>;
-  interns: Intern[];
-  mentors: Mentor[];
-};
-
-type Role = "HR" | "MENTOR" | "INTERN" | null;
-
-export function toUiTraining(
-  dto: trainingApi.TrainingDto,
-  interns: Intern[],
+  trainings: TrainingType[]
+  setTrainings: React.Dispatch<React.SetStateAction<TrainingType[]>>
+  interns: Intern[]
   mentors: Mentor[]
-): TrainingType {
-  return {
-    id: dto.id,
-    title: dto.title,
-    assignedTo: dto.internName,
-    internId: dto.internId,
-    mentor: mentors.find((mentor) => mentor.id === dto.mentorId)?.name
-      ?? interns.find((intern) => intern.id === dto.internId)?.mentor
-      ?? "",
-    mentorId: dto.mentorId,
-    startDate: dto.startDate || "",
-    endDate: dto.endDate || "",
-    status: statusToUi(dto.status) as TrainingType["status"],
-    progress: dto.progress,
-  };
 }
 
-function Training({
-  trainings,
-  setTrainings,
-  interns,
-  mentors,
-}: TrainingProps) {
-  const [open, setOpen] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
+type Role = 'HR' | 'MENTOR' | 'INTERN' | null
+
+function Training({ trainings, setTrainings, interns, mentors }: TrainingProps) {
+  const [open, setOpen] = useState(false)
+  const [editId, setEditId] = useState<number | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('All')
   const [toast, setToast] = useState<{
-    message: string;
-    severity: "success" | "error";
-  } | null>(null);
+    message: string
+    severity: 'success' | 'error'
+  } | null>(null)
 
   const [selectedTraining, setSelectedTraining] = useState<TrainingType>({
     id: 0,
-    title: "",
-    assignedTo: "",
+    title: '',
+    assignedTo: '',
     internId: null,
-    mentor: "",
+    mentor: '',
     mentorId: null,
-    startDate: "",
-    endDate: "",
-    status: "Not Started",
+    startDate: '',
+    endDate: '',
+    status: 'Not Started',
     progress: 0,
-  });
+  })
 
-  const role = sessionStorage.getItem("role") as Role;
-  const userName = sessionStorage.getItem("name") || "";
+  const role = sessionStorage.getItem('role') as Role
+  const userName = sessionStorage.getItem('name') || ''
 
-  const isHr = role === "HR";
-  const isMentor = role === "MENTOR";
-  const isIntern = role === "INTERN";
-  const canManageTrainings = isHr || isMentor;
+  const isHr = role === 'HR'
+  const isMentor = role === 'MENTOR'
+  const isIntern = role === 'INTERN'
+  const canManageTrainings = isHr || isMentor
 
   useEffect(() => {
     trainingApi
       .listTrainings()
       .then((list) => setTrainings(list.map((item) => toUiTraining(item, interns, mentors))))
-      .catch(() => setToast({ message: "Failed to load trainings.", severity: "error" }));
+      .catch(() => setToast({ message: 'Failed to load trainings.', severity: 'error' }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [])
 
   const visibleTrainings = useMemo(() => {
-    if (isHr) return trainings;
-    if (isMentor) return trainings.filter((training) => training.mentor === userName);
-    if (isIntern) return trainings.filter((training) => training.assignedTo === userName);
-    return [];
-  }, [isHr, isIntern, isMentor, trainings, userName]);
+    if (isHr) return trainings
+    if (isMentor) return trainings.filter((training) => training.mentor === userName)
+    if (isIntern) return trainings.filter((training) => training.assignedTo === userName)
+    return []
+  }, [isHr, isIntern, isMentor, trainings, userName])
 
   const filteredTrainings = visibleTrainings
     .filter((training) => training.title.toLowerCase().includes(searchTerm.toLowerCase()))
-    .filter((training) => statusFilter === "All" || training.status === statusFilter);
+    .filter((training) => statusFilter === 'All' || training.status === statusFilter)
 
-  const totalTrainings = visibleTrainings.length;
-  const notStartedCount = visibleTrainings.filter((training) => training.status === "Not Started").length;
-  const inProgressCount = visibleTrainings.filter((training) => training.status === "In Progress").length;
-  const completedCount = visibleTrainings.filter((training) => training.status === "Completed").length;
+  const totalTrainings = visibleTrainings.length
+  const notStartedCount = visibleTrainings.filter(
+    (training) => training.status === 'Not Started',
+  ).length
+  const inProgressCount = visibleTrainings.filter(
+    (training) => training.status === 'In Progress',
+  ).length
+  const completedCount = visibleTrainings.filter(
+    (training) => training.status === 'Completed',
+  ).length
 
   const handleOpen = () => {
-    setEditId(null);
+    setEditId(null)
     setSelectedTraining({
       id: 0,
-      title: "",
-      assignedTo: "",
+      title: '',
+      assignedTo: '',
       internId: null,
-      mentor: "",
+      mentor: '',
       mentorId: null,
-      startDate: "",
-      endDate: "",
-      status: "Not Started",
+      startDate: '',
+      endDate: '',
+      status: 'Not Started',
       progress: 0,
-    });
-    setOpen(true);
-  };
+    })
+    setOpen(true)
+  }
 
   const handleClose = () => {
-    setOpen(false);
-  };
+    setOpen(false)
+  }
 
   const saveTraining = async (training: TrainingType) => {
     if (!training.internId) {
-      alert("Please select an intern.");
-      return;
+      alert('Please select an intern.')
+      return
     }
 
     const payload: trainingApi.TrainingPayload = {
@@ -160,58 +141,56 @@ function Training({
       endDate: training.endDate || undefined,
       status: statusToBackend(training.status),
       progress: training.progress,
-    };
+    }
 
     try {
       if (editId !== null) {
-        const updated = await trainingApi.updateTraining(editId, payload);
+        const updated = await trainingApi.updateTraining(editId, payload)
         setTrainings((prev) =>
-          prev.map((item) =>
-            item.id === editId ? toUiTraining(updated, interns, mentors) : item
-          )
-        );
-        setToast({ message: "Training updated successfully.", severity: "success" });
+          prev.map((item) => (item.id === editId ? toUiTraining(updated, interns, mentors) : item)),
+        )
+        setToast({ message: 'Training updated successfully.', severity: 'success' })
       } else {
-        const created = await trainingApi.createTraining(payload);
-        setTrainings((prev) => [...prev, toUiTraining(created, interns, mentors)]);
-        setToast({ message: "Training created successfully.", severity: "success" });
+        const created = await trainingApi.createTraining(payload)
+        setTrainings((prev) => [...prev, toUiTraining(created, interns, mentors)])
+        setToast({ message: 'Training created successfully.', severity: 'success' })
       }
 
-      setEditId(null);
-      setOpen(false);
+      setEditId(null)
+      setOpen(false)
     } catch {
-      setToast({ message: "Failed to save training.", severity: "error" });
+      setToast({ message: 'Failed to save training.', severity: 'error' })
     }
-  };
+  }
 
   const editTraining = (id: number) => {
-    const training = filteredTrainings.find((item) => item.id === id);
-    if (!training) return;
+    const training = filteredTrainings.find((item) => item.id === id)
+    if (!training) return
 
-    setEditId(training.id);
-    setSelectedTraining(training);
-    setOpen(true);
-  };
+    setEditId(training.id)
+    setSelectedTraining(training)
+    setOpen(true)
+  }
 
   const deleteTraining = async (id: number) => {
     try {
-      await trainingApi.deleteTraining(id);
-      setTrainings((prev) => prev.filter((item) => item.id !== id));
-      setToast({ message: "Training deleted successfully.", severity: "success" });
+      await trainingApi.deleteTraining(id)
+      setTrainings((prev) => prev.filter((item) => item.id !== id))
+      setToast({ message: 'Training deleted successfully.', severity: 'success' })
     } catch {
-      setToast({ message: "Failed to delete training.", severity: "error" });
+      setToast({ message: 'Failed to delete training.', severity: 'error' })
     }
-  };
+  }
 
   return (
     <>
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
+          display: 'flex',
+          justifyContent: 'space-between',
           mb: 3,
           gap: 2,
-          flexWrap: "wrap",
+          flexWrap: 'wrap',
         }}
       >
         <Typography variant="h4">Training</Typography>
@@ -232,10 +211,10 @@ function Training({
 
       <Box
         sx={{
-          display: "flex",
+          display: 'flex',
           gap: 2,
           mb: 3,
-          flexWrap: "wrap",
+          flexWrap: 'wrap',
         }}
       >
         <TextField
@@ -286,18 +265,18 @@ function Training({
                 <TableRow key={training.id}>
                   <TableCell>{training.title}</TableCell>
                   <TableCell>{training.assignedTo}</TableCell>
-                  <TableCell>{training.mentor || "-"}</TableCell>
+                  <TableCell>{training.mentor || '-'}</TableCell>
                   <TableCell>{training.startDate}</TableCell>
                   <TableCell>{training.endDate}</TableCell>
                   <TableCell>
                     <Chip
                       label={training.status}
                       color={
-                        training.status === "Completed"
-                          ? "success"
-                          : training.status === "In Progress"
-                          ? "primary"
-                          : "warning"
+                        training.status === 'Completed'
+                          ? 'success'
+                          : training.status === 'In Progress'
+                            ? 'primary'
+                            : 'warning'
                       }
                     />
                   </TableCell>
@@ -340,7 +319,7 @@ function Training({
         open={!!toast}
         autoHideDuration={3000}
         onClose={() => setToast(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
         {toast ? (
           <Alert severity={toast.severity} onClose={() => setToast(null)}>
@@ -349,7 +328,7 @@ function Training({
         ) : undefined}
       </Snackbar>
     </>
-  );
+  )
 }
 
-export default Training;
+export default Training

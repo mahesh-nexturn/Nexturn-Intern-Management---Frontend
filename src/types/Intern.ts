@@ -1,14 +1,14 @@
 export type Intern = {
-  id: number;
-  name: string;
-  department: string;
-  mentor: string;
-  mentorId?: number | null;
-  status: string;
-  email?: string;
-  userId?: number | null;
-  hrId?: number | null;
-  hrName?: string | null;
-  createTime?: string;
-  updateTime?: string;
-};
+  id: number
+  name: string
+  department: string
+  mentor: string
+  mentorId?: number | null
+  status: string
+  email?: string
+  userId?: number | null
+  hrId?: number | null
+  hrName?: string | null
+  createTime?: string
+  updateTime?: string
+}

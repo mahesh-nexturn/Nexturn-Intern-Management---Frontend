@@ -9,6 +9,7 @@ built from `BACKEND_ARCHITECTURE.md`.
 ## 1. Prerequisites — Install Everything
 
 ### 1.1 Java 21 (JDK)
+
 1. Download **Eclipse Temurin JDK 21** (or any JDK 17+): https://adoptium.net/
 2. Run the installer, check **"Set JAVA_HOME variable"** and **"Add to PATH"**.
 3. Verify:
@@ -18,10 +19,12 @@ built from `BACKEND_ARCHITECTURE.md`.
    Expected: `openjdk version "21..."`
 
 ### 1.2 Maven (optional — the project ships its own wrapper)
+
 The repo includes `mvnw` / `mvnw.cmd`, so a separate Maven install is **not required**.
 If you want a global Maven anyway: https://maven.apache.org/download.cgi, then add `bin/` to PATH.
 
 ### 1.3 PostgreSQL 16
+
 1. Download installer: https://www.postgresql.org/download/windows/
 2. Run it and **set a password for the `postgres` superuser** when prompted
    — this is the **"password step"**. Remember it; you'll enter it again in step 3.
@@ -32,6 +35,7 @@ If you want a global Maven anyway: https://maven.apache.org/download.cgi, then a
    ```
 
 ### 1.4 VS Code + Extensions
+
 1. Download VS Code: https://code.visualstudio.com/
 2. Install these extensions (Extensions view → search each):
    - **Extension Pack for Java** (Microsoft)
@@ -40,6 +44,7 @@ If you want a global Maven anyway: https://maven.apache.org/download.cgi, then a
 3. Reload VS Code after installing.
 
 ### 1.5 Git (if not already installed)
+
 https://git-scm.com/download/win
 
 ---
@@ -51,9 +56,11 @@ Open a terminal and connect with `psql` using the password you set in step 1.3:
 ```powershell
 & "C:\Program Files\PostgreSQL\16\bin\psql.exe" -U postgres
 ```
+
 It will prompt: `Password for user postgres:` → enter the password from step 1.3.
 
 Then run:
+
 ```sql
 CREATE DATABASE intern_management;
 CREATE DATABASE intern_management_test;   -- used only by the automated test suite
@@ -71,7 +78,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/intern_management
     username: postgres
-    password: postgres        # <-- change to the password you set in step 1.3
+    password: postgres # <-- change to the password you set in step 1.3
 
 jwt:
   secret: ${JWT_SECRET:local-dev-secret-change-me-in-prod-0123456789}
@@ -96,6 +103,7 @@ with its own dedicated JWT secret — no changes needed there for local runs.
 cd "C:\Users\MaheshBetha\Downloads\Nexturn-Intern-Management---Frontend-main\Nexturn-Intern-Management---Frontend-main"
 code intern-management-backend
 ```
+
 VS Code will detect the Maven project and start downloading Java language server support —
 wait for the bottom-right progress spinner to finish.
 
@@ -107,6 +115,7 @@ wait for the bottom-right progress spinner to finish.
 cd intern-management-backend
 .\mvnw.cmd clean compile
 ```
+
 Expected: `BUILD SUCCESS`. First run downloads all dependencies (~2–5 minutes).
 
 ---
@@ -116,14 +125,17 @@ Expected: `BUILD SUCCESS`. First run downloads all dependencies (~2–5 minutes)
 Option A — VS Code: open `InternManagementBackendApplication.java` → click **Run** (▶) above `main`.
 
 Option B — terminal:
+
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
 On startup you should see Flyway apply 5 migrations and:
+
 ```
 Started InternManagementBackendApplication in X seconds
 ```
+
 The API is now live at `http://localhost:8080`.
 
 ---
@@ -131,27 +143,32 @@ The API is now live at `http://localhost:8080`.
 ## 7. Verify It Works
 
 ### 7.1 Swagger UI
+
 Open in a browser: `http://localhost:8080/swagger-ui.html`
 
 ### 7.2 Login with the seeded admin account
+
 ```powershell
 curl -X POST http://localhost:8080/api/auth/login `
   -H "Content-Type: application/json" `
   -d '{"email":"admin@nexturn.com","password":"Admin@123"}'
 ```
+
 Expected: `200 OK` with `data.accessToken` in the response.
 
-| Field    | Value              |
-|----------|--------------------|
-| Email    | admin@nexturn.com  |
-| Password | Admin@123          |
-| Role     | ADMIN              |
+| Field    | Value             |
+| -------- | ----------------- |
+| Email    | admin@nexturn.com |
+| Password | Admin@123         |
+| Role     | ADMIN             |
 
 ### 7.3 Call a protected endpoint
+
 ```powershell
 $token = "<paste accessToken here>"
 curl http://localhost:8080/api/interns -H "Authorization: Bearer $token"
 ```
+
 Expected: `200 OK` with a JSON list (empty array initially).
 
 ---
@@ -163,7 +180,9 @@ Requires the `intern_management_test` database from step 2.
 ```powershell
 .\mvnw.cmd test
 ```
+
 Expected: `Tests run: 17, Failures: 0, Errors: 0` and `BUILD SUCCESS`. Covers:
+
 - `AuthFlowTest` — login success/failure, token validation (5 tests)
 - `OwnershipAuthorizationTest` — mentor/intern data scoping, cross-role 403s (9 tests)
 - `ReportExportServiceTest` — Excel export generation (2 tests)
@@ -185,20 +204,20 @@ Expected: `Tests run: 17, Failures: 0, Errors: 0` and `BUILD SUCCESS`. Covers:
 
 ## 10. Troubleshooting
 
-| Problem | Fix |
-|---|---|
-| `psql` not found | Use full path: `C:\Program Files\PostgreSQL\16\bin\psql.exe`, or add that folder to PATH |
-| `FATAL: password authentication failed` | Re-check `application.yml` password matches what you set during Postgres install |
-| Port `8080` already in use | Find & stop it: `Get-Process -Id (Get-NetTCPConnection -LocalPort 8080).OwningProcess` then `Stop-Process -Id <pid>` |
-| `mvnw` permission denied | Run `.\mvnw.cmd` (Windows uses the `.cmd` wrapper, not `./mvnw`) |
-| Tests fail with DB connection errors | Confirm `intern_management_test` database exists (step 2) |
+| Problem                                 | Fix                                                                                                                  |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `psql` not found                        | Use full path: `C:\Program Files\PostgreSQL\16\bin\psql.exe`, or add that folder to PATH                             |
+| `FATAL: password authentication failed` | Re-check `application.yml` password matches what you set during Postgres install                                     |
+| Port `8080` already in use              | Find & stop it: `Get-Process -Id (Get-NetTCPConnection -LocalPort 8080).OwningProcess` then `Stop-Process -Id <pid>` |
+| `mvnw` permission denied                | Run `.\mvnw.cmd` (Windows uses the `.cmd` wrapper, not `./mvnw`)                                                     |
+| Tests fail with DB connection errors    | Confirm `intern_management_test` database exists (step 2)                                                            |
 
 ---
 
 ## 11. Default Credentials Summary
 
-| Purpose | Username | Password |
-|---|---|---|
-| Postgres superuser | `postgres` | *(set during install, step 1.3)* |
-| App admin login | `admin@nexturn.com` | `Admin@123` |
-| JWT signing secret | *(env var)* `JWT_SECRET` | defaults to `local-dev-secret-change-me-in-prod-0123456789` for local dev only |
+| Purpose            | Username                 | Password                                                                       |
+| ------------------ | ------------------------ | ------------------------------------------------------------------------------ |
+| Postgres superuser | `postgres`               | _(set during install, step 1.3)_                                               |
+| App admin login    | `admin@nexturn.com`      | `Admin@123`                                                                    |
+| JWT signing secret | _(env var)_ `JWT_SECRET` | defaults to `local-dev-secret-change-me-in-prod-0123456789` for local dev only |

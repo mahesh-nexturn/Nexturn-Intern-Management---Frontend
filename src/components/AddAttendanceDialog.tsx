@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from 'react'
 
 import {
   Button,
@@ -8,20 +8,20 @@ import {
   DialogTitle,
   MenuItem,
   TextField,
-} from "@mui/material";
+} from '@mui/material'
 
-import type { Attendance } from "../types/Attendance";
-import type { Intern } from "../types/Intern";
+import type { Attendance } from '../types/Attendance'
+import type { Intern } from '../types/Intern'
 
 type AddAttendanceDialogProps = {
-  open: boolean;
-  handleClose: () => void;
-  addAttendance: (attendance: Attendance, applyToAll?: boolean) => void;
-  selectedAttendance: Attendance;
-  interns: Intern[];
-};
+  open: boolean
+  handleClose: () => void
+  addAttendance: (attendance: Attendance, applyToAll?: boolean) => void
+  selectedAttendance: Attendance
+  interns: Intern[]
+}
 
-const ALL = "ALL";
+const ALL = 'ALL'
 
 function AddAttendanceDialog({
   open,
@@ -30,53 +30,55 @@ function AddAttendanceDialog({
   selectedAttendance,
   interns,
 }: AddAttendanceDialogProps) {
-  const [internId, setInternId] = useState<number | typeof ALL | "">("");
-  const [date, setDate] = useState("");
-  const [status, setStatus] = useState<Attendance["status"]>("Present");
+  const [internId, setInternId] = useState<number | typeof ALL | ''>('')
+  const [date, setDate] = useState('')
+  const [status, setStatus] = useState<Attendance['status']>('Present')
 
-  const isEdit = selectedAttendance.id !== 0;
-  const isAll = internId === ALL;
+  const isEdit = selectedAttendance.id !== 0
+  const isAll = internId === ALL
 
-  useEffect(() => {
-    setInternId(selectedAttendance.internId ?? "");
-    setDate(selectedAttendance.date || "");
-    setStatus(selectedAttendance.status || "Present");
-  }, [selectedAttendance]);
+  const [prevSelected, setPrevSelected] = useState<Attendance | null>(null)
+  if (prevSelected !== selectedAttendance) {
+    setPrevSelected(selectedAttendance)
+    setInternId(selectedAttendance.internId ?? '')
+    setDate(selectedAttendance.date || '')
+    setStatus(selectedAttendance.status || 'Present')
+  }
 
-  const selectedIntern = isAll ? undefined : interns.find((intern) => intern.id === internId);
+  const selectedIntern = isAll ? undefined : interns.find((intern) => intern.id === internId)
 
   const handleSave = () => {
     if (!internId) {
-      alert("Please select an intern.");
-      return;
+      alert('Please select an intern.')
+      return
     }
 
     if (!date) {
-      alert("Please select a date.");
-      return;
+      alert('Please select a date.')
+      return
     }
 
     if (isAll) {
       addAttendance(
-        { id: 0, intern: "", internId: null, mentor: "", mentorId: null, date, status },
-        true
-      );
-      handleClose();
-      return;
+        { id: 0, intern: '', internId: null, mentor: '', mentorId: null, date, status },
+        true,
+      )
+      handleClose()
+      return
     }
 
     addAttendance({
       id: selectedAttendance.id,
-      intern: selectedIntern?.name || "",
+      intern: selectedIntern?.name || '',
       internId: internId as number,
-      mentor: selectedIntern?.mentor || "",
+      mentor: selectedIntern?.mentor || '',
       mentorId: selectedIntern?.mentorId ?? null,
       date,
       status,
-    });
+    })
 
-    handleClose();
-  };
+    handleClose()
+  }
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
@@ -91,12 +93,12 @@ function AddAttendanceDialog({
           value={internId}
           helperText={
             isAll
-              ? `Will be applied to all ${interns.length} intern${interns.length === 1 ? "" : "s"} assigned to you.`
+              ? `Will be applied to all ${interns.length} intern${interns.length === 1 ? '' : 's'} assigned to you.`
               : undefined
           }
           onChange={(e) =>
             setInternId(
-              e.target.value === "" ? "" : e.target.value === ALL ? ALL : Number(e.target.value)
+              e.target.value === '' ? '' : e.target.value === ALL ? ALL : Number(e.target.value),
             )
           }
         >
@@ -115,7 +117,7 @@ function AddAttendanceDialog({
             fullWidth
             margin="dense"
             label="Mentor"
-            value={selectedIntern?.mentor || ""}
+            value={selectedIntern?.mentor || ''}
             disabled
           />
         )}
@@ -134,7 +136,7 @@ function AddAttendanceDialog({
           margin="dense"
           label="Status"
           value={status}
-          onChange={(e) => setStatus(e.target.value as Attendance["status"])}
+          onChange={(e) => setStatus(e.target.value as Attendance['status'])}
         >
           <MenuItem value="Present">Present</MenuItem>
           <MenuItem value="Absent">Absent</MenuItem>
@@ -151,7 +153,7 @@ function AddAttendanceDialog({
         </Button>
       </DialogActions>
     </Dialog>
-  );
+  )
 }
 
-export default AddAttendanceDialog;
+export default AddAttendanceDialog

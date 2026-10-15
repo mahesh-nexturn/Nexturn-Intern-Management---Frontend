@@ -71,4 +71,5 @@ export default defineConfig([
   },
 ])
 ```
+
 # Nexturn-Intern-Management---Frontend

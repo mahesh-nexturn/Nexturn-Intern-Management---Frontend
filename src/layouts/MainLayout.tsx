@@ -1,21 +1,21 @@
-import { Box } from "@mui/material";
-import React from "react";
-import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
+import { Box } from '@mui/material'
+import React from 'react'
+import Navbar from '../components/Navbar'
+import Sidebar from '../components/Sidebar'
 
 type Props = {
-  children: React.ReactNode;
-};
+  children: React.ReactNode
+}
 
 function MainLayout({ children }: Props) {
-  const [collapsed, setCollapsed] = React.useState(true);
+  const [collapsed, setCollapsed] = React.useState(true)
   return (
     <Box
       sx={{
-        display: "flex",
-        height: "100vh",
-        bgcolor: "#f5f7fb",
-        overflow: "hidden",
+        display: 'flex',
+        height: '100vh',
+        bgcolor: '#f5f7fb',
+        overflow: 'hidden',
       }}
     >
       {collapsed && <Sidebar />}
@@ -23,8 +23,8 @@ function MainLayout({ children }: Props) {
       <Box
         sx={{
           flex: 1,
-          display: "flex",
-          flexDirection: "column",
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         <Navbar setCollapsed={setCollapsed} collapsed={collapsed} />
@@ -32,7 +32,7 @@ function MainLayout({ children }: Props) {
         <Box
           sx={{
             flex: 1,
-            overflowY: "auto",
+            overflowY: 'auto',
             p: 3,
           }}
         >
@@ -40,7 +40,7 @@ function MainLayout({ children }: Props) {
         </Box>
       </Box>
     </Box>
-  );
+  )
 }
 
-export default MainLayout;
+export default MainLayout

@@ -1,80 +1,73 @@
-import {
-  AppBar,
-  Box,
-  Toolbar,
-  Typography,
-  IconButton,
-  Avatar,
-  Menu,
-  MenuItem,
-} from "@mui/material";
+import { AppBar, Box, Toolbar, Typography, IconButton, Avatar, Menu, MenuItem } from '@mui/material'
 
-import MenuIcon from "@mui/icons-material/Menu";
-import LogoutIcon from "@mui/icons-material/Logout";
+import MenuIcon from '@mui/icons-material/Menu'
+import LogoutIcon from '@mui/icons-material/Logout'
 
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import AvatarUploadDialog from "./AvatarUploadDialog";
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/useAuth'
+import AvatarUploadDialog from './AvatarUploadDialog'
 
-function Navbar({ setCollapsed, collapsed }: { setCollapsed: (collapsed: boolean) => void; collapsed: boolean }) {
-  const navigate = useNavigate();
-  const { logout } = useAuth();
+function Navbar({
+  setCollapsed,
+  collapsed,
+}: {
+  setCollapsed: (collapsed: boolean) => void
+  collapsed: boolean
+}) {
+  const navigate = useNavigate()
+  const { logout } = useAuth()
 
-  const [anchorEl, setAnchorEl] =
-    useState<null | HTMLElement>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
-  const open = Boolean(anchorEl);
+  const open = Boolean(anchorEl)
 
-  const avatarKey = `avatar_${sessionStorage.getItem("userId") ?? "me"}`;
-  const [avatar, setAvatar] = useState(localStorage.getItem(avatarKey) || "");
-  const [uploadOpen, setUploadOpen] = useState(false);
+  const avatarKey = `avatar_${sessionStorage.getItem('userId') ?? 'me'}`
+  const [avatar, setAvatar] = useState(localStorage.getItem(avatarKey) || '')
+  const [uploadOpen, setUploadOpen] = useState(false)
 
   useEffect(() => {
-    const sync = () => setAvatar(localStorage.getItem(avatarKey) || "");
-    window.addEventListener("avatar-changed", sync);
-    return () => window.removeEventListener("avatar-changed", sync);
-  }, [avatarKey]);
+    const sync = () => setAvatar(localStorage.getItem(avatarKey) || '')
+    window.addEventListener('avatar-changed', sync)
+    return () => window.removeEventListener('avatar-changed', sync)
+  }, [avatarKey])
 
-  const name = sessionStorage.getItem("name") || "User";
-  const role = sessionStorage.getItem("role") || "";
+  const name = sessionStorage.getItem('name') || 'User'
+  const role = sessionStorage.getItem('role') || ''
 
-  const handleMenuOpen = (
-    event: React.MouseEvent<HTMLElement>
-  ) => {
-    setAnchorEl(event.currentTarget);
-  };
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget)
+  }
 
   const handleMenuClose = () => {
-    navigate("/profile");
-  };
+    navigate('/profile')
+  }
 
-  
   const handleMenuSettings = () => {
-    navigate("/settings");
-  };
+    navigate('/settings')
+  }
   const handleLogout = async () => {
-    await logout();
-    navigate("/");
-  };
+    await logout()
+    navigate('/')
+  }
 
   return (
     <AppBar
       position="static"
       elevation={0}
       sx={{
-        bgcolor: "#ffffff",
-        color: "#111827",
-        borderBottom: "1px solid #e5e7eb",
+        bgcolor: '#ffffff',
+        color: '#111827',
+        borderBottom: '1px solid #e5e7eb',
       }}
     >
       <Toolbar
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
+          display: 'flex',
+          justifyContent: 'space-between',
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }} >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <IconButton edge="start" color="inherit" onClick={() => setCollapsed(!collapsed)}>
             <MenuIcon />
           </IconButton>
@@ -89,8 +82,8 @@ function Navbar({ setCollapsed, collapsed }: { setCollapsed: (collapsed: boolean
           </Box>
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Box sx={{ textAlign: "right" }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ textAlign: 'right' }}>
             <Typography sx={{ fontWeight: 700 }}>{name}</Typography>
             <Typography variant="body2" color="text.secondary">
               {role}
@@ -98,19 +91,12 @@ function Navbar({ setCollapsed, collapsed }: { setCollapsed: (collapsed: boolean
           </Box>
 
           <IconButton onClick={handleMenuOpen}>
-            <Avatar
-              src={avatar || undefined}
-              sx={{ bgcolor: "#2563eb", fontWeight: 700 }}
-            >
+            <Avatar src={avatar || undefined} sx={{ bgcolor: '#2563eb', fontWeight: 700 }}>
               {name.charAt(0).toUpperCase()}
             </Avatar>
           </IconButton>
 
-          <Menu
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleMenuClose}
-          >
+          <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
             <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
             <MenuItem onClick={handleMenuSettings}>Settings</MenuItem>
             <MenuItem onClick={handleLogout}>
@@ -124,15 +110,15 @@ function Navbar({ setCollapsed, collapsed }: { setCollapsed: (collapsed: boolean
             current={avatar}
             onClose={() => setUploadOpen(false)}
             onSave={(url) => {
-              if (url) localStorage.setItem(avatarKey, url);
-              else localStorage.removeItem(avatarKey);
-              window.dispatchEvent(new Event("avatar-changed"));
+              if (url) localStorage.setItem(avatarKey, url)
+              else localStorage.removeItem(avatarKey)
+              window.dispatchEvent(new Event('avatar-changed'))
             }}
           />
         </Box>
       </Toolbar>
     </AppBar>
-  );
+  )
 }
 
-export default Navbar;
+export default Navbar

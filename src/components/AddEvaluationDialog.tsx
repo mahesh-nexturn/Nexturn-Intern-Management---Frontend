@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from 'react'
 
 import {
   Button,
@@ -8,18 +8,18 @@ import {
   DialogTitle,
   MenuItem,
   TextField,
-} from "@mui/material";
+} from '@mui/material'
 
-import type { Evaluation } from "../types/Evaluation";
-import type { Intern } from "../types/Intern";
+import type { Evaluation } from '../types/Evaluation'
+import type { Intern } from '../types/Intern'
 
 type AddEvaluationDialogProps = {
-  open: boolean;
-  handleClose: () => void;
-  addEvaluation: (evaluation: Evaluation) => void;
-  selectedEvaluation: Evaluation;
-  interns: Intern[];
-};
+  open: boolean
+  handleClose: () => void
+  addEvaluation: (evaluation: Evaluation) => void
+  selectedEvaluation: Evaluation
+  interns: Intern[]
+}
 
 function AddEvaluationDialog({
   open,
@@ -28,46 +28,48 @@ function AddEvaluationDialog({
   selectedEvaluation,
   interns,
 }: AddEvaluationDialogProps) {
-  const [internId, setInternId] = useState<number | "">("");
-  const [technicalRating, setTechnicalRating] = useState(1);
-  const [communicationRating, setCommunicationRating] = useState(1);
-  const [problemSolvingRating, setProblemSolvingRating] = useState(1);
-  const [overallRating, setOverallRating] = useState(1);
-  const [feedback, setFeedback] = useState("");
+  const [internId, setInternId] = useState<number | ''>('')
+  const [technicalRating, setTechnicalRating] = useState(1)
+  const [communicationRating, setCommunicationRating] = useState(1)
+  const [problemSolvingRating, setProblemSolvingRating] = useState(1)
+  const [overallRating, setOverallRating] = useState(1)
+  const [feedback, setFeedback] = useState('')
 
-  useEffect(() => {
-    setInternId(selectedEvaluation.internId ?? "");
-    setTechnicalRating(selectedEvaluation.technicalRating || 1);
-    setCommunicationRating(selectedEvaluation.communicationRating || 1);
-    setProblemSolvingRating(selectedEvaluation.problemSolvingRating || 1);
-    setOverallRating(selectedEvaluation.overallRating || 1);
-    setFeedback(selectedEvaluation.feedback || "");
-  }, [selectedEvaluation]);
+  const [prevSelected, setPrevSelected] = useState<Evaluation | null>(null)
+  if (prevSelected !== selectedEvaluation) {
+    setPrevSelected(selectedEvaluation)
+    setInternId(selectedEvaluation.internId ?? '')
+    setTechnicalRating(selectedEvaluation.technicalRating || 1)
+    setCommunicationRating(selectedEvaluation.communicationRating || 1)
+    setProblemSolvingRating(selectedEvaluation.problemSolvingRating || 1)
+    setOverallRating(selectedEvaluation.overallRating || 1)
+    setFeedback(selectedEvaluation.feedback || '')
+  }
 
   const selectedIntern = useMemo(
     () => interns.find((intern) => intern.id === internId),
-    [internId, interns]
-  );
+    [internId, interns],
+  )
 
   const handleSave = () => {
     if (!internId) {
-      alert("Please select an intern.");
-      return;
+      alert('Please select an intern.')
+      return
     }
 
     addEvaluation({
       id: selectedEvaluation.id,
-      intern: selectedIntern?.name || "",
+      intern: selectedIntern?.name || '',
       internId: internId as number,
-      mentor: selectedIntern?.mentor || "",
+      mentor: selectedIntern?.mentor || '',
       mentorId: selectedIntern?.mentorId ?? null,
       technicalRating,
       communicationRating,
       problemSolvingRating,
       overallRating,
       feedback,
-    });
-  };
+    })
+  }
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
@@ -80,7 +82,7 @@ function AddEvaluationDialog({
           margin="dense"
           label="Intern"
           value={internId}
-          onChange={(e) => setInternId(e.target.value === "" ? "" : Number(e.target.value))}
+          onChange={(e) => setInternId(e.target.value === '' ? '' : Number(e.target.value))}
         >
           {interns.map((intern) => (
             <MenuItem key={intern.id} value={intern.id}>
@@ -89,7 +91,13 @@ function AddEvaluationDialog({
           ))}
         </TextField>
 
-        <TextField fullWidth margin="dense" label="Mentor" value={selectedIntern?.mentor || ""} disabled />
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Mentor"
+          value={selectedIntern?.mentor || ''}
+          disabled
+        />
 
         <TextField
           fullWidth
@@ -149,7 +157,7 @@ function AddEvaluationDialog({
         </Button>
       </DialogActions>
     </Dialog>
-  );
+  )
 }
 
-export default AddEvaluationDialog;
+export default AddEvaluationDialog

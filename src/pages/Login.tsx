@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react'
 import {
   Box,
   Paper,
@@ -8,67 +8,67 @@ import {
   Divider,
   Alert,
   CircularProgress,
-} from "@mui/material";
-import { useNavigate } from "react-router-dom";
+} from '@mui/material'
+import { useNavigate } from 'react-router-dom'
 
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from '../context/useAuth'
 
 function Login() {
-  const navigate = useNavigate();
-  const { login } = useAuth();
+  const navigate = useNavigate()
+  const { login } = useAuth()
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   const handleLogin = async () => {
-    setError("");
+    setError('')
 
     if (!email.trim() || !password.trim()) {
-      setError("Please enter email and password.");
-      return;
+      setError('Please enter email and password.')
+      return
     }
 
-    setSubmitting(true);
+    setSubmitting(true)
     try {
-      const user = await login(email.trim(), password);
+      const user = await login(email.trim(), password)
 
       switch (user.role) {
-        case "HR":
-          navigate("/dashboard");
-          break;
-        case "MENTOR":
-          navigate("/mentor-dashboard");
-          break;
-        case "INTERN":
-          navigate("/intern-dashboard");
-          break;
+        case 'HR':
+          navigate('/dashboard')
+          break
+        case 'MENTOR':
+          navigate('/mentor-dashboard')
+          break
+        case 'INTERN':
+          navigate('/intern-dashboard')
+          break
         default:
-          setError("Unknown role.");
+          setError('Unknown role.')
       }
     } catch {
-      setError("Invalid email or password.");
+      setError('Invalid email or password.')
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
   return (
     <Box
       sx={{
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        bgcolor: "#f5f7fb",
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        bgcolor: '#f5f7fb',
         px: 2,
       }}
     >
       <Paper
         elevation={4}
         sx={{
-          width: "100%",
+          width: '100%',
           maxWidth: 450,
           p: 4,
           borderRadius: 4,
@@ -77,7 +77,7 @@ function Login() {
         <Typography
           variant="h4"
           sx={{
-            textAlign: "center",
+            textAlign: 'center',
             fontWeight: 700,
             mb: 1,
           }}
@@ -89,7 +89,7 @@ function Login() {
           variant="body2"
           color="text.secondary"
           sx={{
-            textAlign: "center",
+            textAlign: 'center',
             mb: 3,
           }}
         >
@@ -108,7 +108,7 @@ function Login() {
           margin="normal"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+          onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
         />
 
         <TextField
@@ -118,7 +118,7 @@ function Login() {
           margin="normal"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+          onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
         />
 
         <Button
@@ -129,12 +129,12 @@ function Login() {
             mt: 3,
             py: 1.4,
             borderRadius: 2,
-            textTransform: "none",
+            textTransform: 'none',
             fontWeight: 600,
           }}
           onClick={handleLogin}
         >
-          {submitting ? <CircularProgress size={24} color="inherit" /> : "Sign In"}
+          {submitting ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
         </Button>
 
         <Divider sx={{ my: 3 }} />
@@ -155,13 +155,13 @@ function Login() {
           </Typography>
 
           <Typography variant="body2" sx={{ mt: 1 }}>
-            <strong>Mentors</strong> and <strong>Interns</strong> use the accounts
-            created via the HR &rarr; Mentors / Interns pages.
+            <strong>Mentors</strong> and <strong>Interns</strong> use the accounts created via the
+            HR &rarr; Mentors / Interns pages.
           </Typography>
         </Box>
       </Paper>
     </Box>
-  );
+  )
 }
 
-export default Login;
+export default Login

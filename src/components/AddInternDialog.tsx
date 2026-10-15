@@ -1,45 +1,35 @@
-import { useState, useEffect } from "react";
+import { useState } from 'react'
 
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  TextField,
-  DialogActions,
-  Button,
-} from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, TextField, DialogActions, Button } from '@mui/material'
 
 type Intern = {
-  name: string;
-  department: string;
-  mentor: string;
-  status: string;
-};
+  name: string
+  department: string
+  mentor: string
+  status: string
+}
 
 type AddInternDialogProps = {
-  open: boolean;
-  handleClose: () => void;
-  addIntern: (intern: Intern) => void;
-  selectedIntern: Intern;
-};
+  open: boolean
+  handleClose: () => void
+  addIntern: (intern: Intern) => void
+  selectedIntern: Intern
+}
 
-function AddInternDialog({
-  open,
-  handleClose,
-  addIntern,
-  selectedIntern,
-}: AddInternDialogProps) {
-  const [name, setName] = useState("");
-  const [department, setDepartment] = useState("");
-  const [mentor, setMentor] = useState("");
-  const [status, setStatus] = useState("");
+function AddInternDialog({ open, handleClose, addIntern, selectedIntern }: AddInternDialogProps) {
+  const [name, setName] = useState('')
+  const [department, setDepartment] = useState('')
+  const [mentor, setMentor] = useState('')
+  const [status, setStatus] = useState('')
 
-  useEffect(() => {
-    setName(selectedIntern.name || "");
-    setDepartment(selectedIntern.department || "");
-    setMentor(selectedIntern.mentor || "");
-    setStatus(selectedIntern.status || "");
-  }, [selectedIntern]);
+  const [prevSelected, setPrevSelected] = useState<Intern | null>(null)
+  if (prevSelected !== selectedIntern) {
+    setPrevSelected(selectedIntern)
+    setName(selectedIntern.name || '')
+    setDepartment(selectedIntern.department || '')
+    setMentor(selectedIntern.mentor || '')
+    setStatus(selectedIntern.status || '')
+  }
 
   const handleSave = () => {
     addIntern({
@@ -47,16 +37,14 @@ function AddInternDialog({
       department,
       mentor,
       status,
-    });
+    })
 
-    handleClose();
-  };
+    handleClose()
+  }
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-      <DialogTitle>
-        {selectedIntern.name ? "Edit Intern" : "Add Intern"}
-      </DialogTitle>
+      <DialogTitle>{selectedIntern.name ? 'Edit Intern' : 'Add Intern'}</DialogTitle>
 
       <DialogContent>
         <TextField
@@ -93,19 +81,14 @@ function AddInternDialog({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={handleClose}>
-          Cancel
-        </Button>
+        <Button onClick={handleClose}>Cancel</Button>
 
-        <Button
-          variant="contained"
-          onClick={handleSave}
-        >
+        <Button variant="contained" onClick={handleSave}>
           Save
         </Button>
       </DialogActions>
     </Dialog>
-  );
+  )
 }
 
-export default AddInternDialog;
+export default AddInternDialog

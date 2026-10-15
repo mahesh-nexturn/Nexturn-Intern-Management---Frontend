@@ -1,32 +1,28 @@
-import {
-  Box,
-  Paper,
-  Typography,
-} from "@mui/material";
+import { Box, Paper, Typography } from '@mui/material'
 
 function AttendanceLegend() {
   const items = [
     {
-      label: "Present",
-      color: "#4caf50",
+      label: 'Present',
+      color: '#4caf50',
     },
     {
-      label: "Absent",
-      color: "#f44336",
+      label: 'Absent',
+      color: '#f44336',
     },
     {
-      label: "Leave",
-      color: "#2196f3",
+      label: 'Leave',
+      color: '#2196f3',
     },
     {
-      label: "Holiday",
-      color: "#9c27b0",
+      label: 'Holiday',
+      color: '#9c27b0',
     },
     // {
     //   label: "WFH",
     //   color: "#ff9800",
     // },
-  ];
+  ]
 
   return (
     <Paper
@@ -39,8 +35,8 @@ function AttendanceLegend() {
     >
       <Box
         sx={{
-          display: "flex",
-          flexDirection: "column",
+          display: 'flex',
+          flexDirection: 'column',
           gap: 3,
         }}
       >
@@ -48,8 +44,8 @@ function AttendanceLegend() {
           <Box
             key={item.label}
             sx={{
-              display: "flex",
-              alignItems: "center",
+              display: 'flex',
+              alignItems: 'center',
               gap: 2,
             }}
           >
@@ -57,19 +53,17 @@ function AttendanceLegend() {
               sx={{
                 width: 16,
                 height: 16,
-                borderRadius: "50%",
+                borderRadius: '50%',
                 bgcolor: item.color,
               }}
             />
 
-            <Typography>
-              {item.label}
-            </Typography>
+            <Typography>{item.label}</Typography>
           </Box>
         ))}
       </Box>
     </Paper>
-  );
+  )
 }
 
-export default AttendanceLegend;
+export default AttendanceLegend

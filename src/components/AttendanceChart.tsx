@@ -1,24 +1,14 @@
-import {
-  Paper,
-  Box,
-  Typography,
-} from "@mui/material";
+import { Paper, Box, Typography } from '@mui/material'
 
 type AttendanceChartProps = {
-  present: number;
-  absent: number;
-  leave: number;
-  holiday: number;
-  wfh: number;
-};
+  present: number
+  absent: number
+  leave: number
+  holiday: number
+  wfh: number
+}
 
-function AttendanceChart({
-  present,
-  absent,
-  leave,
-  holiday,
-  wfh,
-}: AttendanceChartProps) {
+function AttendanceChart({ present, absent, leave, holiday }: AttendanceChartProps) {
   return (
     <Paper
       sx={{
@@ -29,64 +19,44 @@ function AttendanceChart({
     >
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-around",
-          flexWrap: "wrap",
+          display: 'flex',
+          justifyContent: 'space-around',
+          flexWrap: 'wrap',
           gap: 3,
         }}
       >
-        <Box sx={{ textAlign: "center" }}>
-          <Typography
-            variant="h4"
-            color="success.main"
-          >
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h4" color="success.main">
             {present}
           </Typography>
 
-          <Typography>
-            Present
-          </Typography>
+          <Typography>Present</Typography>
         </Box>
 
-        <Box sx={{ textAlign: "center" }}>
-          <Typography
-            variant="h4"
-            color="error.main"
-          >
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h4" color="error.main">
             {absent}
           </Typography>
 
-          <Typography>
-            Absent
-          </Typography>
+          <Typography>Absent</Typography>
         </Box>
 
-        <Box sx={{ textAlign: "center" }}>
-          <Typography
-            variant="h4"
-            color="primary.main"
-          >
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h4" color="primary.main">
             {leave}
           </Typography>
 
-          <Typography>
-            Leave
-          </Typography>
+          <Typography>Leave</Typography>
         </Box>
 
-        <Box sx={{ textAlign: "center" }}>
-          <Typography
-            variant="h4"
-            sx={{ color: "#9c27b0" }}
-          >
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h4" sx={{ color: '#9c27b0' }}>
             {holiday}
           </Typography>
 
-          <Typography>
-            Holiday
-          </Typography>
+          <Typography>Holiday</Typography>
         </Box>
-{/* 
+        {/* 
         <Box sx={{ textAlign: "center" }}>
           <Typography
             variant="h4"
@@ -101,7 +71,7 @@ function AttendanceChart({
         </Box> */}
       </Box>
     </Paper>
-  );
+  )
 }
 
-export default AttendanceChart;
+export default AttendanceChart

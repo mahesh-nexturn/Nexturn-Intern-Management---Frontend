@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react'
 
 import {
   Alert,
@@ -20,145 +20,133 @@ import {
   TableRow,
   TextField,
   Typography,
-} from "@mui/material";
+} from '@mui/material'
 
-import DeleteIcon from "@mui/icons-material/Delete";
-import DownloadIcon from "@mui/icons-material/Download";
+import DeleteIcon from '@mui/icons-material/Delete'
+import DownloadIcon from '@mui/icons-material/Download'
 
-import type { Document } from "../types/Document";
+import type { Document } from '../types/Document'
 
-import AddDocumentDialog from "../components/AddDocumentDialog";
-import DocumentChart from "../components/DocumentChart";
-import * as documentApi from "../services/documentApi";
+import AddDocumentDialog from '../components/AddDocumentDialog'
+import DocumentChart from '../components/DocumentChart'
+import * as documentApi from '../services/documentApi'
+import { toUiDocument } from '../utils/mappers/documentMapper'
 
 type DocumentsProps = {
-  documents: Document[];
-  setDocuments: React.Dispatch<React.SetStateAction<Document[]>>;
-};
-
-export function toUiDocument(dto: documentApi.DocumentDto): Document {
-  return {
-    id: dto.id,
-    fileName: dto.fileName,
-    fileUrl: dto.fileUrl,
-    documentType: dto.documentType as Document["documentType"],
-    uploadedBy: dto.uploadedByName,
-    uploadedByUserId: dto.uploadedByUserId,
-    uploadDate: dto.uploadDate ? dto.uploadDate.replace("T", " ").slice(0, 16) : "",
-  };
+  documents: Document[]
+  setDocuments: React.Dispatch<React.SetStateAction<Document[]>>
 }
 
-function Documents({
-  documents,
-  setDocuments,
-}: DocumentsProps) {
-  const [open, setOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [typeFilter, setTypeFilter] = useState("All");
+function Documents({ documents, setDocuments }: DocumentsProps) {
+  const [open, setOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [typeFilter, setTypeFilter] = useState('All')
   const [toast, setToast] = useState<{
-    message: string;
-    severity: "success" | "error";
-  } | null>(null);
+    message: string
+    severity: 'success' | 'error'
+  } | null>(null)
 
   const [selectedDocument, setSelectedDocument] = useState<Document>({
     id: 0,
-    fileName: "",
-    documentType: "Resume",
-    uploadedBy: "",
-    uploadDate: "",
-  });
+    fileName: '',
+    documentType: 'Resume',
+    uploadedBy: '',
+    uploadDate: '',
+  })
 
-  const userName = sessionStorage.getItem("name") || "";
-  const canManageDocuments = true;
+  const userName = sessionStorage.getItem('name') || ''
+  const canManageDocuments = true
 
   useEffect(() => {
     documentApi
       .listDocuments()
       .then((list) => setDocuments(list.map(toUiDocument)))
-      .catch(() => setToast({ message: "Failed to load documents.", severity: "error" }));
+      .catch(() => setToast({ message: 'Failed to load documents.', severity: 'error' }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [])
 
-  const visibleDocuments = documents;
+  const visibleDocuments = documents
 
   const filteredDocuments = visibleDocuments
     .filter((item) => item.fileName.toLowerCase().includes(searchTerm.toLowerCase()))
-    .filter((item) => typeFilter === "All" || item.documentType === typeFilter);
+    .filter((item) => typeFilter === 'All' || item.documentType === typeFilter)
 
-  const totalDocuments = visibleDocuments.length;
-  const resumeCount = visibleDocuments.filter((item) => item.documentType === "Resume").length;
-  const certificateCount = visibleDocuments.filter((item) => item.documentType === "Certificate").length;
-  const reportCount = visibleDocuments.filter((item) => item.documentType === "Report").length;
+  const totalDocuments = visibleDocuments.length
+  const resumeCount = visibleDocuments.filter((item) => item.documentType === 'Resume').length
+  const certificateCount = visibleDocuments.filter(
+    (item) => item.documentType === 'Certificate',
+  ).length
+  const reportCount = visibleDocuments.filter((item) => item.documentType === 'Report').length
 
   const handleOpen = () => {
     setSelectedDocument({
       id: 0,
-      fileName: "",
-      documentType: "Resume",
+      fileName: '',
+      documentType: 'Resume',
       uploadedBy: userName,
-      uploadDate: "",
-    });
-    setOpen(true);
-  };
+      uploadDate: '',
+    })
+    setOpen(true)
+  }
 
   const handleClose = () => {
-    setOpen(false);
-  };
+    setOpen(false)
+  }
 
   const saveDocument = async (item: Document, file?: File | null) => {
     if (!file) {
-      alert("Please choose a file to upload.");
-      return;
+      alert('Please choose a file to upload.')
+      return
     }
 
     try {
       const created = await documentApi.uploadDocument({
         file,
         documentType: item.documentType,
-      });
-      setDocuments((prev) => [...prev, toUiDocument(created)]);
-      setToast({ message: "Document uploaded successfully.", severity: "success" });
-      setOpen(false);
+      })
+      setDocuments((prev) => [...prev, toUiDocument(created)])
+      setToast({ message: 'Document uploaded successfully.', severity: 'success' })
+      setOpen(false)
     } catch {
-      setToast({ message: "Failed to upload document.", severity: "error" });
+      setToast({ message: 'Failed to upload document.', severity: 'error' })
     }
-  };
+  }
 
   const deleteDocument = async (id: number) => {
     try {
-      await documentApi.deleteDocument(id);
-      setDocuments((prev) => prev.filter((item) => item.id !== id));
-      setToast({ message: "Document deleted successfully.", severity: "success" });
+      await documentApi.deleteDocument(id)
+      setDocuments((prev) => prev.filter((item) => item.id !== id))
+      setToast({ message: 'Document deleted successfully.', severity: 'success' })
     } catch {
-      setToast({ message: "Failed to delete document.", severity: "error" });
+      setToast({ message: 'Failed to delete document.', severity: 'error' })
     }
-  };
+  }
 
   const downloadDocument = async (id: number, fileName: string) => {
     try {
-      const blob = await documentApi.downloadDocument(id);
-      const url = window.URL.createObjectURL(blob);
-      const link = window.document.createElement("a");
-      link.href = url;
-      link.download = fileName;
-      window.document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      const blob = await documentApi.downloadDocument(id)
+      const url = window.URL.createObjectURL(blob)
+      const link = window.document.createElement('a')
+      link.href = url
+      link.download = fileName
+      window.document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
     } catch {
-      setToast({ message: "Failed to download document.", severity: "error" });
+      setToast({ message: 'Failed to download document.', severity: 'error' })
     }
-  };
+  }
 
   return (
     <>
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
+          display: 'flex',
+          justifyContent: 'space-between',
           mb: 3,
           gap: 2,
-          flexWrap: "wrap",
+          flexWrap: 'wrap',
         }}
       >
         <Typography variant="h4">Documents</Typography>
@@ -179,10 +167,10 @@ function Documents({
 
       <Box
         sx={{
-          display: "flex",
+          display: 'flex',
           gap: 2,
           mb: 3,
-          flexWrap: "wrap",
+          flexWrap: 'wrap',
         }}
       >
         <TextField
@@ -194,11 +182,7 @@ function Documents({
         <FormControl sx={{ minWidth: 180 }}>
           <InputLabel>Type</InputLabel>
 
-          <Select
-            value={typeFilter}
-            label="Type"
-            onChange={(e) => setTypeFilter(e.target.value)}
-          >
+          <Select value={typeFilter} label="Type" onChange={(e) => setTypeFilter(e.target.value)}>
             <MenuItem value="All">All</MenuItem>
             <MenuItem value="Resume">Resume</MenuItem>
             <MenuItem value="Certificate">Certificate</MenuItem>
@@ -242,7 +226,10 @@ function Documents({
                   <TableCell>{item.uploadDate}</TableCell>
 
                   <TableCell>
-                    <IconButton color="success" onClick={() => downloadDocument(item.id, item.fileName)}>
+                    <IconButton
+                      color="success"
+                      onClick={() => downloadDocument(item.id, item.fileName)}
+                    >
                       <DownloadIcon />
                     </IconButton>
 
@@ -268,7 +255,7 @@ function Documents({
         open={!!toast}
         autoHideDuration={3000}
         onClose={() => setToast(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
         {toast ? (
           <Alert severity={toast.severity} onClose={() => setToast(null)}>
@@ -277,7 +264,7 @@ function Documents({
         ) : undefined}
       </Snackbar>
     </>
-  );
+  )
 }
 
-export default Documents;
+export default Documents

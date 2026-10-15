@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from 'react'
 
 import {
   Dialog,
@@ -8,105 +8,82 @@ import {
   TextField,
   Button,
   MenuItem,
-} from "@mui/material";
+} from '@mui/material'
 
-import type { Task } from "../types/Task";
-import type { Intern } from "../types/Intern";
+import type { Task } from '../types/Task'
+import type { Intern } from '../types/Intern'
 
 type Props = {
-  open: boolean;
-  handleClose: () => void;
-  addTask: (task: Task) => void;
-  selectedTask: Task;
-  interns: Intern[];
-};
+  open: boolean
+  handleClose: () => void
+  addTask: (task: Task) => void
+  selectedTask: Task
+  interns: Intern[]
+}
 
-function AddTaskDialog({
-  open,
-  handleClose,
-  addTask,
-  selectedTask,
-  interns,
-}: Props) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] =
-    useState("");
+function AddTaskDialog({ open, handleClose, addTask, selectedTask, interns }: Props) {
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
 
-  const [internId, setInternId] = useState<number | "">("");
+  const [internId, setInternId] = useState<number | ''>('')
 
-  const [priority, setPriority] =
-    useState<Task["priority"]>("Medium");
+  const [priority, setPriority] = useState<Task['priority']>('Medium')
 
-  const [dueDate, setDueDate] = useState("");
+  const [dueDate, setDueDate] = useState('')
 
-  const [status, setStatus] =
-    useState<Task["status"]>("Not Started");
+  const [status, setStatus] = useState<Task['status']>('Not Started')
 
-  const [progress, setProgress] =
-    useState(0);
+  const [progress, setProgress] = useState(0)
 
-  useEffect(() => {
+  const [prevSelected, setPrevSelected] = useState<Task | null>(null)
+  if (prevSelected !== selectedTask) {
+    setPrevSelected(selectedTask)
     if (selectedTask) {
-      setTitle(selectedTask.title || "");
-      setDescription(
-        selectedTask.description || ""
-      );
+      setTitle(selectedTask.title || '')
+      setDescription(selectedTask.description || '')
 
-      setInternId(selectedTask.internId ?? "");
+      setInternId(selectedTask.internId ?? '')
 
-      setPriority(
-        selectedTask.priority || "Medium"
-      );
+      setPriority(selectedTask.priority || 'Medium')
 
-      setDueDate(selectedTask.dueDate || "");
+      setDueDate(selectedTask.dueDate || '')
 
-      setStatus(
-        selectedTask.status || "Pending"
-      );
+      setStatus(selectedTask.status || 'Pending')
 
-      setProgress(
-        selectedTask.progress || 0
-      );
+      setProgress(selectedTask.progress || 0)
     }
-  }, [selectedTask]);
+  }
 
   const handleSave = () => {
     if (!internId) {
-      alert("Please select an intern to assign this task to.");
-      return;
+      alert('Please select an intern to assign this task to.')
+      return
     }
 
-    const intern = interns.find((i) => i.id === internId);
+    const intern = interns.find((i) => i.id === internId)
 
-    const isNew = !selectedTask.id;
+    const isNew = !selectedTask.id
 
     addTask({
       id: selectedTask.id,
       title,
       description,
-      assignedTo: intern?.name || "",
+      assignedTo: intern?.name || '',
       internId: internId as number,
-      mentor: intern?.mentor || "",
+      mentor: intern?.mentor || '',
       mentorId: intern?.mentorId ?? null,
       priority,
       dueDate,
-      status: isNew ? "Not Started" : status,
+      status: isNew ? 'Not Started' : status,
       progress: isNew ? 0 : progress,
-    });
+    })
 
-    handleClose();
-  };
+    handleClose()
+  }
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      fullWidth
-      maxWidth="sm"
-    >
-      <DialogTitle>
-        Task Details
-      </DialogTitle>
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+      <DialogTitle>Task Details</DialogTitle>
 
       <DialogContent>
         <TextField
@@ -114,9 +91,7 @@ function AddTaskDialog({
           label="Title"
           margin="dense"
           value={title}
-          onChange={(e) =>
-            setTitle(e.target.value)
-          }
+          onChange={(e) => setTitle(e.target.value)}
         />
 
         <TextField
@@ -126,11 +101,7 @@ function AddTaskDialog({
           label="Description"
           margin="dense"
           value={description}
-          onChange={(e) =>
-            setDescription(
-              e.target.value
-            )
-          }
+          onChange={(e) => setDescription(e.target.value)}
         />
 
         <TextField
@@ -139,11 +110,7 @@ function AddTaskDialog({
           label="Assigned To (Intern)"
           margin="dense"
           value={internId}
-          onChange={(e) =>
-            setInternId(
-              e.target.value === "" ? "" : Number(e.target.value)
-            )
-          }
+          onChange={(e) => setInternId(e.target.value === '' ? '' : Number(e.target.value))}
         >
           {interns.map((i) => (
             <MenuItem key={i.id} value={i.id}>
@@ -158,23 +125,13 @@ function AddTaskDialog({
           label="Priority"
           margin="dense"
           value={priority}
-          onChange={(e) =>
-            setPriority(
-              e.target.value as Task["priority"]
-            )
-          }
+          onChange={(e) => setPriority(e.target.value as Task['priority'])}
         >
-          <MenuItem value="High">
-            High
-          </MenuItem>
+          <MenuItem value="High">High</MenuItem>
 
-          <MenuItem value="Medium">
-            Medium
-          </MenuItem>
+          <MenuItem value="Medium">Medium</MenuItem>
 
-          <MenuItem value="Low">
-            Low
-          </MenuItem>
+          <MenuItem value="Low">Low</MenuItem>
         </TextField>
 
         <TextField
@@ -187,26 +144,19 @@ function AddTaskDialog({
               shrink: true,
             },
           }}
-          onChange={(e) =>
-            setDueDate(e.target.value)
-          }
+          onChange={(e) => setDueDate(e.target.value)}
         />
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={handleClose}>
-          Cancel
-        </Button>
+        <Button onClick={handleClose}>Cancel</Button>
 
-        <Button
-          variant="contained"
-          onClick={handleSave}
-        >
+        <Button variant="contained" onClick={handleSave}>
           Save
         </Button>
       </DialogActions>
     </Dialog>
-  );
+  )
 }
 
-export default AddTaskDialog;
+export default AddTaskDialog

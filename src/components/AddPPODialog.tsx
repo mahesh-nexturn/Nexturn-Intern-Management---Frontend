@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from 'react'
 
 import {
   Button,
@@ -8,64 +8,61 @@ import {
   DialogTitle,
   MenuItem,
   TextField,
-} from "@mui/material";
+} from '@mui/material'
 
-import type { PPO } from "../types/PPO";
-import type { Intern } from "../types/Intern";
+import type { PPO } from '../types/PPO'
+import type { Intern } from '../types/Intern'
 
 type AddPPODialogProps = {
-  open: boolean;
-  handleClose: () => void;
-  addPPO: (ppo: PPO) => void;
-  selectedPPO: PPO;
-  interns: Intern[];
-};
+  open: boolean
+  handleClose: () => void
+  addPPO: (ppo: PPO) => void
+  selectedPPO: PPO
+  interns: Intern[]
+}
 
-function AddPPODialog({
-  open,
-  handleClose,
-  addPPO,
-  selectedPPO,
-  interns,
-}: AddPPODialogProps) {
-  const [internId, setInternId] = useState<number | "">("");
-  const [attendance, setAttendance] = useState(0);
-  const [trainingCompletion, setTrainingCompletion] = useState(0);
-  const [technicalScore, setTechnicalScore] = useState(0);
-  const [communicationScore, setCommunicationScore] = useState(0);
-  const [overallScore, setOverallScore] = useState(0);
-  const [mentorRecommendation, setMentorRecommendation] = useState<PPO["mentorRecommendation"]>("Yes");
-  const [hrRecommendation, setHrRecommendation] = useState<PPO["hrRecommendation"]>("Yes");
-  const [status, setStatus] = useState<PPO["status"]>("Eligible");
+function AddPPODialog({ open, handleClose, addPPO, selectedPPO, interns }: AddPPODialogProps) {
+  const [internId, setInternId] = useState<number | ''>('')
+  const [attendance, setAttendance] = useState(0)
+  const [trainingCompletion, setTrainingCompletion] = useState(0)
+  const [technicalScore, setTechnicalScore] = useState(0)
+  const [communicationScore, setCommunicationScore] = useState(0)
+  const [overallScore, setOverallScore] = useState(0)
+  const [mentorRecommendation, setMentorRecommendation] =
+    useState<PPO['mentorRecommendation']>('Yes')
+  const [hrRecommendation, setHrRecommendation] = useState<PPO['hrRecommendation']>('Yes')
+  const [status, setStatus] = useState<PPO['status']>('Eligible')
 
-  useEffect(() => {
-    setInternId(selectedPPO.internId ?? "");
-    setAttendance(selectedPPO.attendance || 0);
-    setTrainingCompletion(selectedPPO.trainingCompletion || 0);
-    setTechnicalScore(selectedPPO.technicalScore || 0);
-    setCommunicationScore(selectedPPO.communicationScore || 0);
-    setOverallScore(selectedPPO.overallScore || 0);
-    setMentorRecommendation(selectedPPO.mentorRecommendation || "Yes");
-    setHrRecommendation(selectedPPO.hrRecommendation || "Yes");
-    setStatus(selectedPPO.status || "Eligible");
-  }, [selectedPPO]);
+  const [prevSelected, setPrevSelected] = useState<PPO | null>(null)
+  if (prevSelected !== selectedPPO) {
+    setPrevSelected(selectedPPO)
+    setInternId(selectedPPO.internId ?? '')
+    setAttendance(selectedPPO.attendance || 0)
+    setTrainingCompletion(selectedPPO.trainingCompletion || 0)
+    setTechnicalScore(selectedPPO.technicalScore || 0)
+    setCommunicationScore(selectedPPO.communicationScore || 0)
+    setOverallScore(selectedPPO.overallScore || 0)
+    setMentorRecommendation(selectedPPO.mentorRecommendation || 'Yes')
+    setHrRecommendation(selectedPPO.hrRecommendation || 'Yes')
+    setStatus(selectedPPO.status || 'Eligible')
+  }
 
   const selectedIntern = useMemo(
     () => interns.find((intern) => intern.id === internId),
-    [internId, interns]
-  );
+    [internId, interns],
+  )
 
   const handleSave = () => {
     if (!internId) {
-      alert("Please select an intern.");
-      return;
+      alert('Please select an intern.')
+      return
     }
 
     addPPO({
       id: selectedPPO.id,
-      intern: selectedIntern?.name || "",
+      intern: selectedIntern?.name || '',
       internId: internId as number,
-      mentor: selectedIntern?.mentor || "",
+      mentor: selectedIntern?.mentor || '',
       mentorId: selectedIntern?.mentorId ?? null,
       attendance,
       trainingCompletion,
@@ -75,8 +72,8 @@ function AddPPODialog({
       mentorRecommendation,
       hrRecommendation,
       status,
-    });
-  };
+    })
+  }
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
@@ -89,7 +86,7 @@ function AddPPODialog({
           margin="dense"
           label="Intern"
           value={internId}
-          onChange={(e) => setInternId(e.target.value === "" ? "" : Number(e.target.value))}
+          onChange={(e) => setInternId(e.target.value === '' ? '' : Number(e.target.value))}
         >
           {interns.map((intern) => (
             <MenuItem key={intern.id} value={intern.id}>
@@ -98,7 +95,13 @@ function AddPPODialog({
           ))}
         </TextField>
 
-        <TextField fullWidth margin="dense" label="Mentor" value={selectedIntern?.mentor || ""} disabled />
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Mentor"
+          value={selectedIntern?.mentor || ''}
+          disabled
+        />
 
         <TextField
           fullWidth
@@ -151,7 +154,7 @@ function AddPPODialog({
           margin="dense"
           label="Mentor Recommendation"
           value={mentorRecommendation}
-          onChange={(e) => setMentorRecommendation(e.target.value as PPO["mentorRecommendation"])}
+          onChange={(e) => setMentorRecommendation(e.target.value as PPO['mentorRecommendation'])}
         >
           <MenuItem value="Yes">Yes</MenuItem>
           <MenuItem value="No">No</MenuItem>
@@ -163,7 +166,7 @@ function AddPPODialog({
           margin="dense"
           label="HR Recommendation"
           value={hrRecommendation}
-          onChange={(e) => setHrRecommendation(e.target.value as PPO["hrRecommendation"])}
+          onChange={(e) => setHrRecommendation(e.target.value as PPO['hrRecommendation'])}
         >
           <MenuItem value="Yes">Yes</MenuItem>
           <MenuItem value="No">No</MenuItem>
@@ -175,7 +178,7 @@ function AddPPODialog({
           margin="dense"
           label="Status"
           value={status}
-          onChange={(e) => setStatus(e.target.value as PPO["status"])}
+          onChange={(e) => setStatus(e.target.value as PPO['status'])}
         >
           <MenuItem value="Eligible">Eligible</MenuItem>
           <MenuItem value="Not Eligible">Not Eligible</MenuItem>
@@ -190,7 +193,7 @@ function AddPPODialog({
         </Button>
       </DialogActions>
     </Dialog>
-  );
+  )
 }
 
-export default AddPPODialog;
+export default AddPPODialog

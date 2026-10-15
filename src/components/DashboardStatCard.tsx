@@ -1,25 +1,15 @@
-import {
-  Card,
-  CardContent,
-  Typography,
-} from "@mui/material";
+import { Card, CardContent, Typography } from '@mui/material'
 
 type Props = {
-  title: string;
-  value: number;
-};
+  title: string
+  value: number
+}
 
-function DashboardStatCard({
-  title,
-  value,
-}: Props) {
+function DashboardStatCard({ title, value }: Props) {
   return (
     <Card>
       <CardContent>
-        <Typography
-          variant="h6"
-          color="text.secondary"
-        >
+        <Typography variant="h6" color="text.secondary">
           {title}
         </Typography>
 
@@ -33,7 +23,7 @@ function DashboardStatCard({
         </Typography>
       </CardContent>
     </Card>
-  );
+  )
 }
 
-export default DashboardStatCard;
+export default DashboardStatCard

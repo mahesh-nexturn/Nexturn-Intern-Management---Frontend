@@ -1,42 +1,24 @@
-import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-} from "recharts";
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts'
 
 type Props = {
   interns: {
-    department: string;
-  }[];
-};
+    department: string
+  }[]
+}
 
 function DepartmentChart({ interns }: Props) {
-  const departmentCounts = interns.reduce(
-    (acc: Record<string, number>, intern) => {
-      acc[intern.department] =
-        (acc[intern.department] || 0) + 1;
+  const departmentCounts = interns.reduce((acc: Record<string, number>, intern) => {
+    acc[intern.department] = (acc[intern.department] || 0) + 1
 
-      return acc;
-    },
-    {}
-  );
+    return acc
+  }, {})
 
-  const data = Object.entries(departmentCounts).map(
-    ([name, value]) => ({
-      name,
-      value,
-    })
-  );
+  const data = Object.entries(departmentCounts).map(([name, value]) => ({
+    name,
+    value,
+  }))
 
-  const COLORS = [
-    "#0088FE",
-    "#00C49F",
-    "#FFBB28",
-    "#FF8042",
-    "#8B5CF6",
-  ];
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8B5CF6']
 
   return (
     <ResponsiveContainer width="100%" height={220}>
@@ -53,12 +35,7 @@ function DepartmentChart({ interns }: Props) {
           stroke="#fff"
         >
           {data.map((_, index) => (
-            <Cell
-              key={index}
-              fill={
-                COLORS[index % COLORS.length]
-              }
-            />
+            <Cell key={index} fill={COLORS[index % COLORS.length]} />
           ))}
         </Pie>
 
@@ -69,7 +46,7 @@ function DepartmentChart({ interns }: Props) {
         />
       </PieChart>
     </ResponsiveContainer>
-  );
+  )
 }
 
-export default DepartmentChart;
+export default DepartmentChart

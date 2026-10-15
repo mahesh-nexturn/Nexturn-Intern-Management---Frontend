@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from 'react'
 
 import {
   Button,
@@ -8,16 +8,16 @@ import {
   DialogTitle,
   MenuItem,
   TextField,
-} from "@mui/material";
+} from '@mui/material'
 
-import type { Announcement } from "../types/Announcement";
+import type { Announcement } from '../types/Announcement'
 
 type AddAnnouncementDialogProps = {
-  open: boolean;
-  handleClose: () => void;
-  addAnnouncement: (announcement: Announcement) => void;
-  selectedAnnouncement: Announcement;
-};
+  open: boolean
+  handleClose: () => void
+  addAnnouncement: (announcement: Announcement) => void
+  selectedAnnouncement: Announcement
+}
 
 function AddAnnouncementDialog({
   open,
@@ -25,21 +25,23 @@ function AddAnnouncementDialog({
   addAnnouncement,
   selectedAnnouncement,
 }: AddAnnouncementDialogProps) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [publishDate, setPublishDate] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
-  const [priority, setPriority] = useState<Announcement["priority"]>("Medium");
-  const [targetAudience, setTargetAudience] = useState<Announcement["targetAudience"]>("All");
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [publishDate, setPublishDate] = useState('')
+  const [expiryDate, setExpiryDate] = useState('')
+  const [priority, setPriority] = useState<Announcement['priority']>('Medium')
+  const [targetAudience, setTargetAudience] = useState<Announcement['targetAudience']>('All')
 
-  useEffect(() => {
-    setTitle(selectedAnnouncement.title || "");
-    setDescription(selectedAnnouncement.description || "");
-    setPublishDate(selectedAnnouncement.publishDate || "");
-    setExpiryDate(selectedAnnouncement.expiryDate || "");
-    setPriority(selectedAnnouncement.priority || "Medium");
-    setTargetAudience(selectedAnnouncement.targetAudience || "All");
-  }, [selectedAnnouncement]);
+  const [prevSelected, setPrevSelected] = useState<Announcement | null>(null)
+  if (prevSelected !== selectedAnnouncement) {
+    setPrevSelected(selectedAnnouncement)
+    setTitle(selectedAnnouncement.title || '')
+    setDescription(selectedAnnouncement.description || '')
+    setPublishDate(selectedAnnouncement.publishDate || '')
+    setExpiryDate(selectedAnnouncement.expiryDate || '')
+    setPriority(selectedAnnouncement.priority || 'Medium')
+    setTargetAudience(selectedAnnouncement.targetAudience || 'All')
+  }
 
   const handleSave = () => {
     addAnnouncement({
@@ -52,8 +54,8 @@ function AddAnnouncementDialog({
       expiryDate,
       priority,
       targetAudience,
-    });
-  };
+    })
+  }
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
@@ -112,7 +114,7 @@ function AddAnnouncementDialog({
           margin="dense"
           label="Priority"
           value={priority}
-          onChange={(e) => setPriority(e.target.value as Announcement["priority"])}
+          onChange={(e) => setPriority(e.target.value as Announcement['priority'])}
         >
           <MenuItem value="High">High</MenuItem>
           <MenuItem value="Medium">Medium</MenuItem>
@@ -125,7 +127,7 @@ function AddAnnouncementDialog({
           margin="dense"
           label="Target Audience"
           value={targetAudience}
-          onChange={(e) => setTargetAudience(e.target.value as Announcement["targetAudience"])}
+          onChange={(e) => setTargetAudience(e.target.value as Announcement['targetAudience'])}
         >
           <MenuItem value="All">All</MenuItem>
           <MenuItem value="HR">HR</MenuItem>
@@ -141,7 +143,7 @@ function AddAnnouncementDialog({
         </Button>
       </DialogActions>
     </Dialog>
-  );
+  )
 }
 
-export default AddAnnouncementDialog;
+export default AddAnnouncementDialog

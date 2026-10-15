@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react'
 
 import {
   Alert,
@@ -11,186 +11,150 @@ import {
   Switch,
   TextField,
   Typography,
-} from "@mui/material";
+} from '@mui/material'
 
-import * as authApi from "../services/authApi";
-import * as settingsApi from "../services/settingsApi";
+import * as authApi from '../services/authApi'
+import * as settingsApi from '../services/settingsApi'
 
 type ToastState = {
-  message: string;
-  severity: "success" | "error";
-} | null;
+  message: string
+  severity: 'success' | 'error'
+} | null
 
 type PasswordFormState = {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-};
+  currentPassword: string
+  newPassword: string
+  confirmPassword: string
+}
 
-const defaultPasswordForm: PasswordFormState =
-  {
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  };
+const defaultPasswordForm: PasswordFormState = {
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: '',
+}
 
 function Settings() {
+  const [settings, setSettings] = useState<settingsApi.SettingsDto | null>(null)
 
-  const [settings, setSettings] =
-    useState<settingsApi.SettingsDto | null>(
-      null
-    );
+  const [passwordForm, setPasswordForm] = useState<PasswordFormState>(defaultPasswordForm)
 
-  const [passwordForm, setPasswordForm] =
-    useState<PasswordFormState>(
-      defaultPasswordForm
-    );
+  const [loading, setLoading] = useState(true)
 
-  const [loading, setLoading] =
-    useState(true);
+  const [saving, setSaving] = useState(false)
 
-  const [saving, setSaving] =
-    useState(false);
+  const [changingPassword, setChangingPassword] = useState(false)
 
-  const [changingPassword, setChangingPassword] =
-    useState(false);
-
-  const [toast, setToast] =
-    useState<ToastState>(null);
+  const [toast, setToast] = useState<ToastState>(null)
 
   useEffect(() => {
-    let cancelled = false;
+    let cancelled = false
 
     settingsApi
       .getMySettings()
       .then((data) => {
         if (!cancelled) {
-          setSettings(data);
+          setSettings(data)
         }
       })
       .catch(() => {
         if (!cancelled) {
           setToast({
-            message:
-              "Failed to load settings.",
-            severity: "error",
-          });
+            message: 'Failed to load settings.',
+            severity: 'error',
+          })
         }
       })
       .finally(() => {
         if (!cancelled) {
-          setLoading(false);
+          setLoading(false)
         }
-      });
+      })
 
     return () => {
-      cancelled = true;
-    };
-  }, []);
+      cancelled = true
+    }
+  }, [])
 
-  const handleSaveSettings =
-    async () => {
-      if (!settings) return;
+  const handleSaveSettings = async () => {
+    if (!settings) return
 
-      setSaving(true);
-      try {
-        const updated =
-          await settingsApi.updateMySettings({
-            emailNotifications:
-              settings.emailNotifications,
-            pushNotifications:
-              settings.pushNotifications,
-            theme: settings.theme,
-            phone:
-              settings.phone ?? "",
-          });
-        setSettings(updated);
-        setToast({
-          message:
-            "Settings updated.",
-          severity: "success",
-        });
-      } catch {
-        setToast({
-          message:
-            "Failed to update settings.",
-          severity: "error",
-        });
-      } finally {
-        setSaving(false);
-      }
-    };
+    setSaving(true)
+    try {
+      const updated = await settingsApi.updateMySettings({
+        emailNotifications: settings.emailNotifications,
+        pushNotifications: settings.pushNotifications,
+        theme: settings.theme,
+        phone: settings.phone ?? '',
+      })
+      setSettings(updated)
+      setToast({
+        message: 'Settings updated.',
+        severity: 'success',
+      })
+    } catch {
+      setToast({
+        message: 'Failed to update settings.',
+        severity: 'error',
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
 
-  const handleChangePassword =
-    async () => {
-      if (
-        !passwordForm.currentPassword ||
-        !passwordForm.newPassword ||
-        !passwordForm.confirmPassword
-      ) {
-        setToast({
-          message:
-            "Fill in all password fields.",
-          severity: "error",
-        });
-        return;
-      }
+  const handleChangePassword = async () => {
+    if (
+      !passwordForm.currentPassword ||
+      !passwordForm.newPassword ||
+      !passwordForm.confirmPassword
+    ) {
+      setToast({
+        message: 'Fill in all password fields.',
+        severity: 'error',
+      })
+      return
+    }
 
-      if (
-        passwordForm.newPassword !==
-        passwordForm.confirmPassword
-      ) {
-        setToast({
-          message:
-            "New passwords do not match.",
-          severity: "error",
-        });
-        return;
-      }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setToast({
+        message: 'New passwords do not match.',
+        severity: 'error',
+      })
+      return
+    }
 
-      setChangingPassword(true);
-      try {
-        await authApi.changePassword(
-          passwordForm.currentPassword,
-          passwordForm.newPassword
-        );
-        setPasswordForm(
-          defaultPasswordForm
-        );
-        setToast({
-          message:
-            "Password changed.",
-          severity: "success",
-        });
-      } catch {
-        setToast({
-          message:
-            "Failed to change password.",
-          severity: "error",
-        });
-      } finally {
-        setChangingPassword(false);
-      }
-    };
+    setChangingPassword(true)
+    try {
+      await authApi.changePassword(passwordForm.currentPassword, passwordForm.newPassword)
+      setPasswordForm(defaultPasswordForm)
+      setToast({
+        message: 'Password changed.',
+        severity: 'success',
+      })
+    } catch {
+      setToast({
+        message: 'Failed to change password.',
+        severity: 'error',
+      })
+    } finally {
+      setChangingPassword(false)
+    }
+  }
 
   return (
     <Box
       sx={{
         p: { xs: 2, md: 4 },
-        bgcolor: "#f5f7fb",
-        minHeight: "100vh",
+        bgcolor: '#f5f7fb',
+        minHeight: '100vh',
       }}
     >
       <Box sx={{ mb: 3 }}>
-        <Typography
-          variant="h4"
-          sx={{ fontWeight: 800 }}
-        >
+        <Typography variant="h4" sx={{ fontWeight: 800 }}>
           Settings
         </Typography>
         <Typography
           sx={{
-            color: "text.secondary",
+            color: 'text.secondary',
             mt: 0.5,
           }}
         >
@@ -200,10 +164,10 @@ function Settings() {
 
       <Box
         sx={{
-          display: "grid",
+          display: 'grid',
           gridTemplateColumns: {
-            xs: "1fr",
-            lg: "minmax(0, 640px)",
+            xs: '1fr',
+            lg: 'minmax(0, 640px)',
           },
           gap: 3,
         }}
@@ -215,30 +179,24 @@ function Settings() {
             borderRadius: 4,
           }}
         >
-          <Typography
-            variant="h6"
-            sx={{ fontWeight: 700, mb: 2 }}
-          >
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
             Security & Notifications
           </Typography>
 
           <Box
             sx={{
-              display: "grid",
+              display: 'grid',
               gap: 2,
             }}
           >
             <TextField
               label="Current Password"
               type="password"
-              value={
-                passwordForm.currentPassword
-              }
+              value={passwordForm.currentPassword}
               onChange={(e) =>
                 setPasswordForm({
                   ...passwordForm,
-                  currentPassword:
-                    e.target.value,
+                  currentPassword: e.target.value,
                 })
               }
             />
@@ -250,8 +208,7 @@ function Settings() {
               onChange={(e) =>
                 setPasswordForm({
                   ...passwordForm,
-                  newPassword:
-                    e.target.value,
+                  newPassword: e.target.value,
                 })
               }
             />
@@ -259,68 +216,54 @@ function Settings() {
             <TextField
               label="Confirm New Password"
               type="password"
-              value={
-                passwordForm.confirmPassword
-              }
+              value={passwordForm.confirmPassword}
               onChange={(e) =>
                 setPasswordForm({
                   ...passwordForm,
-                  confirmPassword:
-                    e.target.value,
+                  confirmPassword: e.target.value,
                 })
               }
             />
 
             <Box
               sx={{
-                display: "flex",
-                justifyContent:
-                  "flex-end",
+                display: 'flex',
+                justifyContent: 'flex-end',
               }}
             >
               <Button
                 variant="contained"
                 onClick={() => {
-                  void handleChangePassword();
+                  void handleChangePassword()
                 }}
                 disabled={changingPassword}
                 sx={{
-                  textTransform:
-                    "none",
+                  textTransform: 'none',
                   fontWeight: 700,
                 }}
               >
-                {changingPassword
-                  ? "Updating..."
-                  : "Change Password"}
+                {changingPassword ? 'Updating...' : 'Change Password'}
               </Button>
             </Box>
 
             <Divider sx={{ my: 1 }} />
 
-            <Typography
-              variant="h6"
-              sx={{ fontWeight: 700 }}
-            >
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
               Notifications
             </Typography>
 
             <FormControlLabel
               control={
                 <Switch
-                  checked={
-                    settings?.emailNotifications ??
-                    false
-                  }
+                  checked={settings?.emailNotifications ?? false}
                   onChange={(e) =>
                     setSettings((current) =>
                       current
                         ? {
                             ...current,
-                            emailNotifications:
-                              e.target.checked,
+                            emailNotifications: e.target.checked,
                           }
-                        : current
+                        : current,
                     )
                   }
                 />
@@ -331,19 +274,15 @@ function Settings() {
             <FormControlLabel
               control={
                 <Switch
-                  checked={
-                    settings?.pushNotifications ??
-                    false
-                  }
+                  checked={settings?.pushNotifications ?? false}
                   onChange={(e) =>
                     setSettings((current) =>
                       current
                         ? {
                             ...current,
-                            pushNotifications:
-                              e.target.checked,
+                            pushNotifications: e.target.checked,
                           }
-                        : current
+                        : current,
                     )
                   }
                 />
@@ -353,28 +292,22 @@ function Settings() {
 
             <Box
               sx={{
-                display: "flex",
-                justifyContent:
-                  "flex-end",
+                display: 'flex',
+                justifyContent: 'flex-end',
               }}
             >
               <Button
                 variant="contained"
                 onClick={() => {
-                  void handleSaveSettings();
+                  void handleSaveSettings()
                 }}
-                disabled={
-                  saving || loading || !settings
-                }
+                disabled={saving || loading || !settings}
                 sx={{
-                  textTransform:
-                    "none",
+                  textTransform: 'none',
                   fontWeight: 700,
                 }}
               >
-                {saving
-                  ? "Saving..."
-                  : "Save Notifications"}
+                {saving ? 'Saving...' : 'Save Notifications'}
               </Button>
             </Box>
           </Box>
@@ -386,21 +319,18 @@ function Settings() {
         autoHideDuration={3000}
         onClose={() => setToast(null)}
         anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
+          vertical: 'bottom',
+          horizontal: 'right',
         }}
       >
         {toast ? (
-          <Alert
-            severity={toast.severity}
-            onClose={() => setToast(null)}
-          >
+          <Alert severity={toast.severity} onClose={() => setToast(null)}>
             {toast.message}
           </Alert>
         ) : undefined}
       </Snackbar>
     </Box>
-  );
+  )
 }
 
-export default Settings;
+export default Settings

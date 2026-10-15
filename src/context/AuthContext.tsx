@@ -1,76 +1,39 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from 'react'
 
-import type { ReactNode } from "react";
-import * as authApi from "../services/authApi";
-import { clearTokens, getAccessToken } from "../services/api";
-
-// UI-facing role: "HR" means a management user (backend "ADMIN" or backend "HR").
-// Pages check role === "HR" for manage permissions. The exact backend role is kept
-// in AuthUser.backendRole / sessionStorage "backendRole" to tell ADMIN from HR users.
-export type UserRole = "HR" | "MENTOR" | "INTERN";
-
-export function backendRoleToUi(role: authApi.BackendRole): UserRole {
-  return role === "ADMIN" || role === "HR" ? "HR" : role;
-}
-
-export function uiRoleToBackend(role: UserRole): authApi.BackendRole {
-  return role === "HR" ? "ADMIN" : role;
-}
-
-type AuthUser = {
-  id: number;
-  role: UserRole;
-  backendRole: authApi.BackendRole;
-  email: string;
-  name: string;
-};
-
-type AuthContextType = {
-  user: AuthUser | null;
-  loading: boolean;
-  login: (email: string, password: string) => Promise<AuthUser>;
-  logout: () => Promise<void>;
-};
-
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+import type { ReactNode } from 'react'
+import * as authApi from '../services/authApi'
+import { clearTokens, getAccessToken } from '../services/api'
+import { AuthContext, backendRoleToUi, type AuthUser } from './authState'
 
 type Props = {
-  children: ReactNode;
-};
+  children: ReactNode
+}
 
 function persistUser(user: AuthUser) {
-  sessionStorage.setItem("role", user.role);
-  sessionStorage.setItem("backendRole", user.backendRole);
-  sessionStorage.setItem("email", user.email);
-  sessionStorage.setItem("name", user.name);
-  sessionStorage.setItem("userId", String(user.id));
+  sessionStorage.setItem('role', user.role)
+  sessionStorage.setItem('backendRole', user.backendRole)
+  sessionStorage.setItem('email', user.email)
+  sessionStorage.setItem('name', user.name)
+  sessionStorage.setItem('userId', String(user.id))
 }
 
 function clearUser() {
-  sessionStorage.removeItem("role");
-  sessionStorage.removeItem("backendRole");
-  sessionStorage.removeItem("email");
-  sessionStorage.removeItem("name");
-  sessionStorage.removeItem("userId");
+  sessionStorage.removeItem('role')
+  sessionStorage.removeItem('backendRole')
+  sessionStorage.removeItem('email')
+  sessionStorage.removeItem('name')
+  sessionStorage.removeItem('userId')
 }
 
 export function AuthProvider({ children }: Props) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [loading, setLoading] = useState(() => !!getAccessToken())
 
   useEffect(() => {
     // On app load, if we still hold an access token, re-hydrate the session
     // from the backend (/auth/me) instead of trusting stale sessionStorage values.
-    const token = getAccessToken();
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+    const token = getAccessToken()
+    if (!token) return
 
     authApi
       .me()
@@ -81,48 +44,42 @@ export function AuthProvider({ children }: Props) {
           backendRole: current.role,
           email: current.email,
           name: current.name,
-        };
-        persistUser(authUser);
-        setUser(authUser);
+        }
+        persistUser(authUser)
+        setUser(authUser)
       })
       .catch(() => {
-        clearTokens();
-        clearUser();
-        setUser(null);
+        clearTokens()
+        clearUser()
+        setUser(null)
       })
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => setLoading(false))
+  }, [])
 
   const login = async (email: string, password: string) => {
-    const result = await authApi.login(email, password);
+    const result = await authApi.login(email, password)
     const authUser: AuthUser = {
       id: result.userId,
       role: backendRoleToUi(result.role),
       backendRole: result.role,
       email: result.email,
       name: result.name,
-    };
-    persistUser(authUser);
-    setUser(authUser);
-    return authUser;
-  };
+    }
+    persistUser(authUser)
+    setUser(authUser)
+    return authUser
+  }
 
   const logout = async () => {
     try {
-      await authApi.logout();
+      await authApi.logout()
     } finally {
-      clearUser();
-      setUser(null);
+      clearUser()
+      setUser(null)
     }
-  };
+  }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
-
-export function useAuth() {
-  return useContext(AuthContext);
+    <AuthContext.Provider value={{ user, loading, login, logout }}>{children}</AuthContext.Provider>
+  )
 }

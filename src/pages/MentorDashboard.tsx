@@ -1,54 +1,43 @@
-import { Box, Chip, Divider, Paper, Typography } from "@mui/material";
+import { Box, Chip, Divider, Paper, Typography } from '@mui/material'
 
-import {
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
-import type { Intern } from "../types/Intern";
-import type { Meeting } from "../types/Meeting";
-import type { Task } from "../types/Task";
-import type { Evaluation } from "../types/Evaluation";
+import type { Intern } from '../types/Intern'
+import type { Meeting } from '../types/Meeting'
+import type { Task } from '../types/Task'
+import type { Evaluation } from '../types/Evaluation'
 
 type MentorDashboardProps = {
-  interns?: Intern[];
-  meetings?: Meeting[];
-  tasks?: Task[];
-  evaluations?: Evaluation[];
-};
+  interns?: Intern[]
+  meetings?: Meeting[]
+  tasks?: Task[]
+  evaluations?: Evaluation[]
+}
 
 type StatCardProps = {
-  title: string;
-  value: number | string;
-  subtitle: string;
-  color: string;
-};
+  title: string
+  value: number | string
+  subtitle: string
+  color: string
+}
 
-function StatCard({
-  title,
-  value,
-  subtitle,
-  color,
-}: StatCardProps) {
+function StatCard({ title, value, subtitle, color }: StatCardProps) {
   return (
     <Paper
       elevation={0}
       sx={{
         p: 3,
         borderRadius: 4,
-        border: "1px solid",
-        borderColor: "divider",
+        border: '1px solid',
+        borderColor: 'divider',
         borderTop: `5px solid ${color}`,
-        boxShadow: "0 10px 25px rgba(15, 23, 42, 0.06)",
-        height: "100%",
+        boxShadow: '0 10px 25px rgba(15, 23, 42, 0.06)',
+        height: '100%',
       }}
     >
       <Typography
         sx={{
-          color: "text.secondary",
+          color: 'text.secondary',
           fontSize: 14,
           fontWeight: 600,
         }}
@@ -78,89 +67,69 @@ function StatCard({
         {subtitle}
       </Typography>
     </Paper>
-  );
+  )
 }
 
-function MentorDashboard({
-  interns = [],
-  meetings = [],
-  tasks = [],
-}: MentorDashboardProps) {
-  const mentorName = sessionStorage.getItem("name") || "Rahul";
+function MentorDashboard({ interns = [], meetings = [], tasks = [] }: MentorDashboardProps) {
+  const mentorName = sessionStorage.getItem('name') || 'Rahul'
 
-  const myInterns = interns.filter(
-    (intern) => intern.mentor === mentorName
-  );
+  const myInterns = interns.filter((intern) => intern.mentor === mentorName)
 
-  const myTasks = tasks.filter(
-    (task) => task.mentor === mentorName
-  );
+  const myTasks = tasks.filter((task) => task.mentor === mentorName)
 
-  const myMeetings = meetings.filter(
-    (meeting) => meeting.mentor === mentorName
-  );
+  const myMeetings = meetings.filter((meeting) => meeting.mentor === mentorName)
 
-  const totalInterns = myInterns.length;
-  const activeInterns = myInterns.filter(
-    (intern) => intern.status === "Active"
-  ).length;
-  const pendingTasks = myTasks.filter(
-    (task) => task.status === "Pending"
-  ).length;
-  const completedTasks = myTasks.filter(
-    (task) => task.status === "Completed"
-  ).length;
+  const totalInterns = myInterns.length
+  const activeInterns = myInterns.filter((intern) => intern.status === 'Active').length
+  const pendingTasks = myTasks.filter((task) => task.status === 'Pending').length
+  const completedTasks = myTasks.filter((task) => task.status === 'Completed').length
 
-  const inProgressTasks = myTasks.filter(
-    (task) => task.status === "In Progress"
-  ).length;
+  const inProgressTasks = myTasks.filter((task) => task.status === 'In Progress').length
 
   const internProgressData = [
     {
-      name: "Active",
+      name: 'Active',
       value: activeInterns,
-      color: "#2563eb",
+      color: '#2563eb',
     },
     {
-      name: "Inactive",
+      name: 'Inactive',
       value: Math.max(totalInterns - activeInterns, 0),
-      color: "#f59e0b",
+      color: '#f59e0b',
     },
-  ].filter((item) => item.value > 0);
+  ].filter((item) => item.value > 0)
 
   const taskStatusData = [
     {
-      name: "Completed",
+      name: 'Completed',
       value: completedTasks,
-      color: "#22c55e",
+      color: '#22c55e',
     },
     {
-      name: "In Progress",
+      name: 'In Progress',
       value: inProgressTasks,
-      color: "#2563eb",
+      color: '#2563eb',
     },
     {
-      name: "Pending",
+      name: 'Pending',
       value: pendingTasks,
-      color: "#f59e0b",
+      color: '#f59e0b',
     },
-  ].filter((item) => item.value > 0);
+  ].filter((item) => item.value > 0)
 
-  const upcomingMeetingsList = myMeetings.filter(
-    (meeting) => meeting.status === "Scheduled"
-  );
+  const upcomingMeetingsList = myMeetings.filter((meeting) => meeting.status === 'Scheduled')
 
-  const today = new Date().toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const today = new Date().toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 
   return (
     <Box
       sx={{
-        minHeight: "100vh",
-        bgcolor: "#f5f7fb",
+        minHeight: '100vh',
+        bgcolor: '#f5f7fb',
         p: { xs: 2, md: 3 },
       }}
     >
@@ -170,32 +139,26 @@ function MentorDashboard({
           p: { xs: 2.5, md: 4 },
           borderRadius: 5,
           mb: 3,
-          color: "#fff",
-          background:
-            "linear-gradient(135deg, #1d4ed8 0%, #2563eb 40%, #3b82f6 100%)",
-          boxShadow: "0 18px 40px rgba(37, 99, 235, 0.22)",
+          color: '#fff',
+          background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 40%, #3b82f6 100%)',
+          boxShadow: '0 18px 40px rgba(37, 99, 235, 0.22)',
         }}
       >
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: { xs: "flex-start", md: "center" },
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: { xs: 'flex-start', md: 'center' },
             gap: 2,
-            flexWrap: "wrap",
+            flexWrap: 'wrap',
           }}
         >
           <Box>
-            <Typography
-              variant="h3"
-              sx={{ fontWeight: 800, lineHeight: 1.15 }}
-            >
+            <Typography variant="h3" sx={{ fontWeight: 800, lineHeight: 1.15 }}>
               Mentor Dashboard
             </Typography>
 
-            <Typography
-              sx={{ opacity: 0.92, mt: 0.75, fontSize: 24 }}
-            >
+            <Typography sx={{ opacity: 0.92, mt: 0.75, fontSize: 24 }}>
               Welcome back, {mentorName} 👋
             </Typography>
           </Box>
@@ -203,9 +166,9 @@ function MentorDashboard({
           <Chip
             label={today}
             sx={{
-              bgcolor: "rgba(255,255,255,0.15)",
-              color: "#fff",
-              border: "1px solid rgba(255,255,255,0.25)",
+              bgcolor: 'rgba(255,255,255,0.15)',
+              color: '#fff',
+              border: '1px solid rgba(255,255,255,0.25)',
               fontWeight: 700,
             }}
           />
@@ -214,11 +177,11 @@ function MentorDashboard({
 
       <Box
         sx={{
-          display: "grid",
+          display: 'grid',
           gridTemplateColumns: {
-            xs: "1fr",
-            sm: "repeat(2, 1fr)",
-            lg: "repeat(4, 1fr)",
+            xs: '1fr',
+            sm: 'repeat(2, 1fr)',
+            lg: 'repeat(4, 1fr)',
           },
           gap: 2,
           mb: 3,
@@ -255,10 +218,10 @@ function MentorDashboard({
 
       <Box
         sx={{
-          display: "grid",
+          display: 'grid',
           gridTemplateColumns: {
-            xs: "1fr",
-            lg: "1fr 1fr",
+            xs: '1fr',
+            lg: '1fr 1fr',
           },
           gap: 2.5,
           mb: 3,
@@ -269,9 +232,9 @@ function MentorDashboard({
           sx={{
             p: 3,
             borderRadius: 4,
-            border: "1px solid",
-            borderColor: "divider",
-            boxShadow: "0 10px 30px rgba(15, 23, 42, 0.06)",
+            border: '1px solid',
+            borderColor: 'divider',
+            boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
             minHeight: 420,
           }}
         >
@@ -279,7 +242,7 @@ function MentorDashboard({
             Intern Progress
           </Typography>
 
-          <Box sx={{ width: "100%", height: 270 }}>
+          <Box sx={{ width: '100%', height: 270 }}>
             {internProgressData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -301,10 +264,10 @@ function MentorDashboard({
             ) : (
               <Box
                 sx={{
-                  height: "100%",
-                  display: "grid",
-                  placeItems: "center",
-                  color: "text.secondary",
+                  height: '100%',
+                  display: 'grid',
+                  placeItems: 'center',
+                  color: 'text.secondary',
                 }}
               >
                 No intern data
@@ -314,20 +277,20 @@ function MentorDashboard({
 
           <Divider sx={{ my: 2 }} />
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
             {internProgressData.map((item) => (
               <Box
                 key={item.name}
                 sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                 }}
               >
                 <Box
                   sx={{
-                    display: "flex",
-                    alignItems: "center",
+                    display: 'flex',
+                    alignItems: 'center',
                     gap: 1,
                   }}
                 >
@@ -335,16 +298,14 @@ function MentorDashboard({
                     sx={{
                       width: 12,
                       height: 12,
-                      borderRadius: "50%",
+                      borderRadius: '50%',
                       bgcolor: item.color,
                     }}
                   />
                   <Typography>{item.name}</Typography>
                 </Box>
 
-                <Typography sx={{ fontWeight: 700 }}>
-                  {item.value}
-                </Typography>
+                <Typography sx={{ fontWeight: 700 }}>{item.value}</Typography>
               </Box>
             ))}
           </Box>
@@ -355,9 +316,9 @@ function MentorDashboard({
           sx={{
             p: 3,
             borderRadius: 4,
-            border: "1px solid",
-            borderColor: "divider",
-            boxShadow: "0 10px 30px rgba(15, 23, 42, 0.06)",
+            border: '1px solid',
+            borderColor: 'divider',
+            boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
             minHeight: 420,
           }}
         >
@@ -365,7 +326,7 @@ function MentorDashboard({
             Task Status
           </Typography>
 
-          <Box sx={{ width: "100%", height: 270 }}>
+          <Box sx={{ width: '100%', height: 270 }}>
             {taskStatusData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -387,10 +348,10 @@ function MentorDashboard({
             ) : (
               <Box
                 sx={{
-                  height: "100%",
-                  display: "grid",
-                  placeItems: "center",
-                  color: "text.secondary",
+                  height: '100%',
+                  display: 'grid',
+                  placeItems: 'center',
+                  color: 'text.secondary',
                 }}
               >
                 No task data
@@ -400,20 +361,20 @@ function MentorDashboard({
 
           <Divider sx={{ my: 2 }} />
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
             {taskStatusData.map((item) => (
               <Box
                 key={item.name}
                 sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                 }}
               >
                 <Box
                   sx={{
-                    display: "flex",
-                    alignItems: "center",
+                    display: 'flex',
+                    alignItems: 'center',
                     gap: 1,
                   }}
                 >
@@ -421,16 +382,14 @@ function MentorDashboard({
                     sx={{
                       width: 12,
                       height: 12,
-                      borderRadius: "50%",
+                      borderRadius: '50%',
                       bgcolor: item.color,
                     }}
                   />
                   <Typography>{item.name}</Typography>
                 </Box>
 
-                <Typography sx={{ fontWeight: 700 }}>
-                  {item.value}
-                </Typography>
+                <Typography sx={{ fontWeight: 700 }}>{item.value}</Typography>
               </Box>
             ))}
           </Box>
@@ -443,9 +402,9 @@ function MentorDashboard({
           mt: 3,
           p: 3,
           borderRadius: 4,
-          border: "1px solid",
-          borderColor: "divider",
-          boxShadow: "0 10px 30px rgba(15, 23, 42, 0.06)",
+          border: '1px solid',
+          borderColor: 'divider',
+          boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
         }}
       >
         <Typography variant="h5" sx={{ fontWeight: 800, mb: 3 }}>
@@ -453,18 +412,16 @@ function MentorDashboard({
         </Typography>
 
         {upcomingMeetingsList.length === 0 ? (
-          <Typography sx={{ color: "text.secondary" }}>
-            No upcoming meetings scheduled.
-          </Typography>
+          <Typography sx={{ color: 'text.secondary' }}>No upcoming meetings scheduled.</Typography>
         ) : (
           upcomingMeetingsList.map((meeting, index) => (
             <Box key={`${meeting.title}-${index}`}>
               <Box
                 sx={{
-                  display: "grid",
-                  gridTemplateColumns: { xs: "1fr", md: "1fr auto" },
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', md: '1fr auto' },
                   gap: 2,
-                  alignItems: "center",
+                  alignItems: 'center',
                   py: 2,
                 }}
               >
@@ -480,7 +437,7 @@ function MentorDashboard({
 
                   <Typography
                     sx={{
-                      color: "text.secondary",
+                      color: 'text.secondary',
                       mt: 0.5,
                     }}
                   >
@@ -489,7 +446,7 @@ function MentorDashboard({
 
                   <Typography
                     sx={{
-                      color: "text.secondary",
+                      color: 'text.secondary',
                       mt: 0.5,
                     }}
                   >
@@ -498,7 +455,7 @@ function MentorDashboard({
 
                   <Typography
                     sx={{
-                      color: "text.secondary",
+                      color: 'text.secondary',
                       mt: 0.5,
                     }}
                   >
@@ -509,13 +466,13 @@ function MentorDashboard({
                 <Chip
                   label={meeting.status}
                   color={
-                    meeting.status === "Scheduled"
-                      ? "primary"
-                      : meeting.status === "Completed"
-                      ? "success"
-                      : "error"
+                    meeting.status === 'Scheduled'
+                      ? 'primary'
+                      : meeting.status === 'Completed'
+                        ? 'success'
+                        : 'error'
                   }
-                  sx={{ justifySelf: { xs: "start", md: "end" } }}
+                  sx={{ justifySelf: { xs: 'start', md: 'end' } }}
                 />
               </Box>
 
@@ -525,7 +482,7 @@ function MentorDashboard({
         )}
       </Paper>
     </Box>
-  );
+  )
 }
 
-export default MentorDashboard;
+export default MentorDashboard

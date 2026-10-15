@@ -1,12 +1,6 @@
-import { useMemo } from "react";
+import { useMemo } from 'react'
 
-import {
-  Box,
-  Chip,
-  Divider,
-  Paper,
-  Typography,
-} from "@mui/material";
+import { Box, Chip, Divider, Paper, Typography } from '@mui/material'
 
 import {
   CartesianGrid,
@@ -19,239 +13,218 @@ import {
   Tooltip as RechartsTooltip,
   XAxis,
   YAxis,
-} from "recharts";
+} from 'recharts'
 
-import type { Intern } from "../types/Intern";
-import type { Attendance } from "../types/Attendance";
-import type { Meeting } from "../types/Meeting";
-import type { Document } from "../types/Document";
-import type { Training } from "../types/Training";
-import type { Evaluation } from "../types/Evaluation";
-import type { Notification } from "../types/Notification";
+import type { Intern } from '../types/Intern'
+import type { Attendance } from '../types/Attendance'
+import type { Meeting } from '../types/Meeting'
+import type { Document } from '../types/Document'
+import type { Training } from '../types/Training'
+import type { Evaluation } from '../types/Evaluation'
+import type { Notification } from '../types/Notification'
 
 type DashboardProps = {
-  interns: Intern[];
-  attendance: Attendance[];
-  meetings: Meeting[];
-  documents: Document[];
-  trainings: Training[];
-  evaluations: Evaluation[];
-  notifications: Notification[];
-};
+  interns: Intern[]
+  attendance: Attendance[]
+  meetings: Meeting[]
+  documents: Document[]
+  trainings: Training[]
+  evaluations: Evaluation[]
+  notifications: Notification[]
+}
 
-type Role = "HR" | "MENTOR" | "INTERN" | null;
+type Role = 'HR' | 'MENTOR' | 'INTERN' | null
 
 const COLORS = [
-  "#2563eb",
-  "#14b8a6",
-  "#f97316",
-  "#8b5cf6",
-  "#ef4444",
-  "#22c55e",
-  "#06b6d4",
-  "#eab308",
-];
+  '#2563eb',
+  '#14b8a6',
+  '#f97316',
+  '#8b5cf6',
+  '#ef4444',
+  '#22c55e',
+  '#06b6d4',
+  '#eab308',
+]
 
 type MetricCardProps = {
-  title: string;
-  value: string | number;
-  subtitle?: string;
-  accent: string;
-};
+  title: string
+  value: string | number
+  subtitle?: string
+  accent: string
+}
 
-function MetricCard({
-  title,
-  value,
-  subtitle,
-  accent,
-}: MetricCardProps) {
+function MetricCard({ title, value, subtitle, accent }: MetricCardProps) {
   return (
     <Paper
       elevation={0}
       sx={{
         p: 2.5,
         borderRadius: 4,
-        border: "1px solid",
-        borderColor: "divider",
+        border: '1px solid',
+        borderColor: 'divider',
         borderTop: `5px solid ${accent}`,
-        boxShadow: "0 10px 30px rgba(15, 23, 42, 0.06)",
-        transition: "0.25s ease",
-        height: "100%",
-        "&:hover": {
-          transform: "translateY(-3px)",
-          boxShadow: "0 16px 40px rgba(15, 23, 42, 0.1)",
+        boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
+        transition: '0.25s ease',
+        height: '100%',
+        '&:hover': {
+          transform: 'translateY(-3px)',
+          boxShadow: '0 16px 40px rgba(15, 23, 42, 0.1)',
         },
       }}
     >
-      <Typography
-        variant="body2"
-        sx={{ color: "text.secondary", mb: 1, fontWeight: 600 }}
-      >
+      <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1, fontWeight: 600 }}>
         {title}
       </Typography>
 
-      <Typography
-        variant="h4"
-        sx={{ fontWeight: 800, lineHeight: 1.1 }}
-      >
+      <Typography variant="h4" sx={{ fontWeight: 800, lineHeight: 1.1 }}>
         {value}
       </Typography>
 
       {subtitle ? (
-        <Typography
-          variant="caption"
-          sx={{ color: "text.secondary", display: "block", mt: 0.5 }}
-        >
+        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
           {subtitle}
         </Typography>
       ) : null}
     </Paper>
-  );
+  )
 }
 
 function Dashboard({
   interns,
-  attendance,
   meetings,
   documents,
   trainings,
   evaluations,
   notifications,
 }: DashboardProps) {
-  const role = (sessionStorage.getItem("role") as Role) || "HR";
-  const userName = sessionStorage.getItem("name") || "Gayathri";
+  const role = (sessionStorage.getItem('role') as Role) || 'HR'
+  const userName = sessionStorage.getItem('name') || 'Gayathri'
 
   const dashboardTitle =
-    role === "HR"
-      ? "HR Dashboard"
-      : role === "MENTOR"
-      ? "Mentor Dashboard"
-      : role === "INTERN"
-      ? "Intern Dashboard"
-      : "Dashboard";
+    role === 'HR'
+      ? 'HR Dashboard'
+      : role === 'MENTOR'
+        ? 'Mentor Dashboard'
+        : role === 'INTERN'
+          ? 'Intern Dashboard'
+          : 'Dashboard'
 
-  const today = new Date().toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const today = new Date().toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 
-  const totalInterns = interns.length;
-  const activeInterns = interns.filter((i) => i.status === "Active").length;
-  const inactiveInterns = interns.filter((i) => i.status === "Inactive").length;
+  const totalInterns = interns.length
+  const activeInterns = interns.filter((i) => i.status === 'Active').length
+  const inactiveInterns = interns.filter((i) => i.status === 'Inactive').length
   const completedInternships = trainings.filter(
-    (t) => t.status === "Completed" || t.progress >= 100
-  ).length;
-  const pendingEvaluations = Math.max(interns.length - evaluations.length, 0);
-  const departments = new Set(interns.map((i) => i.department)).size;
-  const mentors = new Set(interns.map((i) => i.mentor)).size;
-
-  const attendancePercentage =
-    attendance.length === 0
-      ? 0
-      : Math.round(
-          ((attendance.filter((a) => a.status === "Present").length +
-            attendance.filter((a) => a.status === "WFH").length) /
-            attendance.length) *
-            100
-        );
+    (t) => t.status === 'Completed' || t.progress >= 100,
+  ).length
+  const pendingEvaluations = Math.max(interns.length - evaluations.length, 0)
+  const departments = new Set(interns.map((i) => i.department)).size
+  const mentors = new Set(interns.map((i) => i.mentor)).size
 
   const departmentData = useMemo(() => {
-    const map = new Map<string, number>();
+    const map = new Map<string, number>()
     interns.forEach((intern) => {
-      const key = intern.department || "Other";
-      map.set(key, (map.get(key) || 0) + 1);
-    });
+      const key = intern.department || 'Other'
+      map.set(key, (map.get(key) || 0) + 1)
+    })
     return Array.from(map.entries()).map(([name, value]) => ({
       name,
       value,
-    }));
-  }, [interns]);
+    }))
+  }, [interns])
 
   const joiningTrend = (() => {
-  const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-  ];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ]
 
-  const monthlyCounts = Array(12).fill(0);
+    const monthlyCounts = Array(12).fill(0)
 
-  interns.forEach((intern) => {
-    if (intern.createTime) {
-      const date = new Date(intern.createTime);
+    interns.forEach((intern) => {
+      if (intern.createTime) {
+        const date = new Date(intern.createTime)
 
-      if (!isNaN(date.getTime())) {
-        monthlyCounts[date.getMonth()]++;
+        if (!isNaN(date.getTime())) {
+          monthlyCounts[date.getMonth()]++
+        }
       }
-    }
-  });
+    })
 
-  return months.map((month, index) => ({
-    month,
-    joined: monthlyCounts[index],
-  }));
-})();
+    return months.map((month, index) => ({
+      month,
+      joined: monthlyCounts[index],
+    }))
+  })()
 
   const recentActivities = useMemo(() => {
-    const items: string[] = [];
+    const items: string[] = []
 
     if (notifications[0]) {
-      items.push(`✓ ${notifications[0].title}`);
+      items.push(`✓ ${notifications[0].title}`)
     }
 
     if (notifications[1]) {
-      items.push(`✓ ${notifications[1].title}`);
+      items.push(`✓ ${notifications[1].title}`)
     }
 
     if (meetings[0]) {
-      items.push(`✓ ${meetings[0].title} scheduled`);
+      items.push(`✓ ${meetings[0].title} scheduled`)
     }
 
     if (evaluations[0]) {
-      items.push(`✓ ${evaluations[0].intern} completed evaluation`);
+      items.push(`✓ ${evaluations[0].intern} completed evaluation`)
     }
 
     if (trainings[0]) {
-      items.push(`✓ ${trainings[0].title} updated`);
+      items.push(`✓ ${trainings[0].title} updated`)
     }
 
     if (documents.length) {
-      items.push(`✓ ${documents.length} document(s) uploaded`);
+      items.push(`✓ ${documents.length} document(s) uploaded`)
     }
 
     if (items.length === 0) {
       items.push(
-        "✓ John submitted weekly report",
-        "✓ Sarah completed evaluation",
-        "✓ New intern joined",
-        "✓ Mentor assigned"
-      );
+        '✓ John submitted weekly report',
+        '✓ Sarah completed evaluation',
+        '✓ New intern joined',
+        '✓ Mentor assigned',
+      )
     }
 
-    return items.slice(0, 4);
-  }, [notifications, meetings, evaluations, trainings, documents]);
+    return items.slice(0, 4)
+  }, [notifications, meetings, evaluations, trainings, documents])
 
   const upcomingMeetings = useMemo(
-    () =>
-      [...meetings]
-        .sort((a, b) => a.date.localeCompare(b.date))
-        .slice(0, 4),
-    [meetings]
-  );
+    () => [...meetings].sort((a, b) => a.date.localeCompare(b.date)).slice(0, 4),
+    [meetings],
+  )
 
   const latestNotifications = useMemo(
-    () =>
-      [...notifications]
-        .sort((a, b) => (b.date || "").localeCompare(a.date || ""))
-        .slice(0, 4),
-    [notifications]
-  );
+    () => [...notifications].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 4),
+    [notifications],
+  )
 
   return (
     <Box
       sx={{
-        minHeight: "100vh",
-        bgcolor: "#f5f7fb",
+        minHeight: '100vh',
+        bgcolor: '#f5f7fb',
         p: { xs: 2, md: 3 },
       }}
     >
@@ -261,40 +234,34 @@ function Dashboard({
           borderRadius: 5,
           p: { xs: 2.5, md: 4 },
           mb: 3,
-          color: "#fff",
-          background:
-            "linear-gradient(135deg, #1d4ed8 0%, #2563eb 45%, #3b82f6 100%)",
-          boxShadow: "0 18px 40px rgba(37, 99, 235, 0.22)",
+          color: '#fff',
+          background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 45%, #3b82f6 100%)',
+          boxShadow: '0 18px 40px rgba(37, 99, 235, 0.22)',
         }}
       >
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: { xs: "flex-start", md: "center" },
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: { xs: 'flex-start', md: 'center' },
             gap: 2,
-            flexWrap: "wrap",
+            flexWrap: 'wrap',
           }}
         >
           <Box>
-            <Typography
-              variant="h4"
-              sx={{ fontWeight: 800, lineHeight: 1.2 }}
-            >
+            <Typography variant="h4" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
               Welcome, {userName} 👋
             </Typography>
 
-            <Typography sx={{ opacity: 0.9, mt: 0.5 }}>
-              {dashboardTitle}
-            </Typography>
+            <Typography sx={{ opacity: 0.9, mt: 0.5 }}>{dashboardTitle}</Typography>
           </Box>
 
           <Chip
             label={today}
             sx={{
-              bgcolor: "rgba(255,255,255,0.15)",
-              color: "#fff",
-              border: "1px solid rgba(255,255,255,0.25)",
+              bgcolor: 'rgba(255,255,255,0.15)',
+              color: '#fff',
+              border: '1px solid rgba(255,255,255,0.25)',
               fontWeight: 700,
             }}
           />
@@ -303,11 +270,11 @@ function Dashboard({
 
       <Box
         sx={{
-          display: "grid",
+          display: 'grid',
           gridTemplateColumns: {
-            xs: "1fr",
-            sm: "repeat(2, 1fr)",
-            lg: "repeat(4, 1fr)",
+            xs: '1fr',
+            sm: 'repeat(2, 1fr)',
+            lg: 'repeat(4, 1fr)',
           },
           gap: 2,
           mb: 2.5,
@@ -349,12 +316,7 @@ function Dashboard({
           subtitle="Unique teams"
           accent="#06b6d4"
         />
-        <MetricCard
-          title="Mentors"
-          value={mentors}
-          subtitle="Assigned mentors"
-          accent="#14b8a6"
-        />
+        <MetricCard title="Mentors" value={mentors} subtitle="Assigned mentors" accent="#14b8a6" />
         {/* <MetricCard
           title="Attendance %"
           value={`${attendancePercentage}%`}
@@ -365,10 +327,10 @@ function Dashboard({
 
       <Box
         sx={{
-          display: "grid",
+          display: 'grid',
           gridTemplateColumns: {
-            xs: "1fr",
-            lg: "1.05fr 1.2fr",
+            xs: '1fr',
+            lg: '1.05fr 1.2fr',
           },
           gap: 2.5,
           mb: 2.5,
@@ -379,9 +341,9 @@ function Dashboard({
           sx={{
             p: 3,
             borderRadius: 4,
-            border: "1px solid",
-            borderColor: "divider",
-            boxShadow: "0 10px 30px rgba(15, 23, 42, 0.06)",
+            border: '1px solid',
+            borderColor: 'divider',
+            boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
             minHeight: 380,
           }}
         >
@@ -389,7 +351,7 @@ function Dashboard({
             Department Distribution
           </Typography>
 
-          <Box sx={{ width: "100%", height: 290 }}>
+          <Box sx={{ width: '100%', height: 290 }}>
             {departmentData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -404,10 +366,7 @@ function Dashboard({
                     paddingAngle={3}
                   >
                     {departmentData.map((_, index) => (
-                      <Cell
-                        key={`dept-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
+                      <Cell key={`dept-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
                   <RechartsTooltip />
@@ -416,10 +375,10 @@ function Dashboard({
             ) : (
               <Box
                 sx={{
-                  height: "100%",
-                  display: "grid",
-                  placeItems: "center",
-                  color: "text.secondary",
+                  height: '100%',
+                  display: 'grid',
+                  placeItems: 'center',
+                  color: 'text.secondary',
                 }}
               >
                 No department data available
@@ -433,9 +392,9 @@ function Dashboard({
           sx={{
             p: 3,
             borderRadius: 4,
-            border: "1px solid",
-            borderColor: "divider",
-            boxShadow: "0 10px 30px rgba(15, 23, 42, 0.06)",
+            border: '1px solid',
+            borderColor: 'divider',
+            boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
             minHeight: 380,
           }}
         >
@@ -443,7 +402,7 @@ function Dashboard({
             Monthly Joining Trend
           </Typography>
 
-          <Box sx={{ width: "100%", height: 290 }}>
+          <Box sx={{ width: '100%', height: 290 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={joiningTrend}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -465,10 +424,10 @@ function Dashboard({
 
       <Box
         sx={{
-          display: "grid",
+          display: 'grid',
           gridTemplateColumns: {
-            xs: "1fr",
-            md: "repeat(3, 1fr)",
+            xs: '1fr',
+            md: 'repeat(3, 1fr)',
           },
           gap: 2.5,
         }}
@@ -478,9 +437,9 @@ function Dashboard({
           sx={{
             p: 3,
             borderRadius: 4,
-            border: "1px solid",
-            borderColor: "divider",
-            boxShadow: "0 10px 30px rgba(15, 23, 42, 0.06)",
+            border: '1px solid',
+            borderColor: 'divider',
+            boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
             minHeight: 320,
           }}
         >
@@ -488,11 +447,11 @@ function Dashboard({
             Recent Activities
           </Typography>
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             {recentActivities.map((activity, index) => (
               <Typography
                 key={`${activity}-${index}`}
-                sx={{ color: "text.secondary", lineHeight: 1.7 }}
+                sx={{ color: 'text.secondary', lineHeight: 1.7 }}
               >
                 {activity}
               </Typography>
@@ -505,9 +464,9 @@ function Dashboard({
           sx={{
             p: 3,
             borderRadius: 4,
-            border: "1px solid",
-            borderColor: "divider",
-            boxShadow: "0 10px 30px rgba(15, 23, 42, 0.06)",
+            border: '1px solid',
+            borderColor: 'divider',
+            boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
             minHeight: 320,
           }}
         >
@@ -516,33 +475,31 @@ function Dashboard({
           </Typography>
 
           {upcomingMeetings.length > 0 ? (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               {upcomingMeetings.map((meeting, index) => (
                 <Box
                   key={`${meeting.title}-${meeting.date}-${index}`}
                   sx={{
                     p: 1.8,
                     borderRadius: 3,
-                    bgcolor: "#f8fafc",
-                    border: "1px solid",
-                    borderColor: "divider",
+                    bgcolor: '#f8fafc',
+                    border: '1px solid',
+                    borderColor: 'divider',
                   }}
                 >
-                  <Typography sx={{ fontWeight: 700 }}>
-                    {meeting.title}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                  <Typography sx={{ fontWeight: 700 }}>{meeting.title}</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                     {meeting.intern} • {meeting.date} • {meeting.time}
                   </Typography>
                   <Chip
                     size="small"
                     label={meeting.status}
                     color={
-                      meeting.status === "Completed"
-                        ? "success"
-                        : meeting.status === "Scheduled"
-                        ? "primary"
-                        : "default"
+                      meeting.status === 'Completed'
+                        ? 'success'
+                        : meeting.status === 'Scheduled'
+                          ? 'primary'
+                          : 'default'
                     }
                     sx={{ mt: 1 }}
                   />
@@ -550,7 +507,7 @@ function Dashboard({
               ))}
             </Box>
           ) : (
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               No upcoming meetings found.
             </Typography>
           )}
@@ -561,9 +518,9 @@ function Dashboard({
           sx={{
             p: 3,
             borderRadius: 4,
-            border: "1px solid",
-            borderColor: "divider",
-            boxShadow: "0 10px 30px rgba(15, 23, 42, 0.06)",
+            border: '1px solid',
+            borderColor: 'divider',
+            boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
             minHeight: 320,
           }}
         >
@@ -572,45 +529,35 @@ function Dashboard({
           </Typography>
 
           {latestNotifications.length > 0 ? (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               {latestNotifications.map((notification, index) => (
                 <Box
                   key={`${notification.title}-${notification.date}-${index}`}
                   sx={{
                     p: 1.8,
                     borderRadius: 3,
-                    bgcolor: "#f8fafc",
-                    border: "1px solid",
-                    borderColor: "divider",
+                    bgcolor: '#f8fafc',
+                    border: '1px solid',
+                    borderColor: 'divider',
                   }}
                 >
-                  <Typography sx={{ fontWeight: 700 }}>
-                    {notification.title}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                  <Typography sx={{ fontWeight: 700 }}>{notification.title}</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                     {notification.message}
                   </Typography>
-                  <Box sx={{ display: "flex", gap: 1, mt: 1, flexWrap: "wrap" }}>
+                  <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
                     <Chip
                       size="small"
                       label={notification.status}
-                      color={
-                        notification.status === "Read"
-                          ? "success"
-                          : "warning"
-                      }
+                      color={notification.status === 'Read' ? 'success' : 'warning'}
                     />
-                    <Chip
-                      size="small"
-                      label={notification.date}
-                      variant="outlined"
-                    />
+                    <Chip size="small" label={notification.date} variant="outlined" />
                   </Box>
                 </Box>
               ))}
             </Box>
           ) : (
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               No notifications found.
             </Typography>
           )}
@@ -619,14 +566,11 @@ function Dashboard({
 
       <Divider sx={{ my: 3 }} />
 
-      <Typography
-        variant="body2"
-        sx={{ color: "text.secondary", textAlign: "center" }}
-      >
+      <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center' }}>
         Internship Management System • HR Dashboard
       </Typography>
     </Box>
-  );
+  )
 }
 
-export default Dashboard;
+export default Dashboard

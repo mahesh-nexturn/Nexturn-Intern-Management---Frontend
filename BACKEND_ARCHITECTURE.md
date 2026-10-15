@@ -9,18 +9,18 @@ is a drop-in replacement for the current mock data.
 
 ## 1. Tech Stack
 
-| Layer | Choice |
-|---|---|
-| Language / Framework | Java 17+, Spring Boot 3.x |
-| Web | Spring Web (REST), springdoc-openapi (Swagger UI) |
-| Security | Spring Security + JWT (access + refresh token) |
-| Persistence | Spring Data JPA + Hibernate |
-| Database | PostgreSQL |
-| Migration | Flyway (or Liquibase) |
-| Validation | Jakarta Bean Validation (`@Valid`) |
-| Mapping | MapStruct (Entity ↔ DTO) |
-| Build | Maven or Gradle |
-| Docs | OpenAPI/Swagger auto-generated |
+| Layer                | Choice                                            |
+| -------------------- | ------------------------------------------------- |
+| Language / Framework | Java 17+, Spring Boot 3.x                         |
+| Web                  | Spring Web (REST), springdoc-openapi (Swagger UI) |
+| Security             | Spring Security + JWT (access + refresh token)    |
+| Persistence          | Spring Data JPA + Hibernate                       |
+| Database             | PostgreSQL                                        |
+| Migration            | Flyway (or Liquibase)                             |
+| Validation           | Jakarta Bean Validation (`@Valid`)                |
+| Mapping              | MapStruct (Entity ↔ DTO)                          |
+| Build                | Maven or Gradle                                   |
+| Docs                 | OpenAPI/Swagger auto-generated                    |
 
 ## 2. Layered Package Structure
 
@@ -70,13 +70,14 @@ Each domain module follows the same 4-file pattern:
   truth**: the JWT + `/api/auth/me` endpoint.
 
 ### Auth Endpoints (5)
-| Method | Endpoint | Purpose |
-|---|---|---|
-| POST | `/api/auth/login` | Authenticate, issue tokens |
-| POST | `/api/auth/refresh` | Exchange refresh token for new access token |
-| POST | `/api/auth/logout` | Revoke refresh token |
-| GET | `/api/auth/me` | Return current logged-in user + role |
-| POST | `/api/auth/change-password` | Update password |
+
+| Method | Endpoint                    | Purpose                                     |
+| ------ | --------------------------- | ------------------------------------------- |
+| POST   | `/api/auth/login`           | Authenticate, issue tokens                  |
+| POST   | `/api/auth/refresh`         | Exchange refresh token for new access token |
+| POST   | `/api/auth/logout`          | Revoke refresh token                        |
+| GET    | `/api/auth/me`              | Return current logged-in user + role        |
+| POST   | `/api/auth/change-password` | Update password                             |
 
 ## 4. REST API Inventory (by Domain)
 
@@ -85,26 +86,26 @@ domains need extra endpoints (filters, stats for charts, file upload). Role
 rules below are confirmed from the current frontend (`UI_FEATURE_ANALYSIS.md`)
 so authorization matches existing behavior exactly.
 
-| # | Domain | Endpoints | Count | Role Rules | Notes |
-|---|---|---|---|---|---|
-| 1 | Auth | see above | 5 | Public (login), authenticated (rest) | JWT login/refresh/logout/me |
-| 2 | Users | CRUD + `/users/{id}/role` | 6 | ADMIN only | Underlies mentor/intern login identity |
-| 3 | Mentors | CRUD + `/mentors/{id}/interns` | 6 | ADMIN manages; all roles can read | List interns per mentor |
-| 4 | Interns | CRUD + `/interns/{id}/dashboard` | 6 | ADMIN manages; MENTOR sees own interns; INTERN sees only self | Aggregated intern dashboard data |
-| 5 | Tasks | CRUD + `/tasks/stats` | 6 | ADMIN & MENTOR manage; INTERN read-only (own tasks) | Chart data (Pending/In Progress/Completed counts) |
-| 6 | Attendance | CRUD + `/attendance/calendar`, `/attendance/stats` | 7 | ADMIN & MENTOR manage; INTERN read-only | Upsert-by-(intern,date) semantics; calendar grid + chart |
-| 7 | Meetings | CRUD + `/meetings/upcoming` | 6 | ADMIN & MENTOR manage; INTERN read-only (own meetings) | Widget data |
-| 8 | Documents | CRUD + `/documents/upload`, `/documents/{id}/download`, `/documents/latest` | 8 | ADMIN, MENTOR, INTERN all manage their own uploads; ADMIN sees all | Real multipart upload + file streaming (currently a non-functional icon in the UI) |
-| 9 | Training | CRUD + `/training/stats` | 6 | ADMIN & MENTOR manage; INTERN read-only (own trainings) | |
-| 10 | Evaluations | CRUD + `/evaluations/stats` | 6 | ADMIN & MENTOR manage; INTERN read-only (own evaluations) | 4 rating fields: technical, communication, problemSolving, overall |
-| 11 | Notifications | CRUD + `/notifications/{id}/mark-read` | 6 | ADMIN only manages; all roles read notifications targeted to their role or "All" | `recipient` enum: HR / Mentor / Intern / All |
-| 12 | PPO | CRUD + `/ppo/stats` | 6 | ADMIN & MENTOR manage; INTERN read-only (own record) | Attendance %, training %, 3 scores, 2 recommendation flags |
-| 13 | Announcements | CRUD + `/announcements/stats` | 6 | ADMIN only manages; all roles read announcements targeted to their role or "All" | `targetAudience` enum: All / HR / Mentor / Intern |
-| 14 | Certificates | CRUD + `/certificates/stats` | 6 | ADMIN only manages; MENTOR/INTERN read-only, scoped to their interns/self | "Issued this month" stat = count where `issueDate` month == current month |
-| 15 | Reports | `/reports` (GET, aggregated read-only), `/reports/export` | 2 | ADMIN sees all; MENTOR/INTERN auto-scoped | `export` returns a generated Excel/PDF file (currently just a placeholder `alert()` in the UI) |
-| 16 | Feedback | CRUD | 5 | TBD (page is currently an unimplemented placeholder) | Build only once the frontend defines real fields/flow |
-| 17 | Settings | GET/PUT `/settings/me` | 2 | Authenticated user, self only | Page is currently an unimplemented placeholder (e.g. theme/profile/password prefs) |
-| 18 | Dashboard (aggregation) | `/dashboard/admin`, `/dashboard/mentor`, `/dashboard/intern` | 3 | Role-specific | One call per role instead of N calls |
+| #   | Domain                  | Endpoints                                                                   | Count | Role Rules                                                                       | Notes                                                                                          |
+| --- | ----------------------- | --------------------------------------------------------------------------- | ----- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 1   | Auth                    | see above                                                                   | 5     | Public (login), authenticated (rest)                                             | JWT login/refresh/logout/me                                                                    |
+| 2   | Users                   | CRUD + `/users/{id}/role`                                                   | 6     | ADMIN only                                                                       | Underlies mentor/intern login identity                                                         |
+| 3   | Mentors                 | CRUD + `/mentors/{id}/interns`                                              | 6     | ADMIN manages; all roles can read                                                | List interns per mentor                                                                        |
+| 4   | Interns                 | CRUD + `/interns/{id}/dashboard`                                            | 6     | ADMIN manages; MENTOR sees own interns; INTERN sees only self                    | Aggregated intern dashboard data                                                               |
+| 5   | Tasks                   | CRUD + `/tasks/stats`                                                       | 6     | ADMIN & MENTOR manage; INTERN read-only (own tasks)                              | Chart data (Pending/In Progress/Completed counts)                                              |
+| 6   | Attendance              | CRUD + `/attendance/calendar`, `/attendance/stats`                          | 7     | ADMIN & MENTOR manage; INTERN read-only                                          | Upsert-by-(intern,date) semantics; calendar grid + chart                                       |
+| 7   | Meetings                | CRUD + `/meetings/upcoming`                                                 | 6     | ADMIN & MENTOR manage; INTERN read-only (own meetings)                           | Widget data                                                                                    |
+| 8   | Documents               | CRUD + `/documents/upload`, `/documents/{id}/download`, `/documents/latest` | 8     | ADMIN, MENTOR, INTERN all manage their own uploads; ADMIN sees all               | Real multipart upload + file streaming (currently a non-functional icon in the UI)             |
+| 9   | Training                | CRUD + `/training/stats`                                                    | 6     | ADMIN & MENTOR manage; INTERN read-only (own trainings)                          |                                                                                                |
+| 10  | Evaluations             | CRUD + `/evaluations/stats`                                                 | 6     | ADMIN & MENTOR manage; INTERN read-only (own evaluations)                        | 4 rating fields: technical, communication, problemSolving, overall                             |
+| 11  | Notifications           | CRUD + `/notifications/{id}/mark-read`                                      | 6     | ADMIN only manages; all roles read notifications targeted to their role or "All" | `recipient` enum: HR / Mentor / Intern / All                                                   |
+| 12  | PPO                     | CRUD + `/ppo/stats`                                                         | 6     | ADMIN & MENTOR manage; INTERN read-only (own record)                             | Attendance %, training %, 3 scores, 2 recommendation flags                                     |
+| 13  | Announcements           | CRUD + `/announcements/stats`                                               | 6     | ADMIN only manages; all roles read announcements targeted to their role or "All" | `targetAudience` enum: All / HR / Mentor / Intern                                              |
+| 14  | Certificates            | CRUD + `/certificates/stats`                                                | 6     | ADMIN only manages; MENTOR/INTERN read-only, scoped to their interns/self        | "Issued this month" stat = count where `issueDate` month == current month                      |
+| 15  | Reports                 | `/reports` (GET, aggregated read-only), `/reports/export`                   | 2     | ADMIN sees all; MENTOR/INTERN auto-scoped                                        | `export` returns a generated Excel/PDF file (currently just a placeholder `alert()` in the UI) |
+| 16  | Feedback                | CRUD                                                                        | 5     | TBD (page is currently an unimplemented placeholder)                             | Build only once the frontend defines real fields/flow                                          |
+| 17  | Settings                | GET/PUT `/settings/me`                                                      | 2     | Authenticated user, self only                                                    | Page is currently an unimplemented placeholder (e.g. theme/profile/password prefs)             |
+| 18  | Dashboard (aggregation) | `/dashboard/admin`, `/dashboard/mentor`, `/dashboard/intern`                | 3     | Role-specific                                                                    | One call per role instead of N calls                                                           |
 
 **Total: ~95 REST endpoints** across 18 controllers (plus Swagger/OpenAPI docs
 auto-generated at `/swagger-ui.html`).
@@ -234,23 +235,25 @@ Install these before generating the project (PowerShell, run as Administrator
 where noted). Using **winget** (built into Windows 10/11) is the quickest path;
 **Chocolatey** commands are given as an alternative.
 
-| Tool | Why it's needed | winget install command |
-|---|---|---|
-| **JDK 17** (Eclipse Temurin/Adoptium) | Compile & run Spring Boot 3.x | `winget install EclipseAdoptium.Temurin.17.JDK` |
-| **Apache Maven** | Build tool (skip if using the wrapper `mvnw.cmd`) | `winget install Apache.Maven` |
-| **Git** | Version control, cloning repos | `winget install Git.Git` |
-| **PostgreSQL** | Local database server (skip if using Docker) | `winget install PostgreSQL.PostgreSQL` |
-| **Docker Desktop** | Run Postgres/app in containers (recommended) | `winget install Docker.DockerDesktop` |
-| **IntelliJ IDEA Community** (or VS Code + Java/Spring extensions) | IDE with Spring Boot support | `winget install JetBrains.IntelliJIDEA.Community` |
-| **Postman** (optional) | Manually test REST APIs | `winget install Postman.Postman` |
-| **DBeaver** (optional) | GUI for browsing the Postgres database | `winget install dbeaver.dbeaver` |
+| Tool                                                              | Why it's needed                                   | winget install command                            |
+| ----------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------- |
+| **JDK 17** (Eclipse Temurin/Adoptium)                             | Compile & run Spring Boot 3.x                     | `winget install EclipseAdoptium.Temurin.17.JDK`   |
+| **Apache Maven**                                                  | Build tool (skip if using the wrapper `mvnw.cmd`) | `winget install Apache.Maven`                     |
+| **Git**                                                           | Version control, cloning repos                    | `winget install Git.Git`                          |
+| **PostgreSQL**                                                    | Local database server (skip if using Docker)      | `winget install PostgreSQL.PostgreSQL`            |
+| **Docker Desktop**                                                | Run Postgres/app in containers (recommended)      | `winget install Docker.DockerDesktop`             |
+| **IntelliJ IDEA Community** (or VS Code + Java/Spring extensions) | IDE with Spring Boot support                      | `winget install JetBrains.IntelliJIDEA.Community` |
+| **Postman** (optional)                                            | Manually test REST APIs                           | `winget install Postman.Postman`                  |
+| **DBeaver** (optional)                                            | GUI for browsing the Postgres database            | `winget install dbeaver.dbeaver`                  |
 
 Chocolatey equivalents (if you prefer `choco` over `winget`):
+
 ```powershell
 choco install temurin17 maven git postgresql docker-desktop -y
 ```
 
 #### Verify installations
+
 ```powershell
 java -version        # should print 17.x
 mvn -version          # should print Maven 3.9+ and point to the JDK above
@@ -260,6 +263,7 @@ psql --version         # if PostgreSQL installed natively (not via Docker)
 ```
 
 #### Set `JAVA_HOME` (if not set automatically by the installer)
+
 ```powershell
 [Environment]::SetEnvironmentVariable(
   "JAVA_HOME",
@@ -276,6 +280,7 @@ echo $env:JAVA_HOME
 > `mvnw.cmd` on Windows (e.g. `mvnw.cmd clean install`).
 
 ### Step 1 – Generate the project (Spring Initializr)
+
 Use [start.spring.io](https://start.spring.io) or the CLI:
 
 ```bash
@@ -302,14 +307,17 @@ Add `springdoc-openapi-starter-webmvc-ui`, `jjwt` (or `spring-security-oauth2-jo
 for JWT), and `mapstruct` manually to `pom.xml` afterward.
 
 ### Step 2 – Open and verify the project
+
 ```bash
 cd intern-management-backend
 ./mvnw clean install
 ./mvnw spring-boot:run
 ```
+
 Confirm it starts on `http://localhost:8080` with the default Spring Boot banner.
 
 ### Step 3 – Set up PostgreSQL
+
 ```bash
 # via Docker (recommended for local dev)
 docker run --name intern-mgmt-db -e POSTGRES_DB=intern_management \
@@ -318,7 +326,9 @@ docker run --name intern-mgmt-db -e POSTGRES_DB=intern_management \
 ```
 
 ### Step 4 – Configure `application.yml`
+
 Replace `src/main/resources/application.properties` with:
+
 ```yaml
 spring:
   application:
@@ -329,7 +339,7 @@ spring:
     password: postgres
   jpa:
     hibernate:
-      ddl-auto: validate      # Flyway owns schema, JPA only validates
+      ddl-auto: validate # Flyway owns schema, JPA only validates
     properties:
       hibernate:
         format_sql: true
@@ -342,17 +352,20 @@ server:
 
 jwt:
   secret: ${JWT_SECRET:change-me-in-prod}
-  access-token-expiry-ms: 900000      # 15 min
-  refresh-token-expiry-ms: 604800000  # 7 days
+  access-token-expiry-ms: 900000 # 15 min
+  refresh-token-expiry-ms: 604800000 # 7 days
 ```
 
 ### Step 5 – Create the package structure
+
 Inside `src/main/java/com/nexturn/internmanagement/`, create the packages
 listed in **Section 2** (`config`, `security`, `common`, `auth`, `user`,
 `mentor`, `intern`, `task`, ... `feedback`).
 
 ### Step 6 – Write the first Flyway migration
+
 `src/main/resources/db/migration/V1__init_users.sql`:
+
 ```sql
 CREATE TABLE users (
   id BIGSERIAL PRIMARY KEY,
@@ -363,10 +376,12 @@ CREATE TABLE users (
   updated_at TIMESTAMP NOT NULL DEFAULT now()
 );
 ```
+
 Add subsequent `V2__...`, `V3__...` scripts per domain table (mentors, interns,
 tasks, etc.) as each module is built.
 
 ### Step 7 – Implement Security (JWT)
+
 1. `User` entity implementing `UserDetails` (or a separate `UserPrincipal`).
 2. `JwtService` — generate/parse/validate tokens (signing key from `jwt.secret`).
 3. `JwtAuthFilter extends OncePerRequestFilter` — reads `Authorization: Bearer <token>`, sets `SecurityContextHolder`.
@@ -376,21 +391,25 @@ tasks, etc.) as each module is built.
 5. `AuthController` — `/api/auth/login`, `/refresh`, `/logout`, `/me`.
 
 ### Step 8 – Build the first domain module end-to-end (`auth` → `mentor`/`intern`)
+
 For each module: `Entity` → `Repository` (`extends JpaRepository`) →
 `Dto` (request/response) → `Mapper` (MapStruct) → `Service`/`ServiceImpl` →
 `Controller` (`@RestController`, `@RequestMapping("/api/<domain>")`).
 Repeat this pattern for every domain in Section 4's table.
 
 ### Step 9 – Add global exception handling
+
 `common/GlobalExceptionHandler.java` with `@RestControllerAdvice`, handling
 `MethodArgumentNotValidException`, `EntityNotFoundException`,
 `AccessDeniedException` → consistent JSON error response shape.
 
 ### Step 10 – Add OpenAPI/Swagger
+
 Add dependency `springdoc-openapi-starter-webmvc-ui`; browse
 `http://localhost:8080/swagger-ui.html` to explore/test all endpoints as they're built.
 
 ### Step 11 – Enable CORS for the frontend
+
 ```java
 @Bean
 CorsConfigurationSource corsConfigurationSource() {
@@ -405,22 +424,26 @@ CorsConfigurationSource corsConfigurationSource() {
 ```
 
 ### Step 12 – Write tests
+
 - Unit tests per service (Mockito).
 - `@SpringBootTest` + Testcontainers (Postgres) for repository/integration tests.
 - `@WebMvcTest` for controller-layer tests with mocked services.
 
 ### Step 13 – Seed data & run locally end-to-end
+
 Add a `CommandLineRunner`/Flyway `V2__seed_admin_user.sql` to insert one
 `ADMIN` user, then log in via `/api/auth/login`, copy the JWT, and call a
 protected endpoint (e.g. `/api/interns`) with `Authorization: Bearer <token>`
 to confirm the full auth flow works before wiring the frontend.
 
 ### Step 14 – Connect the React frontend
+
 Replace `App.tsx`'s mock `useState` calls with API calls (e.g. Axios/React
 Query) pointing at `http://localhost:8080/api/...`, starting with
 `/api/auth/login` in `Login.tsx` and `AuthContext`.
 
 ### Step 15 – Containerize & deploy (optional, later)
+
 Add a `Dockerfile` (multi-stage Maven build → JRE runtime image) and a
 `docker-compose.yml` combining the Spring Boot app + PostgreSQL for one-command
 local/prod startup.

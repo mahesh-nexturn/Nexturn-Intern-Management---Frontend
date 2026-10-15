@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from 'react'
 
 import {
   Button,
@@ -8,18 +8,18 @@ import {
   DialogTitle,
   MenuItem,
   TextField,
-} from "@mui/material";
+} from '@mui/material'
 
-import type { Meeting } from "../types/Meeting";
-import type { Intern } from "../types/Intern";
+import type { Meeting } from '../types/Meeting'
+import type { Intern } from '../types/Intern'
 
 type AddMeetingDialogProps = {
-  open: boolean;
-  handleClose: () => void;
-  addMeeting: (meeting: Meeting) => void;
-  selectedMeeting: Meeting;
-  interns: Intern[];
-};
+  open: boolean
+  handleClose: () => void
+  addMeeting: (meeting: Meeting) => void
+  selectedMeeting: Meeting
+  interns: Intern[]
+}
 
 function AddMeetingDialog({
   open,
@@ -28,59 +28,63 @@ function AddMeetingDialog({
   selectedMeeting,
   interns,
 }: AddMeetingDialogProps) {
-  const [title, setTitle] = useState("");
-  const [agenda, setAgenda] = useState("");
-  const [internId, setInternId] = useState<number | "">("");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [status, setStatus] = useState<Meeting["status"]>("Scheduled");
+  const [title, setTitle] = useState('')
+  const [agenda, setAgenda] = useState('')
+  const [internId, setInternId] = useState<number | ''>('')
+  const [date, setDate] = useState('')
+  const [time, setTime] = useState('')
+  const [status, setStatus] = useState<Meeting['status']>('Scheduled')
 
-  useEffect(() => {
-    setTitle(selectedMeeting.title || "");
-    setAgenda(selectedMeeting.agenda || "");
-    setInternId(selectedMeeting.internId ?? "");
-    setDate(selectedMeeting.date || "");
-    setTime(selectedMeeting.time || "");
-    setStatus(selectedMeeting.status || "Scheduled");
-  }, [selectedMeeting]);
+  const [prevSelected, setPrevSelected] = useState<Meeting | null>(null)
+  if (prevSelected !== selectedMeeting) {
+    setPrevSelected(selectedMeeting)
+    setTitle(selectedMeeting.title || '')
+    setAgenda(selectedMeeting.agenda || '')
+    setInternId(selectedMeeting.internId ?? '')
+    setDate(selectedMeeting.date || '')
+    setTime(selectedMeeting.time || '')
+    setStatus(selectedMeeting.status || 'Scheduled')
+  }
 
-  const selectedIntern = interns.find((intern) => intern.id === internId);
+  const selectedIntern = interns.find((intern) => intern.id === internId)
+  // needs the current time on every render, so the meeting locks as soon as it starts
   const statusOnly =
     selectedMeeting.id !== 0 &&
     !!selectedMeeting.date &&
-    new Date(`${selectedMeeting.date}T${selectedMeeting.time || "00:00"}`).getTime() <= Date.now();
+    // eslint-disable-next-line react-hooks/purity
+    new Date(`${selectedMeeting.date}T${selectedMeeting.time || '00:00'}`).getTime() <= Date.now()
 
   const handleSave = () => {
     if (!title.trim()) {
-      alert("Please enter a meeting title.");
-      return;
+      alert('Please enter a meeting title.')
+      return
     }
 
     if (!internId) {
-      alert("Please select an intern.");
-      return;
+      alert('Please select an intern.')
+      return
     }
 
     if (!date || !time) {
-      alert("Please select both date and time.");
-      return;
+      alert('Please select both date and time.')
+      return
     }
 
     addMeeting({
       id: selectedMeeting.id,
       title,
       agenda,
-      mentor: selectedIntern?.mentor || "",
+      mentor: selectedIntern?.mentor || '',
       mentorId: selectedIntern?.mentorId ?? null,
-      intern: selectedIntern?.name || "",
+      intern: selectedIntern?.name || '',
       internId: internId as number,
       date,
       time,
       status,
-    });
+    })
 
-    handleClose();
-  };
+    handleClose()
+  }
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
@@ -114,7 +118,7 @@ function AddMeetingDialog({
           label="Intern"
           value={internId}
           disabled={statusOnly}
-          onChange={(e) => setInternId(e.target.value === "" ? "" : Number(e.target.value))}
+          onChange={(e) => setInternId(e.target.value === '' ? '' : Number(e.target.value))}
         >
           {interns.map((intern) => (
             <MenuItem key={intern.id} value={intern.id}>
@@ -149,7 +153,7 @@ function AddMeetingDialog({
           margin="dense"
           label="Status"
           value={status}
-          onChange={(e) => setStatus(e.target.value as Meeting["status"])}
+          onChange={(e) => setStatus(e.target.value as Meeting['status'])}
         >
           <MenuItem value="Scheduled">Scheduled</MenuItem>
           <MenuItem value="Completed">Completed</MenuItem>
@@ -164,7 +168,7 @@ function AddMeetingDialog({
         </Button>
       </DialogActions>
     </Dialog>
-  );
+  )
 }
 
-export default AddMeetingDialog;
+export default AddMeetingDialog

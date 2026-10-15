@@ -1,86 +1,85 @@
-import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
+import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 
-export const API_BASE_URL =  import.meta.env.VITE_API_BASE_URL;
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 // Generic envelope returned by every backend endpoint: { success, data, message }
 export type ApiResponse<T> = {
-  success: boolean;
-  data: T;
-  message?: string;
-};
+  success: boolean
+  data: T
+  message?: string
+}
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
-});
+})
 
 export function getAccessToken() {
-  return sessionStorage.getItem("accessToken");
+  return sessionStorage.getItem('accessToken')
 }
 
 export function getRefreshToken() {
-  return sessionStorage.getItem("refreshToken");
+  return sessionStorage.getItem('refreshToken')
 }
 
 export function setTokens(accessToken: string, refreshToken: string) {
-  sessionStorage.setItem("accessToken", accessToken);
-  sessionStorage.setItem("refreshToken", refreshToken);
+  sessionStorage.setItem('accessToken', accessToken)
+  sessionStorage.setItem('refreshToken', refreshToken)
 }
 
 export function clearTokens() {
-  sessionStorage.removeItem("accessToken");
-  sessionStorage.removeItem("refreshToken");
+  sessionStorage.removeItem('accessToken')
+  sessionStorage.removeItem('refreshToken')
 }
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = getAccessToken();
+  const token = getAccessToken()
   if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
+    config.headers.Authorization = `Bearer ${token}`
   }
-  return config;
-});
+  return config
+})
 
-let refreshPromise: Promise<void> | null = null;
+let refreshPromise: Promise<void> | null = null
 
 // Single shared refresh so concurrent requests don't each rotate the token.
 function refreshTokens(): Promise<void> {
   if (!refreshPromise) {
-    const refreshToken = getRefreshToken();
-    if (!refreshToken) return Promise.reject(new Error("No refresh token"));
+    const refreshToken = getRefreshToken()
+    if (!refreshToken) return Promise.reject(new Error('No refresh token'))
 
     refreshPromise = axios
       .post<ApiResponse<{ accessToken: string; refreshToken: string }>>(
         `${API_BASE_URL}/auth/refresh`,
-        { refreshToken }
+        { refreshToken },
       )
       .then(({ data }) => setTokens(data.data.accessToken, data.data.refreshToken))
       .finally(() => {
-        refreshPromise = null;
-      });
+        refreshPromise = null
+      })
   }
-  return refreshPromise;
+  return refreshPromise
 }
 
 function isAuthUrl(url?: string) {
-  return !!url && (url.includes("/auth/login") || url.includes("/auth/refresh"));
+  return !!url && (url.includes('/auth/login') || url.includes('/auth/refresh'))
 }
 
 function logoutToLogin() {
-  clearTokens();
-  window.location.href = "/";
+  clearTokens()
+  window.location.href = '/'
 }
 
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as
-      | (InternalAxiosRequestConfig & { _retry?: boolean })
-      | undefined;
+      (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined
 
     // The backend answers 403 (not 401) for a missing/expired token, so refresh on both.
-    const status = error.response?.status;
+    const status = error.response?.status
     if (
       (status === 401 || status === 403) &&
       originalRequest &&
@@ -88,23 +87,23 @@ api.interceptors.response.use(
       !isAuthUrl(originalRequest.url)
     ) {
       if (!getRefreshToken()) {
-        logoutToLogin();
-        return Promise.reject(error);
+        logoutToLogin()
+        return Promise.reject(error)
       }
 
-      originalRequest._retry = true;
+      originalRequest._retry = true
 
       try {
-        await refreshTokens();
+        await refreshTokens()
       } catch (refreshError) {
-        logoutToLogin();
-        return Promise.reject(refreshError);
+        logoutToLogin()
+        return Promise.reject(refreshError)
       }
-      return api(originalRequest);
+      return api(originalRequest)
     }
 
-    return Promise.reject(error);
-  }
-);
+    return Promise.reject(error)
+  },
+)
 
-export default api;
+export default api

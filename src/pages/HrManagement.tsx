@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from 'react'
 
 import {
   Alert,
@@ -20,113 +20,112 @@ import {
   TextField,
   Tooltip,
   Typography,
-} from "@mui/material";
+} from '@mui/material'
 
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
+import AddIcon from '@mui/icons-material/Add'
+import EditIcon from '@mui/icons-material/Edit'
+import DeleteIcon from '@mui/icons-material/Delete'
+import AssignmentIndIcon from '@mui/icons-material/AssignmentInd'
 
-import type { Hr } from "../types/Hr";
-import * as hrApi from "../services/hrApi";
-import HrAssignmentsDialog from "../components/HrAssignmentsDialog";
+import type { Hr } from '../types/Hr'
+import * as hrApi from '../services/hrApi'
+import HrAssignmentsDialog from '../components/HrAssignmentsDialog'
 
-type FormState = { id: number | null; name: string; email: string; password: string };
+type FormState = { id: number | null; name: string; email: string; password: string }
 
-const emptyForm: FormState = { id: null, name: "", email: "", password: "" };
+const emptyForm: FormState = { id: null, name: '', email: '', password: '' }
 
 function HrManagement() {
-  const [hrs, setHrs] = useState<Hr[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [toast, setToast] = useState<{ message: string; severity: "success" | "error" } | null>(null);
+  const [hrs, setHrs] = useState<Hr[]>([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [toast, setToast] = useState<{ message: string; severity: 'success' | 'error' } | null>(
+    null,
+  )
 
-  const [formOpen, setFormOpen] = useState(false);
-  const [form, setForm] = useState<FormState>(emptyForm);
+  const [formOpen, setFormOpen] = useState(false)
+  const [form, setForm] = useState<FormState>(emptyForm)
 
-  const [assignHr, setAssignHr] = useState<Hr | null>(null);
+  const [assignHr, setAssignHr] = useState<Hr | null>(null)
 
   const loadHrs = () =>
     hrApi
       .listHrs()
       .then(setHrs)
-      .catch(() => setToast({ message: "Failed to load HRs.", severity: "error" }));
+      .catch(() => setToast({ message: 'Failed to load HRs.', severity: 'error' }))
 
   useEffect(() => {
-    loadHrs();
-  }, []);
+    loadHrs()
+  }, [])
 
   const filtered = useMemo(() => {
-    const s = searchTerm.toLowerCase();
-    return hrs.filter(
-      (h) => h.name.toLowerCase().includes(s) || h.email.toLowerCase().includes(s)
-    );
-  }, [hrs, searchTerm]);
+    const s = searchTerm.toLowerCase()
+    return hrs.filter((h) => h.name.toLowerCase().includes(s) || h.email.toLowerCase().includes(s))
+  }, [hrs, searchTerm])
 
-  const totalMentors = hrs.reduce((sum, h) => sum + h.mentorCount, 0);
-  const totalInterns = hrs.reduce((sum, h) => sum + h.internCount, 0);
+  const totalMentors = hrs.reduce((sum, h) => sum + h.mentorCount, 0)
+  const totalInterns = hrs.reduce((sum, h) => sum + h.internCount, 0)
 
   const handleOpenAdd = () => {
-    setForm(emptyForm);
-    setFormOpen(true);
-  };
+    setForm(emptyForm)
+    setFormOpen(true)
+  }
 
   const handleOpenEdit = (hr: Hr) => {
-    setForm({ id: hr.id, name: hr.name, email: hr.email, password: "" });
-    setFormOpen(true);
-  };
+    setForm({ id: hr.id, name: hr.name, email: hr.email, password: '' })
+    setFormOpen(true)
+  }
 
   const handleSave = () => {
     if (!form.name.trim() || !form.email.trim()) {
-      alert("Please enter name and email.");
-      return;
+      alert('Please enter name and email.')
+      return
     }
 
     const payload: hrApi.HrPayload = {
       name: form.name.trim(),
       email: form.email.trim(),
-    };
-    if (form.password.trim()) payload.password = form.password;
+    }
+    if (form.password.trim()) payload.password = form.password
 
-    const request =
-      form.id !== null ? hrApi.updateHr(form.id, payload) : hrApi.createHr(payload);
+    const request = form.id !== null ? hrApi.updateHr(form.id, payload) : hrApi.createHr(payload)
 
     request
       .then(() => {
         setToast({
-          message: form.id !== null ? "HR updated." : "HR created.",
-          severity: "success",
-        });
-        setFormOpen(false);
-        return loadHrs();
+          message: form.id !== null ? 'HR updated.' : 'HR created.',
+          severity: 'success',
+        })
+        setFormOpen(false)
+        return loadHrs()
       })
       .catch(() =>
         setToast({
-          message: form.id !== null ? "Failed to update HR." : "Failed to create HR.",
-          severity: "error",
-        })
-      );
-  };
+          message: form.id !== null ? 'Failed to update HR.' : 'Failed to create HR.',
+          severity: 'error',
+        }),
+      )
+  }
 
   const handleDelete = (hr: Hr) => {
-    if (!window.confirm(`Delete HR "${hr.name}"?`)) return;
+    if (!window.confirm(`Delete HR "${hr.name}"?`)) return
     hrApi
       .deleteHr(hr.id)
       .then(() => {
-        setHrs((prev) => prev.filter((h) => h.id !== hr.id));
-        setToast({ message: "HR deleted.", severity: "success" });
+        setHrs((prev) => prev.filter((h) => h.id !== hr.id))
+        setToast({ message: 'HR deleted.', severity: 'success' })
       })
-      .catch(() => setToast({ message: "Failed to delete HR.", severity: "error" }));
-  };
+      .catch(() => setToast({ message: 'Failed to delete HR.', severity: 'error' }))
+  }
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "#f5f7fb", minHeight: "100vh" }}>
+    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: '#f5f7fb', minHeight: '100vh' }}>
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: { xs: "flex-start", md: "center" },
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: { xs: 'flex-start', md: 'center' },
           gap: 2,
-          flexWrap: "wrap",
+          flexWrap: 'wrap',
           mb: 3,
         }}
       >
@@ -134,7 +133,7 @@ function HrManagement() {
           <Typography variant="h4" sx={{ fontWeight: 800 }}>
             HR Management
           </Typography>
-          <Typography sx={{ color: "text.secondary", mt: 0.5 }}>
+          <Typography sx={{ color: 'text.secondary', mt: 0.5 }}>
             Manage HR users and the mentors and interns assigned to them.
           </Typography>
         </Box>
@@ -143,7 +142,7 @@ function HrManagement() {
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleOpenAdd}
-          sx={{ px: 3, py: 1.3, borderRadius: 2, textTransform: "none", fontWeight: 700 }}
+          sx={{ px: 3, py: 1.3, borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
         >
           Add HR
         </Button>
@@ -152,10 +151,10 @@ function HrManagement() {
       <Paper elevation={2} sx={{ borderRadius: 4, p: 4, mb: 3 }}>
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
             gap: 2,
-            textAlign: "center",
+            textAlign: 'center',
           }}
         >
           <Box>
@@ -188,10 +187,10 @@ function HrManagement() {
         />
       </Paper>
 
-      <Paper elevation={2} sx={{ borderRadius: 4, overflow: "hidden" }}>
+      <Paper elevation={2} sx={{ borderRadius: 4, overflow: 'hidden' }}>
         <TableContainer>
           <Table>
-            <TableHead sx={{ bgcolor: "#f8fafc" }}>
+            <TableHead sx={{ bgcolor: '#f8fafc' }}>
               <TableRow>
                 <TableCell sx={{ fontWeight: 700 }}>Name</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Email</TableCell>
@@ -242,7 +241,7 @@ function HrManagement() {
 
       <Dialog open={formOpen} onClose={() => setFormOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle sx={{ fontWeight: 700 }}>
-          {form.id !== null ? "Edit HR" : "Add HR"}
+          {form.id !== null ? 'Edit HR' : 'Add HR'}
         </DialogTitle>
 
         <DialogContent dividers>
@@ -269,8 +268,8 @@ function HrManagement() {
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             helperText={
               form.id !== null
-                ? "Leave blank to keep the current password."
-                : "Leave blank to use the default password."
+                ? 'Leave blank to keep the current password.'
+                : 'Leave blank to use the default password.'
             }
           />
         </DialogContent>
@@ -280,7 +279,7 @@ function HrManagement() {
             Cancel
           </Button>
           <Button variant="contained" onClick={handleSave}>
-            {form.id !== null ? "Update HR" : "Add HR"}
+            {form.id !== null ? 'Update HR' : 'Add HR'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -290,8 +289,8 @@ function HrManagement() {
         hr={assignHr}
         handleClose={() => setAssignHr(null)}
         onSaved={() => {
-          setToast({ message: "Assignments saved.", severity: "success" });
-          loadHrs();
+          setToast({ message: 'Assignments saved.', severity: 'success' })
+          loadHrs()
         }}
       />
 
@@ -299,7 +298,7 @@ function HrManagement() {
         open={!!toast}
         autoHideDuration={3000}
         onClose={() => setToast(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
         {toast ? (
           <Alert severity={toast.severity} onClose={() => setToast(null)}>
@@ -308,7 +307,7 @@ function HrManagement() {
         ) : undefined}
       </Snackbar>
     </Box>
-  );
+  )
 }
 
-export default HrManagement;
+export default HrManagement

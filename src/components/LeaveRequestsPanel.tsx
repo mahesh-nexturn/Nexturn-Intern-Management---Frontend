@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react'
 
 import {
   Box,
@@ -12,46 +12,46 @@ import {
   TableHead,
   TableRow,
   Typography,
-} from "@mui/material";
+} from '@mui/material'
 
-import * as leaveApi from "../services/leaveApi";
+import * as leaveApi from '../services/leaveApi'
 
 type Props = {
-  isApprover: boolean;
-  internName?: string;
-  refreshKey: number;
-  onChanged?: () => void;
-  onError: (message: string) => void;
-};
+  isApprover: boolean
+  internName?: string
+  refreshKey: number
+  onChanged?: () => void
+  onError: (message: string) => void
+}
 
-const statusColor = { Pending: "warning", Approved: "success", Rejected: "error" } as const;
+const statusColor = { Pending: 'warning', Approved: 'success', Rejected: 'error' } as const
 
 function LeaveRequestsPanel({ isApprover, internName, refreshKey, onChanged, onError }: Props) {
-  const [allLeaves, setLeaves] = useState<leaveApi.LeaveDto[]>([]);
-  const leaves = internName ? allLeaves.filter((l) => l.internName === internName) : allLeaves;
+  const [allLeaves, setLeaves] = useState<leaveApi.LeaveDto[]>([])
+  const leaves = internName ? allLeaves.filter((l) => l.internName === internName) : allLeaves
 
   useEffect(() => {
     leaveApi
       .listLeaves()
       .then(setLeaves)
-      .catch(() => onError("Failed to load leave requests."));
+      .catch(() => onError('Failed to load leave requests.'))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshKey]);
+  }, [refreshKey])
 
   const decide = async (id: number, approve: boolean) => {
     try {
-      const updated = approve ? await leaveApi.approveLeave(id) : await leaveApi.rejectLeave(id);
-      setLeaves((prev) => prev.map((l) => (l.id === id ? updated : l)));
-      onChanged?.();
+      const updated = approve ? await leaveApi.approveLeave(id) : await leaveApi.rejectLeave(id)
+      setLeaves((prev) => prev.map((l) => (l.id === id ? updated : l)))
+      onChanged?.()
     } catch {
-      onError("Failed to update leave request.");
+      onError('Failed to update leave request.')
     }
-  };
+  }
 
   return (
     <Box sx={{ mt: 4 }}>
       <Typography variant="h6" sx={{ mb: 1 }}>
-        {isApprover ? "Leave Requests" : "My Leave Requests"}
+        {isApprover ? 'Leave Requests' : 'My Leave Requests'}
       </Typography>
 
       <TableContainer component={Paper}>
@@ -84,19 +84,29 @@ function LeaveRequestsPanel({ isApprover, internName, refreshKey, onChanged, onE
                   <TableCell>{leave.fromDate}</TableCell>
                   <TableCell>{leave.toDate}</TableCell>
                   <TableCell>{leave.days}</TableCell>
-                  <TableCell>{leave.reason || "-"}</TableCell>
-                  <TableCell>{leave.hrName || "-"}</TableCell>
+                  <TableCell>{leave.reason || '-'}</TableCell>
+                  <TableCell>{leave.hrName || '-'}</TableCell>
                   <TableCell>
                     <Chip label={leave.status} color={statusColor[leave.status]} size="small" />
                   </TableCell>
                   {isApprover && (
                     <TableCell>
-                      {leave.status === "Pending" && (
-                        <Box sx={{ display: "flex", gap: 1 }}>
-                          <Button size="small" variant="contained" color="success" onClick={() => decide(leave.id, true)}>
+                      {leave.status === 'Pending' && (
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="success"
+                            onClick={() => decide(leave.id, true)}
+                          >
                             Approve
                           </Button>
-                          <Button size="small" variant="outlined" color="error" onClick={() => decide(leave.id, false)}>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="error"
+                            onClick={() => decide(leave.id, false)}
+                          >
                             Reject
                           </Button>
                         </Box>
@@ -110,7 +120,7 @@ function LeaveRequestsPanel({ isApprover, internName, refreshKey, onChanged, onE
         </Table>
       </TableContainer>
     </Box>
-  );
+  )
 }
 
-export default LeaveRequestsPanel;
+export default LeaveRequestsPanel

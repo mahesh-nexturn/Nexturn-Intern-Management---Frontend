@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from 'react'
 
 import {
   Button,
@@ -8,16 +8,16 @@ import {
   DialogTitle,
   MenuItem,
   TextField,
-} from "@mui/material";
+} from '@mui/material'
 
-import type { Notification } from "../types/Notification";
+import type { Notification } from '../types/Notification'
 
 type AddNotificationDialogProps = {
-  open: boolean;
-  handleClose: () => void;
-  addNotification: (notification: Notification) => void;
-  selectedNotification: Notification;
-};
+  open: boolean
+  handleClose: () => void
+  addNotification: (notification: Notification) => void
+  selectedNotification: Notification
+}
 
 function AddNotificationDialog({
   open,
@@ -25,15 +25,17 @@ function AddNotificationDialog({
   addNotification,
   selectedNotification,
 }: AddNotificationDialogProps) {
-  const [title, setTitle] = useState("");
-  const [message, setMessage] = useState("");
-  const [recipient, setRecipient] = useState<Notification["recipient"]>("All");
+  const [title, setTitle] = useState('')
+  const [message, setMessage] = useState('')
+  const [recipient, setRecipient] = useState<Notification['recipient']>('All')
 
-  useEffect(() => {
-    setTitle(selectedNotification.title || "");
-    setMessage(selectedNotification.message || "");
-    setRecipient(selectedNotification.recipient || "All");
-  }, [selectedNotification]);
+  const [prevSelected, setPrevSelected] = useState<Notification | null>(null)
+  if (prevSelected !== selectedNotification) {
+    setPrevSelected(selectedNotification)
+    setTitle(selectedNotification.title || '')
+    setMessage(selectedNotification.message || '')
+    setRecipient(selectedNotification.recipient || 'All')
+  }
 
   const handleSave = () => {
     addNotification({
@@ -45,8 +47,8 @@ function AddNotificationDialog({
       createdByUserId: selectedNotification.createdByUserId ?? null,
       date: selectedNotification.date,
       status: selectedNotification.status,
-    });
-  };
+    })
+  }
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
@@ -77,7 +79,7 @@ function AddNotificationDialog({
           margin="dense"
           label="Recipient"
           value={recipient}
-          onChange={(e) => setRecipient(e.target.value as Notification["recipient"])}
+          onChange={(e) => setRecipient(e.target.value as Notification['recipient'])}
         >
           <MenuItem value="All">All</MenuItem>
           <MenuItem value="HR">HR</MenuItem>
@@ -101,7 +103,13 @@ function AddNotificationDialog({
           disabled
         />
 
-        <TextField fullWidth margin="dense" label="Status" value={selectedNotification.status} disabled />
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Status"
+          value={selectedNotification.status}
+          disabled
+        />
       </DialogContent>
 
       <DialogActions>
@@ -111,7 +119,7 @@ function AddNotificationDialog({
         </Button>
       </DialogActions>
     </Dialog>
-  );
+  )
 }
 
-export default AddNotificationDialog;
+export default AddNotificationDialog

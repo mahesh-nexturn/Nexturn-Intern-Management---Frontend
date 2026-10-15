@@ -27,12 +27,14 @@ src/
 ## 2. Confirmed Errors (reproduced via `tsc -b` and `eslint`)
 
 ### 🔴 Build-breaking error (fixed)
+
 - **`src/pages/Tasks.tsx`** imported `../components/taskchart` but the file on disk
   is `TaskChart.tsx`. Works on Windows (case-insensitive FS) but **fails the
   TypeScript build** (`TS1261`) and will fail on Linux/macOS/CI/most deploy
   targets (case-sensitive FS). **Fixed** during this analysis.
 
 ### 🟠 Lint errors – repeated anti-pattern (12 occurrences)
+
 `react-hooks/set-state-in-effect` fires in every `Add*Dialog.tsx` component
 (`AddAnnouncementDialog`, `AddAttendanceDialog`, `AddCertificateDialog`,
 `AddDocumentDialog`, `AddEvaluationDialog`, `AddInternDialog`,
@@ -45,6 +47,7 @@ remount, or `useMemo`-derived defaults passed to a controlled `TextField
 defaultValue`) would remove all 12 errors at once.
 
 ### 🟡 Lint warning
+
 `AuthContext.tsx` exports both a component (`AuthProvider`) and a hook
 (`useAuth`) from the same file, breaking Vite Fast Refresh
 (`react-refresh/only-export-components`).
@@ -63,7 +66,7 @@ defaultValue`) would remove all 12 errors at once.
   confirmed by search. This means no consistent typography/color/spacing
   scale and no CSS reset; every page reinvents spacing/colors ad hoc.
 - Net effect: two orphaned CSS files exist for a project that actually has
-  *no* enforced visual system, which will cause inconsistent UI as the app
+  _no_ enforced visual system, which will cause inconsistent UI as the app
   grows and confuse new contributors who edit `App.css` expecting it to work.
 
 ## 4. Core Architecture Problems
@@ -81,10 +84,10 @@ defaultValue`) would remove all 12 errors at once.
      `localStorage` directly)
    - `components/ProtectedRoute.tsx` (reads `localStorage.getItem("role")`
      directly, ignoring `AuthContext` entirely)
-   `Login.tsx` calls `authService.loginUser` directly and never calls
-   `AuthContext`'s `login()`, so `AuthContext.user` is never populated after
-   login — the context exists but is effectively unused/dead for real
-   navigation flow.
+     `Login.tsx` calls `authService.loginUser` directly and never calls
+     `AuthContext`'s `login()`, so `AuthContext.user` is never populated after
+     login — the context exists but is effectively unused/dead for real
+     navigation flow.
 3. **No API/data layer.** All data is mock/in-memory `useState` in `App.tsx`;
    there's no `services/api.ts`, no fetch/axios layer, no loading/error
    states — this will need a real rewrite once a backend exists.
@@ -153,6 +156,7 @@ src/
 ```
 
 ### Key changes this enables
+
 - **Single auth source of truth**: `ProtectedRoute` and `Login` both go
   through `AuthContext`; delete duplicate `localStorage` reads.
 - **State colocated with feature**, not global `App.tsx`. Introduce
@@ -167,6 +171,7 @@ src/
   600+ line page files into feature subfolders.
 
 ## 6. Suggested Priority Order
+
 1. Fix casing bug (done) and remove dead `App.css`/`index.css`.
 2. Consolidate auth into `AuthContext` only; delete direct `localStorage`
    reads in `ProtectedRoute`/`Login`.

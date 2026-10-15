@@ -1,22 +1,13 @@
-import {
-  Box,
-  Paper,
-  Typography,
-} from "@mui/material";
+import { Box, Paper, Typography } from '@mui/material'
 
 type CertificateChartProps = {
-  total: number;
-  active: number;
-  expired: number;
-  issuedThisMonth: number;
-};
+  total: number
+  active: number
+  expired: number
+  issuedThisMonth: number
+}
 
-function CertificateChart({
-  total,
-  active,
-  expired,
-  issuedThisMonth,
-}: CertificateChartProps) {
+function CertificateChart({ total, active, expired, issuedThisMonth }: CertificateChartProps) {
   return (
     <Paper
       sx={{
@@ -27,63 +18,44 @@ function CertificateChart({
     >
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-around",
-          flexWrap: "wrap",
+          display: 'flex',
+          justifyContent: 'space-around',
+          flexWrap: 'wrap',
           gap: 3,
         }}
       >
-        <Box sx={{ textAlign: "center" }}>
-          <Typography variant="h4">
-            {total}
-          </Typography>
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h4">{total}</Typography>
 
-          <Typography>
-            Total Certificates
-          </Typography>
+          <Typography>Total Certificates</Typography>
         </Box>
 
-        <Box sx={{ textAlign: "center" }}>
-          <Typography
-            variant="h4"
-            color="success.main"
-          >
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h4" color="success.main">
             {active}
           </Typography>
 
-          <Typography>
-            Active
-          </Typography>
+          <Typography>Active</Typography>
         </Box>
 
-        <Box sx={{ textAlign: "center" }}>
-          <Typography
-            variant="h4"
-            color="error.main"
-          >
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h4" color="error.main">
             {expired}
           </Typography>
 
-          <Typography>
-            Expired
-          </Typography>
+          <Typography>Expired</Typography>
         </Box>
 
-        <Box sx={{ textAlign: "center" }}>
-          <Typography
-            variant="h4"
-            color="primary.main"
-          >
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h4" color="primary.main">
             {issuedThisMonth}
           </Typography>
 
-          <Typography>
-            Issued This Month
-          </Typography>
+          <Typography>Issued This Month</Typography>
         </Box>
       </Box>
     </Paper>
-  );
+  )
 }
 
-export default CertificateChart;
+export default CertificateChart

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from 'react'
 
 import {
   Alert,
@@ -15,217 +15,178 @@ import {
   TableRow,
   TextField,
   Typography,
-} from "@mui/material";
+} from '@mui/material'
 
-import DeleteIcon from "@mui/icons-material/Delete";
+import DeleteIcon from '@mui/icons-material/Delete'
 
-import { useAuth, type UserRole } from "../context/AuthContext";
-import * as feedbackApi from "../services/feedbackApi";
+import { useAuth } from '../context/useAuth'
+import type { UserRole } from '../context/authState'
+import * as feedbackApi from '../services/feedbackApi'
 
 type ToastState = {
-  message: string;
-  severity: "success" | "error";
-} | null;
+  message: string
+  severity: 'success' | 'error'
+} | null
 
 type FeedbackFormState = {
-  subject: string;
-  message: string;
-};
+  subject: string
+  message: string
+}
 
 function formatDateTime(value: string) {
-  return new Date(value).toLocaleString();
+  return new Date(value).toLocaleString()
 }
 
 function Feedback() {
-  const { user } = useAuth();
+  const { user } = useAuth()
 
-  const role = (user?.role ??
-    (sessionStorage.getItem("role") as UserRole | null));
-  const isHr = role === "HR";
+  const role = user?.role ?? (sessionStorage.getItem('role') as UserRole | null)
+  const isHr = role === 'HR'
 
-  const [feedback, setFeedback] =
-    useState<feedbackApi.FeedbackDto[]>(
-      []
-    );
+  const [feedback, setFeedback] = useState<feedbackApi.FeedbackDto[]>([])
 
-  const [form, setForm] =
-    useState<FeedbackFormState>({
-      subject: "",
-      message: "",
-    });
+  const [form, setForm] = useState<FeedbackFormState>({
+    subject: '',
+    message: '',
+  })
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true)
 
-  const [submitting, setSubmitting] =
-    useState(false);
+  const [submitting, setSubmitting] = useState(false)
 
-  const [toast, setToast] =
-    useState<ToastState>(null);
+  const [toast, setToast] = useState<ToastState>(null)
 
   useEffect(() => {
-    let cancelled = false;
+    let cancelled = false
 
     const loadFeedback = async () => {
-      setLoading(true);
+      setLoading(true)
       try {
-        const list = isHr
-          ? await feedbackApi.listAllFeedback()
-          : await feedbackApi.listMyFeedback();
+        const list = isHr ? await feedbackApi.listAllFeedback() : await feedbackApi.listMyFeedback()
 
         if (!cancelled) {
-          setFeedback(list);
+          setFeedback(list)
         }
       } catch {
         if (!cancelled) {
           setToast({
-            message:
-              "Failed to load feedback.",
-            severity: "error",
-          });
+            message: 'Failed to load feedback.',
+            severity: 'error',
+          })
         }
       } finally {
         if (!cancelled) {
-          setLoading(false);
+          setLoading(false)
         }
       }
-    };
+    }
 
-    void loadFeedback();
+    void loadFeedback()
 
     return () => {
-      cancelled = true;
-    };
-  }, [isHr]);
+      cancelled = true
+    }
+  }, [isHr])
 
-  const totalFeedback = feedback.length;
+  const totalFeedback = feedback.length
 
+  const [now] = useState(() => Date.now())
   const feedbackThisWeek = useMemo(() => {
-    const now = Date.now();
-    const sevenDaysAgo =
-      now - 7 * 24 * 60 * 60 * 1000;
+    const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000
 
     return feedback.filter((item) => {
-      const createdAt =
-        new Date(item.createdAt).getTime();
-      return createdAt >= sevenDaysAgo;
-    }).length;
-  }, [feedback]);
+      const createdAt = new Date(item.createdAt).getTime()
+      return createdAt >= sevenDaysAgo
+    }).length
+  }, [feedback, now])
 
   const handleSubmit = async () => {
     if (!form.message.trim()) {
       setToast({
-        message:
-          "Message is required.",
-        severity: "error",
-      });
-      return;
+        message: 'Message is required.',
+        severity: 'error',
+      })
+      return
     }
 
-    setSubmitting(true);
+    setSubmitting(true)
     try {
-      const created =
-        await feedbackApi.createFeedback({
-          subject:
-            form.subject.trim() ||
-            undefined,
-          message:
-            form.message.trim(),
-        });
+      const created = await feedbackApi.createFeedback({
+        subject: form.subject.trim() || undefined,
+        message: form.message.trim(),
+      })
 
-      setFeedback((current) => [
-        created,
-        ...current,
-      ]);
+      setFeedback((current) => [created, ...current])
       setForm({
-        subject: "",
-        message: "",
-      });
+        subject: '',
+        message: '',
+      })
       setToast({
-        message:
-          "Feedback submitted.",
-        severity: "success",
-      });
+        message: 'Feedback submitted.',
+        severity: 'success',
+      })
     } catch {
       setToast({
-        message:
-          "Failed to submit feedback.",
-        severity: "error",
-      });
+        message: 'Failed to submit feedback.',
+        severity: 'error',
+      })
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
-  const handleDelete = async (
-    id: number
-  ) => {
-    const ok = window.confirm(
-      "Delete this feedback entry?"
-    );
+  const handleDelete = async (id: number) => {
+    const ok = window.confirm('Delete this feedback entry?')
 
-    if (!ok) return;
+    if (!ok) return
 
     try {
-      await feedbackApi.deleteFeedback(id);
-      setFeedback((current) =>
-        current.filter(
-          (item) => item.id !== id
-        )
-      );
+      await feedbackApi.deleteFeedback(id)
+      setFeedback((current) => current.filter((item) => item.id !== id))
       setToast({
-        message:
-          "Feedback deleted.",
-        severity: "success",
-      });
+        message: 'Feedback deleted.',
+        severity: 'success',
+      })
     } catch {
       setToast({
-        message:
-          "Failed to delete feedback.",
-        severity: "error",
-      });
+        message: 'Failed to delete feedback.',
+        severity: 'error',
+      })
     }
-  };
+  }
 
   return (
     <Box
       sx={{
         p: { xs: 2, md: 4 },
-        bgcolor: "#f5f7fb",
-        minHeight: "100vh",
+        bgcolor: '#f5f7fb',
+        minHeight: '100vh',
       }}
     >
       <Box
         sx={{
-          display: "flex",
-          justifyContent:
-            "space-between",
+          display: 'flex',
+          justifyContent: 'space-between',
           alignItems: {
-            xs: "flex-start",
-            md: "center",
+            xs: 'flex-start',
+            md: 'center',
           },
           gap: 2,
-          flexWrap: "wrap",
+          flexWrap: 'wrap',
           mb: 3,
         }}
       >
         <Box>
-          <Typography
-            variant="h4"
-            sx={{ fontWeight: 800 }}
-          >
+          <Typography variant="h4" sx={{ fontWeight: 800 }}>
             Feedback
           </Typography>
           <Typography
             sx={{
-              color:
-                "text.secondary",
+              color: 'text.secondary',
               mt: 0.5,
             }}
           >
-            {isHr
-              ? "Review and manage submitted feedback."
-              : "Share your feedback with the team."}
+            {isHr ? 'Review and manage submitted feedback.' : 'Share your feedback with the team.'}
           </Typography>
         </Box>
       </Box>
@@ -240,51 +201,36 @@ function Feedback() {
       >
         <Box
           sx={{
-            display: "grid",
+            display: 'grid',
             gridTemplateColumns: {
-              xs: "repeat(2, 1fr)",
-              md: "repeat(3, 1fr)",
+              xs: 'repeat(2, 1fr)',
+              md: 'repeat(3, 1fr)',
             },
             gap: 2,
-            textAlign: "center",
+            textAlign: 'center',
           }}
         >
           <Box>
-            <Typography
-              variant="h3"
-              sx={{ fontWeight: 800 }}
-            >
+            <Typography variant="h3" sx={{ fontWeight: 800 }}>
               {totalFeedback}
             </Typography>
             <Typography color="text.secondary">
-              {isHr
-                ? "Total Feedback"
-                : "My Feedback"}
+              {isHr ? 'Total Feedback' : 'My Feedback'}
             </Typography>
           </Box>
 
           <Box>
-            <Typography
-              variant="h3"
-              sx={{ fontWeight: 800 }}
-            >
+            <Typography variant="h3" sx={{ fontWeight: 800 }}>
               {feedbackThisWeek}
             </Typography>
-            <Typography color="text.secondary">
-              Last 7 Days
-            </Typography>
+            <Typography color="text.secondary">Last 7 Days</Typography>
           </Box>
 
           <Box>
-            <Typography
-              variant="h3"
-              sx={{ fontWeight: 800 }}
-            >
-              {loading ? "..." : "Live"}
+            <Typography variant="h3" sx={{ fontWeight: 800 }}>
+              {loading ? '...' : 'Live'}
             </Typography>
-            <Typography color="text.secondary">
-              Data Source
-            </Typography>
+            <Typography color="text.secondary">Data Source</Typography>
           </Box>
         </Box>
       </Paper>
@@ -298,16 +244,13 @@ function Feedback() {
             mb: 3,
           }}
         >
-          <Typography
-            variant="h6"
-            sx={{ fontWeight: 700, mb: 2 }}
-          >
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
             Submit Feedback
           </Typography>
 
           <Box
             sx={{
-              display: "grid",
+              display: 'grid',
               gap: 2,
             }}
           >
@@ -317,8 +260,7 @@ function Feedback() {
               onChange={(e) =>
                 setForm({
                   ...form,
-                  subject:
-                    e.target.value,
+                  subject: e.target.value,
                 })
               }
               placeholder="Optional subject"
@@ -332,8 +274,7 @@ function Feedback() {
               onChange={(e) =>
                 setForm({
                   ...form,
-                  message:
-                    e.target.value,
+                  message: e.target.value,
                 })
               }
               required
@@ -341,26 +282,22 @@ function Feedback() {
 
             <Box
               sx={{
-                display: "flex",
-                justifyContent:
-                  "flex-end",
+                display: 'flex',
+                justifyContent: 'flex-end',
               }}
             >
               <Button
                 variant="contained"
                 onClick={() => {
-                  void handleSubmit();
+                  void handleSubmit()
                 }}
                 disabled={submitting}
                 sx={{
-                  textTransform:
-                    "none",
+                  textTransform: 'none',
                   fontWeight: 700,
                 }}
               >
-                {submitting
-                  ? "Submitting..."
-                  : "Submit Feedback"}
+                {submitting ? 'Submitting...' : 'Submit Feedback'}
               </Button>
             </Box>
           </Box>
@@ -371,14 +308,12 @@ function Feedback() {
         elevation={2}
         sx={{
           borderRadius: 4,
-          overflow: "hidden",
+          overflow: 'hidden',
         }}
       >
         <TableContainer>
           <Table>
-            <TableHead
-              sx={{ bgcolor: "#f8fafc" }}
-            >
+            <TableHead sx={{ bgcolor: '#f8fafc' }}>
               <TableRow>
                 {isHr && (
                   <TableCell
@@ -389,21 +324,9 @@ function Feedback() {
                     Submitted By
                   </TableCell>
                 )}
-                <TableCell
-                  sx={{ fontWeight: 700 }}
-                >
-                  Subject
-                </TableCell>
-                <TableCell
-                  sx={{ fontWeight: 700 }}
-                >
-                  Message
-                </TableCell>
-                <TableCell
-                  sx={{ fontWeight: 700 }}
-                >
-                  Created At
-                </TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Subject</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Message</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Created At</TableCell>
                 {isHr && (
                   <TableCell
                     sx={{
@@ -420,61 +343,33 @@ function Feedback() {
             <TableBody>
               {feedback.length === 0 ? (
                 <TableRow>
-                  <TableCell
-                    align="center"
-                    colSpan={
-                      isHr ? 5 : 3
-                    }
-                    sx={{ py: 5 }}
-                  >
+                  <TableCell align="center" colSpan={isHr ? 5 : 3} sx={{ py: 5 }}>
                     <Typography color="text.secondary">
-                      {loading
-                        ? "Loading feedback..."
-                        : "No feedback found."}
+                      {loading ? 'Loading feedback...' : 'No feedback found.'}
                     </Typography>
                   </TableCell>
                 </TableRow>
               ) : (
                 feedback.map((item) => (
-                  <TableRow
-                    key={item.id}
-                    hover
-                  >
-                    {isHr && (
-                      <TableCell>
-                        {
-                          item.fromUserName
-                        }
-                      </TableCell>
-                    )}
-                    <TableCell>
-                      {item.subject?.trim() ||
-                        "General"}
-                    </TableCell>
+                  <TableRow key={item.id} hover>
+                    {isHr && <TableCell>{item.fromUserName}</TableCell>}
+                    <TableCell>{item.subject?.trim() || 'General'}</TableCell>
                     <TableCell
                       sx={{
                         maxWidth: 420,
-                        whiteSpace:
-                          "pre-wrap",
-                        wordBreak:
-                          "break-word",
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
                       }}
                     >
                       {item.message}
                     </TableCell>
-                    <TableCell>
-                      {formatDateTime(
-                        item.createdAt
-                      )}
-                    </TableCell>
+                    <TableCell>{formatDateTime(item.createdAt)}</TableCell>
                     {isHr && (
                       <TableCell align="center">
                         <IconButton
                           color="error"
                           onClick={() => {
-                            void handleDelete(
-                              item.id
-                            );
+                            void handleDelete(item.id)
                           }}
                         >
                           <DeleteIcon />
@@ -494,21 +389,18 @@ function Feedback() {
         autoHideDuration={3000}
         onClose={() => setToast(null)}
         anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
+          vertical: 'bottom',
+          horizontal: 'right',
         }}
       >
         {toast ? (
-          <Alert
-            severity={toast.severity}
-            onClose={() => setToast(null)}
-          >
+          <Alert severity={toast.severity} onClose={() => setToast(null)}>
             {toast.message}
           </Alert>
         ) : undefined}
       </Snackbar>
     </Box>
-  );
+  )
 }
 
-export default Feedback;
+export default Feedback

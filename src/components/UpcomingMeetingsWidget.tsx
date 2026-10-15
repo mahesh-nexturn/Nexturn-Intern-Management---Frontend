@@ -1,25 +1,16 @@
-import {
-  Card,
-  CardContent,
-  Typography,
-  List,
-  ListItem,
-  Divider,
-} from "@mui/material";
+import { Card, CardContent, Typography, List, ListItem, Divider } from '@mui/material'
 
 type Meeting = {
-  title: string;
-  date: string;
-  time: string;
-};
+  title: string
+  date: string
+  time: string
+}
 
 type Props = {
-  meetings: Meeting[];
-};
+  meetings: Meeting[]
+}
 
-function UpcomingMeetingsWidget({
-  meetings,
-}: Props) {
+function UpcomingMeetingsWidget({ meetings }: Props) {
   return (
     <Card sx={{ minWidth: 350 }}>
       <CardContent>
@@ -32,37 +23,31 @@ function UpcomingMeetingsWidget({
             <div key={index}>
               <ListItem
                 sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "flex-start",
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
                 }}
               >
                 <Typography
                   sx={{
-                    fontWeight: "bold",
+                    fontWeight: 'bold',
                   }}
                 >
                   {meeting.title}
                 </Typography>
 
-                <Typography variant="body2">
-                  {meeting.date}
-                </Typography>
+                <Typography variant="body2">{meeting.date}</Typography>
 
-                <Typography variant="body2">
-                  {meeting.time}
-                </Typography>
+                <Typography variant="body2">{meeting.time}</Typography>
               </ListItem>
 
-              {index !== meetings.length - 1 && (
-                <Divider />
-              )}
+              {index !== meetings.length - 1 && <Divider />}
             </div>
           ))}
         </List>
       </CardContent>
     </Card>
-  );
+  )
 }
 
-export default UpcomingMeetingsWidget;
+export default UpcomingMeetingsWidget

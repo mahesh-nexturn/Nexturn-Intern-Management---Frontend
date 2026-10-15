@@ -1,22 +1,13 @@
-import {
-  Box,
-  Paper,
-  Typography,
-} from "@mui/material";
+import { Box, Paper, Typography } from '@mui/material'
 
 type AnnouncementChartProps = {
-  total: number;
-  high: number;
-  medium: number;
-  low: number;
-};
+  total: number
+  high: number
+  medium: number
+  low: number
+}
 
-function AnnouncementChart({
-  total,
-  high,
-  medium,
-  low,
-}: AnnouncementChartProps) {
+function AnnouncementChart({ total, high, medium, low }: AnnouncementChartProps) {
   return (
     <Paper
       sx={{
@@ -27,63 +18,44 @@ function AnnouncementChart({
     >
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-around",
-          flexWrap: "wrap",
+          display: 'flex',
+          justifyContent: 'space-around',
+          flexWrap: 'wrap',
           gap: 3,
         }}
       >
-        <Box sx={{ textAlign: "center" }}>
-          <Typography variant="h4">
-            {total}
-          </Typography>
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h4">{total}</Typography>
 
-          <Typography>
-            Total Announcements
-          </Typography>
+          <Typography>Total Announcements</Typography>
         </Box>
 
-        <Box sx={{ textAlign: "center" }}>
-          <Typography
-            variant="h4"
-            color="error.main"
-          >
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h4" color="error.main">
             {high}
           </Typography>
 
-          <Typography>
-            High Priority
-          </Typography>
+          <Typography>High Priority</Typography>
         </Box>
 
-        <Box sx={{ textAlign: "center" }}>
-          <Typography
-            variant="h4"
-            color="warning.main"
-          >
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h4" color="warning.main">
             {medium}
           </Typography>
 
-          <Typography>
-            Medium Priority
-          </Typography>
+          <Typography>Medium Priority</Typography>
         </Box>
 
-        <Box sx={{ textAlign: "center" }}>
-          <Typography
-            variant="h4"
-            color="success.main"
-          >
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h4" color="success.main">
             {low}
           </Typography>
 
-          <Typography>
-            Low Priority
-          </Typography>
+          <Typography>Low Priority</Typography>
         </Box>
       </Box>
     </Paper>
-  );
+  )
 }
 
-export default AnnouncementChart;
+export default AnnouncementChart

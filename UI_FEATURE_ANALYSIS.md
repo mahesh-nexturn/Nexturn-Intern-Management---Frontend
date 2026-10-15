@@ -1,33 +1,34 @@
 # Nexturn Intern Management – UI & Feature Analysis
 
 ## App Overview
+
 **Nexturn Intern Management** is a role-based (HR/Admin, Mentor, Intern) React + MUI
 single-page app for managing an internship program. All data is currently mock/in-memory
 (`useState` in `App.tsx`) — there is no backend/API integration yet.
 
 ## Screens (Routes) & Features
 
-| Route | Screen | Purpose |
-|---|---|---|
-| `/` | **Login** | Auth entry point (hardcoded demo users in `utils/users.ts`) |
-| `/dashboard` | **HR/Admin Dashboard** | Org-wide stats: interns, attendance, meetings, docs, trainings, evaluations, notifications (617 lines) |
-| `/mentor-dashboard` | **Mentor Dashboard** | Mentor's assigned interns, meetings, tasks, evaluations (544 lines) |
-| `/intern-dashboard` | **Intern Dashboard** | Intern's own tasks, meetings, attendance, evaluations (569 lines) |
-| `/interns` | **Interns** | Full CRUD table of interns (largest page, 735 lines) |
-| `/mentors` | **Mentors** | CRUD table of mentors |
-| `/tasks` | **Tasks** | Task assignment/tracking + chart |
-| `/meetings` | **Meetings** | Scheduling + upcoming-meetings widget |
-| `/attendance` | **Attendance** | Calendar grid, filters, legend, chart |
-| `/feedback` | **Feedback** | Feedback form/list |
-| `/documents` | **Documents** | Upload/list + "latest documents" widget + chart |
-| `/training` | **Training** | Training programs + chart |
-| `/evaluations` | **Evaluations** | Intern performance evaluations + chart |
-| `/ppo` | **PPO** (Pre-Placement Offer) | PPO tracking + chart |
-| `/announcements` | **Announcements** | Org announcements + chart |
-| `/certificates` | **Certificates** | Certificate issuance/tracking + chart |
-| `/notifications` | **Notifications** | Notification center + widget/chart |
-| `/reports` | **Reports** | Aggregated reporting + chart |
-| `/settings` | **Settings** | App/user settings |
+| Route               | Screen                        | Purpose                                                                                                |
+| ------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `/`                 | **Login**                     | Auth entry point (hardcoded demo users in `utils/users.ts`)                                            |
+| `/dashboard`        | **HR/Admin Dashboard**        | Org-wide stats: interns, attendance, meetings, docs, trainings, evaluations, notifications (617 lines) |
+| `/mentor-dashboard` | **Mentor Dashboard**          | Mentor's assigned interns, meetings, tasks, evaluations (544 lines)                                    |
+| `/intern-dashboard` | **Intern Dashboard**          | Intern's own tasks, meetings, attendance, evaluations (569 lines)                                      |
+| `/interns`          | **Interns**                   | Full CRUD table of interns (largest page, 735 lines)                                                   |
+| `/mentors`          | **Mentors**                   | CRUD table of mentors                                                                                  |
+| `/tasks`            | **Tasks**                     | Task assignment/tracking + chart                                                                       |
+| `/meetings`         | **Meetings**                  | Scheduling + upcoming-meetings widget                                                                  |
+| `/attendance`       | **Attendance**                | Calendar grid, filters, legend, chart                                                                  |
+| `/feedback`         | **Feedback**                  | Feedback form/list                                                                                     |
+| `/documents`        | **Documents**                 | Upload/list + "latest documents" widget + chart                                                        |
+| `/training`         | **Training**                  | Training programs + chart                                                                              |
+| `/evaluations`      | **Evaluations**               | Intern performance evaluations + chart                                                                 |
+| `/ppo`              | **PPO** (Pre-Placement Offer) | PPO tracking + chart                                                                                   |
+| `/announcements`    | **Announcements**             | Org announcements + chart                                                                              |
+| `/certificates`     | **Certificates**              | Certificate issuance/tracking + chart                                                                  |
+| `/notifications`    | **Notifications**             | Notification center + widget/chart                                                                     |
+| `/reports`          | **Reports**                   | Aggregated reporting + chart                                                                           |
+| `/settings`         | **Settings**                  | App/user settings                                                                                      |
 
 ## Sidebar Navigation (Role-Based Menu)
 
@@ -38,8 +39,10 @@ single-page app for managing an internship program. All data is currently mock/i
 ## Detailed Screen-by-Screen Breakdown
 
 ### 1. Login (`/`)
+
 **Features:** Email + password text fields, a Role dropdown (HR / Mentor / Intern), "Sign In" button, and a visible "Demo Credentials" panel listing all seeded accounts.
 **Operations:**
+
 - Enter email, password, select role → click **Sign In**.
 - `loginUser()` checks credentials/role against the hardcoded list in `utils/users.ts`.
 - On success, redirects by role: HR → `/dashboard`, Mentor → `/mentor-dashboard`, Intern → `/intern-dashboard`.
@@ -47,21 +50,26 @@ single-page app for managing an internship program. All data is currently mock/i
 - No "forgot password", no real session/token — role/name are written to `localStorage` for later screens to read.
 
 ### 2. HR/Admin Dashboard (`/dashboard`)
+
 **Features:** Org-wide stat cards and charts aggregating interns, attendance, meetings, documents, trainings, evaluations, and notifications (read-only, no add/edit here).
 **Operations:** View-only overview; navigation to detail screens happens via the sidebar.
 
 ### 3. Mentor Dashboard (`/mentor-dashboard`)
+
 **Features:** Scoped view of the mentor's own interns, their tasks, meetings, and evaluations.
 **Operations:** View-only aggregated widgets/charts; data is pre-filtered to the logged-in mentor.
 
 ### 4. Intern Dashboard (`/intern-dashboard`)
+
 **Features:** Scoped view of the intern's own tasks, meetings, attendance, and evaluations.
 **Operations:** View-only aggregated widgets/charts filtered to the logged-in intern.
 
 ### 5. Interns (`/interns`)
+
 **Features:** Stat row (Total / Active / Inactive / Departments), search box, Department + Status filters, a data table (Name, Email, Department, Mentor, Status), and an Add/Edit dialog.
 **Fields (Add/Edit dialog):** Name, Email, Department, Mentor, Status (Active/Inactive).
 **Operations:**
+
 - **HR only** sees "Add Intern" button and Edit/Delete icons (role-gated via `canManageInterns = isHr`).
 - **Mentor** view auto-filters to interns where `mentor === loggedInUser`.
 - **Intern** view auto-filters to just their own record.
@@ -70,84 +78,107 @@ single-page app for managing an internship program. All data is currently mock/i
 - Validation: Name and Department are required before Save.
 
 ### 6. Mentors (`/mentors`)
+
 **Features:** Stat row (Total / Active / Inactive / Departments), search, Department + Status filters, table (Name, Email, Department, Designation, Status), Add/Edit dialog.
 **Fields:** Name, Email, Department, Designation, Status.
 **Operations:**
+
 - **HR only** can Add/Edit/Delete (`isHr` gate); other roles get a read-only table.
 - Validation requires all 4 text fields filled before saving.
 - Delete confirms via `window.confirm()`.
 
 ### 7. Tasks (`/tasks`)
+
 **Features:** `TaskChart` (Total/Pending/In Progress/Completed), search, Status + Priority filters, table (Title, Assigned To, Mentor, Priority chip, Due Date, Status chip, Progress bar), Add/Edit dialog (`AddTaskDialog`).
 **Fields:** Title, Description, Assigned To, Mentor, Priority (High/Medium/Low), Due Date, Status (Pending/In Progress/Completed), Progress (%).
 **Operations:**
+
 - **HR & Mentor** can manage (add/edit/delete); **Intern** sees only tasks assigned to them, read-only.
 - Mentor view is auto-scoped to `task.mentor === loggedInUser`; Intern view to `task.assignedTo === loggedInUser`.
 - Progress shown as a `LinearProgress` bar + percentage text.
 - Priority/Status rendered as color-coded Chips (red/orange/green, blue/orange/green respectively).
 
 ### 8. Meetings (`/meetings`)
+
 **Features:** `MeetingChart` (Total/Scheduled/Completed/Cancelled), search, Status filter, table (Title, Intern, Mentor, Date, Time, Status chip), Add/Edit dialog.
 **Fields:** Title, Agenda, Mentor, Intern, Date, Time, Status (Scheduled/Completed/Cancelled).
 **Operations:**
+
 - **HR & Mentor** can add/edit/delete; **Intern** view is read-only and scoped to meetings where they're the invitee.
 - Status Chip colors: Completed=green, Scheduled=blue, Cancelled=red.
 
 ### 9. Attendance (`/attendance`)
+
 **Features:** A calendar-style view (`AttendanceCalendar`) rather than a plain table, plus an Add/Edit dialog (`AddAttendanceDialog`).
 **Fields:** Intern, Mentor, Date, Status (Present/Absent/etc.).
 **Operations:**
+
 - Adding a record for an intern+date that already exists **updates** the existing entry instead of duplicating it (dedup by `intern` + `date`).
 - Calendar renders per-intern attendance visually (grid/legend components support this).
 
 ### 10. Feedback (`/feedback`)
+
 **Features:** Currently a placeholder — renders only an `<h1>Feedback Page</h1>`. **Not implemented yet.**
 
 ### 11. Documents (`/documents`)
+
 **Features:** `DocumentChart` (Total/Resumes/Certificates/Reports), search, Type filter (Resume/Certificate/Offer Letter/Report/Other), table (File Name, Type chip, Uploaded By, Upload Date), Add/Edit dialog (`AddDocumentDialog`), and per-row Download/Edit/Delete icons.
 **Operations:**
+
 - All 3 roles can manage their own uploads (`canManageDocuments = isHr || isMentor || isIntern`); HR sees all documents, others see only their own uploads.
 - **Download icon is present but not wired to an actual file** — no real file storage/upload backend yet.
 
 ### 12. Training (`/training`)
+
 **Features:** `TrainingChart` (Total/Not Started/In Progress/Completed), search, Status filter, table (Title, Assigned To, Mentor, Start/End Date, Status chip, Progress bar), Add/Edit dialog.
 **Operations:** HR & Mentor manage; Intern sees only their own assigned trainings, read-only. Progress shown with `LinearProgress`.
 
 ### 13. Evaluations (`/evaluations`)
+
 **Features:** `EvaluationChart` (averages for Technical/Communication/Overall), search by intern, table (Intern, Mentor, Technical/Communication/Problem-Solving/Overall ratings, Feedback text), Add/Edit dialog.
 **Operations:** HR & Mentor manage; Intern view is read-only, scoped to their own evaluations. No 1–5/1–10 scale validation visible in the list page (handled in the Add dialog).
 
 ### 14. PPO – Pre-Placement Offer (`/ppo`)
+
 **Features:** `PPOChart` (Total/Eligible/Not Eligible/Offered), search, Status filter, table (Intern, Mentor, Attendance %, Training %, Technical/Communication/Overall scores, Status chip), Add/Edit dialog.
 **Fields:** Attendance %, Training Completion %, Technical Score, Communication Score, Overall Score, Mentor Recommendation (Yes/No), HR Recommendation (Yes/No), Status (Eligible/Not Eligible/Offered).
 **Operations:** HR & Mentor manage; Intern sees only their own PPO record, read-only.
 
 ### 15. Announcements (`/announcements`)
+
 **Features:** `AnnouncementChart` (Total/High/Medium/Low priority), search, Priority filter, table (Title, Description, Created By, Publish/Expiry Date, Priority chip, Target Audience), Add/Edit dialog.
 **Operations:**
+
 - **HR only** can manage (`canManageAnnouncements = isHr`).
 - Visibility for all roles is filtered by `targetAudience === "All" || targetAudience === role` — i.e., announcements can be targeted to a specific role.
 
 ### 16. Certificates (`/certificates`)
+
 **Features:** `CertificateChart` (Total/Active/Expired/Issued This Month), search, Status filter (Active/Expired), table (Intern, Mentor, Certificate Name, Issued By, Issue/Expiry Date, Status chip), Add/Edit dialog.
 **Operations:**
+
 - **HR only** can manage; Mentor sees only certificates for their interns; Intern sees only their own — all read-only for non-HR.
 - "Issued This Month" stat computed by comparing `issueDate`'s month to the current month.
 
 ### 17. Notifications (`/notifications`)
+
 **Features:** `NotificationChart` (Total/Unread/Read/Today), search, Status filter (Unread/Read), table (Title, Message, Recipient, Created By, Date, Status chip), Add/Edit dialog.
 **Operations:**
+
 - **HR only** can manage; visibility for all roles filtered by `recipient === "All" || recipient === role`.
 - No explicit "mark as read" action wired in the table (status is only set via the Add/Edit dialog).
 
 ### 18. Reports (`/reports`)
+
 **Features:** `ReportChart` (Total/Avg Attendance/Avg Evaluation/PPO Offered), search by intern, PPO-Status filter, read-only table (Intern, Mentor, Attendance %, Completed/Pending Tasks, Training %, Evaluation Score, PPO status chip), and an **"Export Report"** button (HR only).
 **Operations:**
+
 - No create/edit/delete — this is a pure aggregation/reporting screen.
 - **Export button only shows a placeholder `alert()`** ("Export functionality can be integrated with Excel/PDF") — not actually implemented.
 - Mentor/Intern views are auto-scoped to their own data.
 
 ### 19. Settings (`/settings`)
+
 **Features:** Currently a placeholder — renders only an `<h1>Settings Page</h1>`. **Not implemented yet.**
 
 ## Recurring UI/Operation Patterns Across Screens
@@ -196,6 +227,7 @@ single-page app for managing an internship program. All data is currently mock/i
 ## Suggested Direction
 
 This aligns with `ARCHITECTURE_ANALYSIS.md`'s recommended restructure:
+
 - Reorganize into `features/<domain>/` folders with a colocated page, dialog, chart,
   and data hook per domain.
 - Consolidate auth into a single `AuthContext` source of truth.
@@ -212,12 +244,12 @@ them as managers. The exact backend role is stored in localStorage `backendRole`
 (helpers `isAdminUser()` / `isHrUser()` in `authService.ts`, `user.backendRole` in
 `AuthContext`).
 
-| Capability | ADMIN | HR | MENTOR | INTERN |
-|---|---|---|---|---|
+| Capability                                           | ADMIN    | HR                                           | MENTOR       | INTERN       |
+| ---------------------------------------------------- | -------- | -------------------------------------------- | ------------ | ------------ |
 | Admin dashboard (`/dashboard`), all existing modules | all data | own mentors/interns only (scoped by backend) | mentor views | intern views |
-| HR Management (`/hr`, sidebar "HR Management") | yes | no (redirected to `/dashboard`) | no | no |
-| HR column in Mentors / Interns tables | yes | yes | - | - |
-| HR select in Add/Edit Mentor and Intern dialogs | yes | hidden (backend forces own HR) | - | - |
+| HR Management (`/hr`, sidebar "HR Management")       | yes      | no (redirected to `/dashboard`)              | no           | no           |
+| HR column in Mentors / Interns tables                | yes      | yes                                          | -            | -            |
+| HR select in Add/Edit Mentor and Intern dialogs      | yes      | hidden (backend forces own HR)               | -            | -            |
 
 HR Management page (`pages/HrManagement.tsx`): stats (Total HRs, mentors/interns
 assigned), search, table (Name, Email, Mentors, Interns), Add/Edit dialog (password

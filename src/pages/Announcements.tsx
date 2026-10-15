@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from 'react'
 
 import {
   Alert,
@@ -20,125 +20,131 @@ import {
   TableRow,
   TextField,
   Typography,
-} from "@mui/material";
+} from '@mui/material'
 
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from '@mui/icons-material/Edit'
+import DeleteIcon from '@mui/icons-material/Delete'
 
-import AddAnnouncementDialog from "../components/AddAnnouncementDialog";
-import AnnouncementChart from "../components/AnnouncementChart";
-import type { Announcement } from "../types/Announcement";
-import * as announcementApi from "../services/announcementApi";
+import AddAnnouncementDialog from '../components/AddAnnouncementDialog'
+import AnnouncementChart from '../components/AnnouncementChart'
+import type { Announcement } from '../types/Announcement'
+import * as announcementApi from '../services/announcementApi'
 
 type AnnouncementsProps = {
-  announcements: Announcement[];
-  setAnnouncements: React.Dispatch<React.SetStateAction<Announcement[]>>;
-};
+  announcements: Announcement[]
+  setAnnouncements: React.Dispatch<React.SetStateAction<Announcement[]>>
+}
 
-type Role = "HR" | "MENTOR" | "INTERN" | null;
+type Role = 'HR' | 'MENTOR' | 'INTERN' | null
 
 function userLabelForId(userId?: number | null) {
-  const currentUserId = Number(sessionStorage.getItem("userId") || "0");
-  const currentUserName = sessionStorage.getItem("name") || "";
+  const currentUserId = Number(sessionStorage.getItem('userId') || '0')
+  const currentUserName = sessionStorage.getItem('name') || ''
 
   if (userId && userId === currentUserId && currentUserName) {
-    return currentUserName;
+    return currentUserName
   }
 
-  return userId ? `User #${userId}` : "";
+  return userId ? `User #${userId}` : ''
 }
 
 function toUiAnnouncement(dto: announcementApi.AnnouncementDto): Announcement {
   return {
     id: dto.id,
     title: dto.title,
-    description: dto.description ?? "",
+    description: dto.description ?? '',
     createdBy: userLabelForId(dto.createdByUserId),
     createdByUserId: dto.createdByUserId,
-    publishDate: dto.publishDate ?? "",
-    expiryDate: dto.expiryDate ?? "",
-    priority: dto.priority as Announcement["priority"],
-    targetAudience: dto.targetAudience as Announcement["targetAudience"],
-  };
+    publishDate: dto.publishDate ?? '',
+    expiryDate: dto.expiryDate ?? '',
+    priority: dto.priority as Announcement['priority'],
+    targetAudience: dto.targetAudience as Announcement['targetAudience'],
+  }
 }
 
 function todayString() {
-  return new Date().toISOString().split("T")[0];
+  return new Date().toISOString().split('T')[0]
 }
 
 function Announcements({ announcements, setAnnouncements }: AnnouncementsProps) {
-  const role = sessionStorage.getItem("role") as Role;
-  const userName = sessionStorage.getItem("name") || "";
-  const currentUserId = Number(sessionStorage.getItem("userId") || "0");
-  const isHr = role === "HR";
+  const role = sessionStorage.getItem('role') as Role
+  const userName = sessionStorage.getItem('name') || ''
+  const currentUserId = Number(sessionStorage.getItem('userId') || '0')
+  const isHr = role === 'HR'
 
-  const [open, setOpen] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [priorityFilter, setPriorityFilter] = useState("All");
-  const [toast, setToast] = useState<{ message: string; severity: "success" | "error" } | null>(null);
+  const [open, setOpen] = useState(false)
+  const [editId, setEditId] = useState<number | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [priorityFilter, setPriorityFilter] = useState('All')
+  const [toast, setToast] = useState<{ message: string; severity: 'success' | 'error' } | null>(
+    null,
+  )
 
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement>({
     id: 0,
-    title: "",
-    description: "",
+    title: '',
+    description: '',
     createdBy: userName,
     createdByUserId: currentUserId || null,
     publishDate: todayString(),
-    expiryDate: "",
-    priority: "Medium",
-    targetAudience: "All",
-  });
+    expiryDate: '',
+    priority: 'Medium',
+    targetAudience: 'All',
+  })
 
   useEffect(() => {
-    let cancelled = false;
+    let cancelled = false
 
     announcementApi
       .listAnnouncements()
       .then((list) => {
-        if (!cancelled) setAnnouncements(list.map(toUiAnnouncement));
+        if (!cancelled) setAnnouncements(list.map(toUiAnnouncement))
       })
       .catch(() => {
-        if (!cancelled) setToast({ message: "Failed to load announcements.", severity: "error" });
-      });
+        if (!cancelled) setToast({ message: 'Failed to load announcements.', severity: 'error' })
+      })
 
     return () => {
-      cancelled = true;
-    };
-  }, [setAnnouncements]);
+      cancelled = true
+    }
+  }, [setAnnouncements])
 
   const filteredAnnouncements = useMemo(
     () =>
       announcements
-        .filter((announcement) => announcement.title.toLowerCase().includes(searchTerm.toLowerCase()))
-        .filter((announcement) => priorityFilter === "All" || announcement.priority === priorityFilter),
-    [announcements, priorityFilter, searchTerm]
-  );
+        .filter((announcement) =>
+          announcement.title.toLowerCase().includes(searchTerm.toLowerCase()),
+        )
+        .filter(
+          (announcement) => priorityFilter === 'All' || announcement.priority === priorityFilter,
+        ),
+    [announcements, priorityFilter, searchTerm],
+  )
 
-  const total = announcements.length;
-  const high = announcements.filter((announcement) => announcement.priority === "High").length;
-  const medium = announcements.filter((announcement) => announcement.priority === "Medium").length;
-  const low = announcements.filter((announcement) => announcement.priority === "Low").length;
+  const total = announcements.length
+  const high = announcements.filter((announcement) => announcement.priority === 'High').length
+  const medium = announcements.filter((announcement) => announcement.priority === 'Medium').length
+  const low = announcements.filter((announcement) => announcement.priority === 'Low').length
 
   const handleOpen = () => {
-    setEditId(null);
+    setEditId(null)
     setSelectedAnnouncement({
       id: 0,
-      title: "",
-      description: "",
+      title: '',
+      description: '',
       createdBy: userName,
       createdByUserId: currentUserId || null,
       publishDate: todayString(),
-      expiryDate: "",
-      priority: "Medium",
-      targetAudience: "All",
-    });
-    setOpen(true);
-  };
+      expiryDate: '',
+      priority: 'Medium',
+      targetAudience: 'All',
+    })
+    setOpen(true)
+  }
 
   const handleClose = () => {
-    setOpen(false);
-  };
+    setOpen(false)
+  }
 
   const saveAnnouncement = async (announcement: Announcement) => {
     const payload: announcementApi.AnnouncementPayload = {
@@ -148,52 +154,54 @@ function Announcements({ announcements, setAnnouncements }: AnnouncementsProps) 
       expiryDate: announcement.expiryDate,
       priority: announcement.priority,
       targetAudience: announcement.targetAudience,
-    };
+    }
 
     try {
       if (editId !== null) {
-        const updated = await announcementApi.updateAnnouncement(editId, payload);
-        setAnnouncements((prev) => prev.map((item) => (item.id === editId ? toUiAnnouncement(updated) : item)));
-        setToast({ message: "Announcement updated successfully.", severity: "success" });
+        const updated = await announcementApi.updateAnnouncement(editId, payload)
+        setAnnouncements((prev) =>
+          prev.map((item) => (item.id === editId ? toUiAnnouncement(updated) : item)),
+        )
+        setToast({ message: 'Announcement updated successfully.', severity: 'success' })
       } else {
-        const created = await announcementApi.createAnnouncement(payload);
-        setAnnouncements((prev) => [...prev, toUiAnnouncement(created)]);
-        setToast({ message: "Announcement created successfully.", severity: "success" });
+        const created = await announcementApi.createAnnouncement(payload)
+        setAnnouncements((prev) => [...prev, toUiAnnouncement(created)])
+        setToast({ message: 'Announcement created successfully.', severity: 'success' })
       }
 
-      setEditId(null);
-      setOpen(false);
+      setEditId(null)
+      setOpen(false)
     } catch {
-      setToast({ message: "Failed to save announcement.", severity: "error" });
+      setToast({ message: 'Failed to save announcement.', severity: 'error' })
     }
-  };
+  }
 
   const editAnnouncement = (index: number) => {
-    const announcement = filteredAnnouncements[index];
-    setEditId(announcement.id);
-    setSelectedAnnouncement(announcement);
-    setOpen(true);
-  };
+    const announcement = filteredAnnouncements[index]
+    setEditId(announcement.id)
+    setSelectedAnnouncement(announcement)
+    setOpen(true)
+  }
 
   const deleteAnnouncement = async (index: number) => {
-    const announcement = filteredAnnouncements[index];
+    const announcement = filteredAnnouncements[index]
 
     if (!window.confirm(`Delete announcement "${announcement.title}"?`)) {
-      return;
+      return
     }
 
     try {
-      await announcementApi.deleteAnnouncement(announcement.id);
-      setAnnouncements((prev) => prev.filter((item) => item.id !== announcement.id));
-      setToast({ message: "Announcement deleted successfully.", severity: "success" });
+      await announcementApi.deleteAnnouncement(announcement.id)
+      setAnnouncements((prev) => prev.filter((item) => item.id !== announcement.id))
+      setToast({ message: 'Announcement deleted successfully.', severity: 'success' })
     } catch {
-      setToast({ message: "Failed to delete announcement.", severity: "error" });
+      setToast({ message: 'Failed to delete announcement.', severity: 'error' })
     }
-  };
+  }
 
   return (
     <>
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h4">Announcements</Typography>
 
         {isHr && (
@@ -205,7 +213,7 @@ function Announcements({ announcements, setAnnouncements }: AnnouncementsProps) 
 
       <AnnouncementChart total={total} high={high} medium={medium} low={low} />
 
-      <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
+      <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
         <TextField
           label="Search Announcement"
           value={searchTerm}
@@ -214,7 +222,11 @@ function Announcements({ announcements, setAnnouncements }: AnnouncementsProps) 
 
         <FormControl sx={{ minWidth: 180 }}>
           <InputLabel>Priority</InputLabel>
-          <Select value={priorityFilter} label="Priority" onChange={(e) => setPriorityFilter(e.target.value)}>
+          <Select
+            value={priorityFilter}
+            label="Priority"
+            onChange={(e) => setPriorityFilter(e.target.value)}
+          >
             <MenuItem value="All">All</MenuItem>
             <MenuItem value="High">High</MenuItem>
             <MenuItem value="Medium">Medium</MenuItem>
@@ -250,18 +262,18 @@ function Announcements({ announcements, setAnnouncements }: AnnouncementsProps) 
                 <TableRow key={announcement.id}>
                   <TableCell>{announcement.title}</TableCell>
                   <TableCell>{announcement.description}</TableCell>
-                  <TableCell>{announcement.createdBy || "-"}</TableCell>
-                  <TableCell>{announcement.publishDate || "-"}</TableCell>
-                  <TableCell>{announcement.expiryDate || "-"}</TableCell>
+                  <TableCell>{announcement.createdBy || '-'}</TableCell>
+                  <TableCell>{announcement.publishDate || '-'}</TableCell>
+                  <TableCell>{announcement.expiryDate || '-'}</TableCell>
                   <TableCell>
                     <Chip
                       label={announcement.priority}
                       color={
-                        announcement.priority === "High"
-                          ? "error"
-                          : announcement.priority === "Medium"
-                          ? "warning"
-                          : "default"
+                        announcement.priority === 'High'
+                          ? 'error'
+                          : announcement.priority === 'Medium'
+                            ? 'warning'
+                            : 'default'
                       }
                       size="small"
                     />
@@ -295,14 +307,14 @@ function Announcements({ announcements, setAnnouncements }: AnnouncementsProps) 
         open={!!toast}
         autoHideDuration={4000}
         onClose={() => setToast(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
         <Alert onClose={() => setToast(null)} severity={toast?.severity} variant="filled">
           {toast?.message}
         </Alert>
       </Snackbar>
     </>
-  );
+  )
 }
 
-export default Announcements;
+export default Announcements

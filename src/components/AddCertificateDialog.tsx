@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from 'react'
 
 import {
   Button,
@@ -8,18 +8,18 @@ import {
   DialogTitle,
   MenuItem,
   TextField,
-} from "@mui/material";
+} from '@mui/material'
 
-import type { Certificate } from "../types/Certificate";
-import type { Intern } from "../types/Intern";
+import type { Certificate } from '../types/Certificate'
+import type { Intern } from '../types/Intern'
 
 type AddCertificateDialogProps = {
-  open: boolean;
-  handleClose: () => void;
-  addCertificate: (certificate: Certificate) => void;
-  selectedCertificate: Certificate;
-  interns: Intern[];
-};
+  open: boolean
+  handleClose: () => void
+  addCertificate: (certificate: Certificate) => void
+  selectedCertificate: Certificate
+  interns: Intern[]
+}
 
 function AddCertificateDialog({
   open,
@@ -28,46 +28,48 @@ function AddCertificateDialog({
   selectedCertificate,
   interns,
 }: AddCertificateDialogProps) {
-  const [internId, setInternId] = useState<number | "">("");
-  const [certificateName, setCertificateName] = useState("");
-  const [issuedBy, setIssuedBy] = useState("");
-  const [issueDate, setIssueDate] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
-  const [status, setStatus] = useState<Certificate["status"]>("Active");
+  const [internId, setInternId] = useState<number | ''>('')
+  const [certificateName, setCertificateName] = useState('')
+  const [issuedBy, setIssuedBy] = useState('')
+  const [issueDate, setIssueDate] = useState('')
+  const [expiryDate, setExpiryDate] = useState('')
+  const [status, setStatus] = useState<Certificate['status']>('Active')
 
-  useEffect(() => {
-    setInternId(selectedCertificate.internId ?? "");
-    setCertificateName(selectedCertificate.certificateName || "");
-    setIssuedBy(selectedCertificate.issuedBy || "");
-    setIssueDate(selectedCertificate.issueDate || "");
-    setExpiryDate(selectedCertificate.expiryDate || "");
-    setStatus(selectedCertificate.status || "Active");
-  }, [selectedCertificate]);
+  const [prevSelected, setPrevSelected] = useState<Certificate | null>(null)
+  if (prevSelected !== selectedCertificate) {
+    setPrevSelected(selectedCertificate)
+    setInternId(selectedCertificate.internId ?? '')
+    setCertificateName(selectedCertificate.certificateName || '')
+    setIssuedBy(selectedCertificate.issuedBy || '')
+    setIssueDate(selectedCertificate.issueDate || '')
+    setExpiryDate(selectedCertificate.expiryDate || '')
+    setStatus(selectedCertificate.status || 'Active')
+  }
 
   const selectedIntern = useMemo(
     () => interns.find((intern) => intern.id === internId),
-    [internId, interns]
-  );
+    [internId, interns],
+  )
 
   const handleSave = () => {
     if (!internId) {
-      alert("Please select an intern.");
-      return;
+      alert('Please select an intern.')
+      return
     }
 
     addCertificate({
       id: selectedCertificate.id,
-      intern: selectedIntern?.name || "",
+      intern: selectedIntern?.name || '',
       internId: internId as number,
-      mentor: selectedIntern?.mentor || "",
+      mentor: selectedIntern?.mentor || '',
       mentorId: selectedIntern?.mentorId ?? null,
       certificateName,
       issuedBy,
       issueDate,
       expiryDate,
       status,
-    });
-  };
+    })
+  }
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
@@ -80,7 +82,7 @@ function AddCertificateDialog({
           margin="dense"
           label="Intern"
           value={internId}
-          onChange={(e) => setInternId(e.target.value === "" ? "" : Number(e.target.value))}
+          onChange={(e) => setInternId(e.target.value === '' ? '' : Number(e.target.value))}
         >
           {interns.map((intern) => (
             <MenuItem key={intern.id} value={intern.id}>
@@ -89,7 +91,13 @@ function AddCertificateDialog({
           ))}
         </TextField>
 
-        <TextField fullWidth margin="dense" label="Mentor" value={selectedIntern?.mentor || ""} disabled />
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Mentor"
+          value={selectedIntern?.mentor || ''}
+          disabled
+        />
 
         <TextField
           fullWidth
@@ -133,7 +141,7 @@ function AddCertificateDialog({
           margin="dense"
           label="Status"
           value={status}
-          onChange={(e) => setStatus(e.target.value as Certificate["status"])}
+          onChange={(e) => setStatus(e.target.value as Certificate['status'])}
         >
           <MenuItem value="Active">Active</MenuItem>
           <MenuItem value="Expired">Expired</MenuItem>
@@ -147,7 +155,7 @@ function AddCertificateDialog({
         </Button>
       </DialogActions>
     </Dialog>
-  );
+  )
 }
 
-export default AddCertificateDialog;
+export default AddCertificateDialog

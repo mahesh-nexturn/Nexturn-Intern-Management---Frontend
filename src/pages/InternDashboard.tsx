@@ -1,44 +1,27 @@
-import {
-  Box,
-  Typography,
-  Paper,
-  Chip,
-  Divider,
-} from "@mui/material";
+import { Box, Typography, Paper, Chip, Divider } from '@mui/material'
 
-import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-} from "recharts";
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts'
 
-import type { Task } from "../types/Task";
-import type { Meeting } from "../types/Meeting";
-import type { Attendance } from "../types/Attendance";
-import type { Evaluation } from "../types/Evaluation";
+import type { Task } from '../types/Task'
+import type { Meeting } from '../types/Meeting'
+import type { Attendance } from '../types/Attendance'
+import type { Evaluation } from '../types/Evaluation'
 
 type InternDashboardProps = {
-  tasks: Task[];
-  meetings: Meeting[];
-  attendance: Attendance[];
-  evaluations: Evaluation[];
-};
+  tasks: Task[]
+  meetings: Meeting[]
+  attendance: Attendance[]
+  evaluations: Evaluation[]
+}
 
 type DashboardCardProps = {
-  title: string;
-  value: number | string;
-  subtitle: string;
-  color: string;
-};
+  title: string
+  value: number | string
+  subtitle: string
+  color: string
+}
 
-function DashboardCard({
-  title,
-  value,
-  subtitle,
-  color,
-}: DashboardCardProps) {
+function DashboardCard({ title, value, subtitle, color }: DashboardCardProps) {
   return (
     <Paper
       elevation={2}
@@ -46,12 +29,12 @@ function DashboardCard({
         p: 3,
         borderRadius: 4,
         borderTop: `5px solid ${color}`,
-        height: "100%",
+        height: '100%',
       }}
     >
       <Typography
         sx={{
-          color: "text.secondary",
+          color: 'text.secondary',
           fontSize: 14,
           fontWeight: 600,
         }}
@@ -79,112 +62,81 @@ function DashboardCard({
         {subtitle}
       </Typography>
     </Paper>
-  );
+  )
 }
 
-function InternDashboard({
-  tasks,
-  meetings,
-  attendance,
-  evaluations,
-}: InternDashboardProps) {
+function InternDashboard({ tasks, meetings, attendance, evaluations }: InternDashboardProps) {
+  const internName = sessionStorage.getItem('name') || 'John'
 
-  const internName =
-    sessionStorage.getItem("name") || "John";
+  const myTasks = tasks.filter((t) => t.assignedTo === internName)
 
-  const myTasks = tasks.filter(
-    (t) => t.assignedTo === internName
-  );
+  const myMeetings = meetings.filter((m) => m.intern === internName)
 
-  const myMeetings = meetings.filter(
-    (m) => m.intern === internName
-  );
+  const myAttendance = attendance.filter((a) => a.intern === internName)
 
-  const myAttendance = attendance.filter(
-    (a) => a.intern === internName
-  );
+  const myEvaluations = evaluations.filter((e) => e.intern === internName)
 
-  const myEvaluations = evaluations.filter(
-    (e) => e.intern === internName
-  );
+  const totalTasks = myTasks.length
 
-  const totalTasks = myTasks.length;
-
-  const completedTasks = myTasks.filter(
-    (t) => t.status === "Completed"
-  ).length;
+  const completedTasks = myTasks.filter((t) => t.status === 'Completed').length
 
   const attendancePercentage =
     myAttendance.length === 0
       ? 0
       : Math.round(
-          (myAttendance.filter(
-            (a) => a.status === "Present"
-          ).length *
-            100) /
-            myAttendance.length
-        );
+          (myAttendance.filter((a) => a.status === 'Present').length * 100) / myAttendance.length,
+        )
 
   const overallRating =
     myEvaluations.length === 0
       ? 0
       : (
-          myEvaluations.reduce(
-            (sum, item) =>
-              sum + item.overallRating,
-            0
-          ) / myEvaluations.length
-        ).toFixed(1);
+          myEvaluations.reduce((sum, item) => sum + item.overallRating, 0) / myEvaluations.length
+        ).toFixed(1)
 
   const taskChart = [
     {
-      name: "Completed",
+      name: 'Completed',
       value: completedTasks,
-      color: "#22c55e",
+      color: '#22c55e',
     },
     {
-      name: "Pending",
-      value:
-        totalTasks - completedTasks,
-      color: "#2563eb",
+      name: 'Pending',
+      value: totalTasks - completedTasks,
+      color: '#2563eb',
     },
-  ];
+  ]
 
   const attendanceChart = [
     {
-      name: "Present",
-      value: myAttendance.filter(
-        (a) => a.status === "Present"
-      ).length,
-      color: "#22c55e",
+      name: 'Present',
+      value: myAttendance.filter((a) => a.status === 'Present').length,
+      color: '#22c55e',
     },
     {
-      name: "Absent",
-      value: myAttendance.filter(
-        (a) => a.status === "Absent"
-      ).length,
-      color: "#ef4444",
+      name: 'Absent',
+      value: myAttendance.filter((a) => a.status === 'Absent').length,
+      color: '#ef4444',
     },
-  ];
+  ]
 
   return (
     <Box
       sx={{
         p: 4,
-        bgcolor: "#f5f7fb",
-        minHeight: "100vh",
+        bgcolor: '#f5f7fb',
+        minHeight: '100vh',
       }}
     >
-            {/* Header */}
+      {/* Header */}
 
       <Paper
         sx={{
           p: 4,
           mb: 4,
           borderRadius: 5,
-          color: "#fff",
-          background:
-            "linear-gradient(135deg,#2563eb,#4f8dfd)",
+          color: '#fff',
+          background: 'linear-gradient(135deg,#2563eb,#4f8dfd)',
         }}
       >
         <Typography
@@ -209,8 +161,8 @@ function InternDashboard({
           label={new Date().toDateString()}
           sx={{
             mt: 2,
-            bgcolor: "rgba(255,255,255,.2)",
-            color: "#fff",
+            bgcolor: 'rgba(255,255,255,.2)',
+            color: '#fff',
           }}
         />
       </Paper>
@@ -219,11 +171,11 @@ function InternDashboard({
 
       <Box
         sx={{
-          display: "grid",
+          display: 'grid',
           gridTemplateColumns: {
-            xs: "1fr",
-            sm: "repeat(2, 1fr)",
-            lg: "repeat(4, 1fr)",
+            xs: '1fr',
+            sm: 'repeat(2, 1fr)',
+            lg: 'repeat(4, 1fr)',
           },
           gap: 3,
         }}
@@ -258,12 +210,12 @@ function InternDashboard({
       </Box>
 
       {/* Charts section starts in Part 3 */}
-            <Box
+      <Box
         sx={{
-          display: "grid",
+          display: 'grid',
           gridTemplateColumns: {
-            xs: "1fr",
-            lg: "1fr 1fr",
+            xs: '1fr',
+            lg: '1fr 1fr',
           },
           gap: 3,
           mt: 3,
@@ -281,7 +233,7 @@ function InternDashboard({
           <Typography
             variant="h5"
             sx={{
-              fontWeight: "bold",
+              fontWeight: 'bold',
               mb: 2,
             }}
           >
@@ -290,7 +242,7 @@ function InternDashboard({
 
           <Box
             sx={{
-              width: "100%",
+              width: '100%',
               height: 270,
             }}
           >
@@ -306,10 +258,7 @@ function InternDashboard({
                     paddingAngle={4}
                   >
                     {taskChart.map((item) => (
-                      <Cell
-                        key={item.name}
-                        fill={item.color}
-                      />
+                      <Cell key={item.name} fill={item.color} />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -318,10 +267,10 @@ function InternDashboard({
             ) : (
               <Box
                 sx={{
-                  height: "100%",
-                  display: "grid",
-                  placeItems: "center",
-                  color: "text.secondary",
+                  height: '100%',
+                  display: 'grid',
+                  placeItems: 'center',
+                  color: 'text.secondary',
                 }}
               >
                 No task data
@@ -333,8 +282,8 @@ function InternDashboard({
 
           <Box
             sx={{
-              display: "flex",
-              flexDirection: "column",
+              display: 'flex',
+              flexDirection: 'column',
               gap: 1.25,
             }}
           >
@@ -342,15 +291,15 @@ function InternDashboard({
               <Box
                 key={item.name}
                 sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                 }}
               >
                 <Box
                   sx={{
-                    display: "flex",
-                    alignItems: "center",
+                    display: 'flex',
+                    alignItems: 'center',
                     gap: 1,
                   }}
                 >
@@ -358,16 +307,14 @@ function InternDashboard({
                     sx={{
                       width: 12,
                       height: 12,
-                      borderRadius: "50%",
+                      borderRadius: '50%',
                       bgcolor: item.color,
                     }}
                   />
                   <Typography>{item.name}</Typography>
                 </Box>
 
-                <Typography sx={{ fontWeight: 700 }}>
-                  {item.value}
-                </Typography>
+                <Typography sx={{ fontWeight: 700 }}>{item.value}</Typography>
               </Box>
             ))}
           </Box>
@@ -385,7 +332,7 @@ function InternDashboard({
           <Typography
             variant="h5"
             sx={{
-              fontWeight: "bold",
+              fontWeight: 'bold',
               mb: 2,
             }}
           >
@@ -394,7 +341,7 @@ function InternDashboard({
 
           <Box
             sx={{
-              width: "100%",
+              width: '100%',
               height: 270,
             }}
           >
@@ -410,10 +357,7 @@ function InternDashboard({
                     paddingAngle={4}
                   >
                     {attendanceChart.map((item) => (
-                      <Cell
-                        key={item.name}
-                        fill={item.color}
-                      />
+                      <Cell key={item.name} fill={item.color} />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -422,10 +366,10 @@ function InternDashboard({
             ) : (
               <Box
                 sx={{
-                  height: "100%",
-                  display: "grid",
-                  placeItems: "center",
-                  color: "text.secondary",
+                  height: '100%',
+                  display: 'grid',
+                  placeItems: 'center',
+                  color: 'text.secondary',
                 }}
               >
                 No attendance data
@@ -437,8 +381,8 @@ function InternDashboard({
 
           <Box
             sx={{
-              display: "flex",
-              flexDirection: "column",
+              display: 'flex',
+              flexDirection: 'column',
               gap: 1.25,
             }}
           >
@@ -446,15 +390,15 @@ function InternDashboard({
               <Box
                 key={item.name}
                 sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                 }}
               >
                 <Box
                   sx={{
-                    display: "flex",
-                    alignItems: "center",
+                    display: 'flex',
+                    alignItems: 'center',
                     gap: 1,
                   }}
                 >
@@ -462,22 +406,20 @@ function InternDashboard({
                     sx={{
                       width: 12,
                       height: 12,
-                      borderRadius: "50%",
+                      borderRadius: '50%',
                       bgcolor: item.color,
                     }}
                   />
                   <Typography>{item.name}</Typography>
                 </Box>
 
-                <Typography sx={{ fontWeight: 700 }}>
-                  {item.value}
-                </Typography>
+                <Typography sx={{ fontWeight: 700 }}>{item.value}</Typography>
               </Box>
             ))}
           </Box>
         </Paper>
       </Box>
-            {/* Upcoming Meetings */}
+      {/* Upcoming Meetings */}
 
       <Paper
         sx={{
@@ -489,7 +431,7 @@ function InternDashboard({
         <Typography
           variant="h5"
           sx={{
-            fontWeight: "bold",
+            fontWeight: 'bold',
             mb: 3,
           }}
         >
@@ -497,48 +439,37 @@ function InternDashboard({
         </Typography>
 
         {myMeetings.length === 0 ? (
-          <Typography color="text.secondary">
-            No upcoming meetings scheduled.
-          </Typography>
+          <Typography color="text.secondary">No upcoming meetings scheduled.</Typography>
         ) : (
           myMeetings.map((meeting, index) => (
             <Box key={index}>
               <Box
                 sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                   py: 2,
                 }}
               >
                 <Box>
                   <Typography
                     sx={{
-                      fontWeight: "bold",
+                      fontWeight: 'bold',
                       fontSize: 18,
                     }}
                   >
                     {meeting.title}
                   </Typography>
 
-                  <Typography
-                    color="text.secondary"
-                    sx={{ mt: 0.5 }}
-                  >
+                  <Typography color="text.secondary" sx={{ mt: 0.5 }}>
                     Mentor : {meeting.mentor}
                   </Typography>
 
-                  <Typography
-                    color="text.secondary"
-                    sx={{ mt: 0.5 }}
-                  >
+                  <Typography color="text.secondary" sx={{ mt: 0.5 }}>
                     {meeting.date} • {meeting.time}
                   </Typography>
 
-                  <Typography
-                    color="text.secondary"
-                    sx={{ mt: 0.5 }}
-                  >
+                  <Typography color="text.secondary" sx={{ mt: 0.5 }}>
                     {meeting.agenda}
                   </Typography>
                 </Box>
@@ -546,24 +477,22 @@ function InternDashboard({
                 <Chip
                   label={meeting.status}
                   color={
-                    meeting.status === "Scheduled"
-                      ? "primary"
-                      : meeting.status === "Completed"
-                      ? "success"
-                      : "error"
+                    meeting.status === 'Scheduled'
+                      ? 'primary'
+                      : meeting.status === 'Completed'
+                        ? 'success'
+                        : 'error'
                   }
                 />
               </Box>
 
-              {index !== myMeetings.length - 1 && (
-                <Divider />
-              )}
+              {index !== myMeetings.length - 1 && <Divider />}
             </Box>
           ))
         )}
       </Paper>
     </Box>
-  );
+  )
 }
 
-export default InternDashboard;
+export default InternDashboard

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from 'react'
 
 import {
   Button,
@@ -8,18 +8,18 @@ import {
   DialogTitle,
   MenuItem,
   TextField,
-} from "@mui/material";
+} from '@mui/material'
 
-import type { Training } from "../types/Training";
-import type { Intern } from "../types/Intern";
+import type { Training } from '../types/Training'
+import type { Intern } from '../types/Intern'
 
 type AddTrainingDialogProps = {
-  open: boolean;
-  handleClose: () => void;
-  addTraining: (training: Training) => void;
-  selectedTraining: Training;
-  interns: Intern[];
-};
+  open: boolean
+  handleClose: () => void
+  addTraining: (training: Training) => void
+  selectedTraining: Training
+  interns: Intern[]
+}
 
 function AddTrainingDialog({
   open,
@@ -28,50 +28,52 @@ function AddTrainingDialog({
   selectedTraining,
   interns,
 }: AddTrainingDialogProps) {
-  const [title, setTitle] = useState("");
-  const [internId, setInternId] = useState<number | "">("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [status, setStatus] = useState<Training["status"]>("Not Started");
-  const [progress, setProgress] = useState(0);
+  const [title, setTitle] = useState('')
+  const [internId, setInternId] = useState<number | ''>('')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [status, setStatus] = useState<Training['status']>('Not Started')
+  const [progress, setProgress] = useState(0)
 
-  useEffect(() => {
-    setTitle(selectedTraining.title || "");
-    setInternId(selectedTraining.internId ?? "");
-    setStartDate(selectedTraining.startDate || "");
-    setEndDate(selectedTraining.endDate || "");
-    setStatus(selectedTraining.status || "Not Started");
-    setProgress(selectedTraining.progress || 0);
-  }, [selectedTraining]);
+  const [prevSelected, setPrevSelected] = useState<Training | null>(null)
+  if (prevSelected !== selectedTraining) {
+    setPrevSelected(selectedTraining)
+    setTitle(selectedTraining.title || '')
+    setInternId(selectedTraining.internId ?? '')
+    setStartDate(selectedTraining.startDate || '')
+    setEndDate(selectedTraining.endDate || '')
+    setStatus(selectedTraining.status || 'Not Started')
+    setProgress(selectedTraining.progress || 0)
+  }
 
-  const selectedIntern = interns.find((intern) => intern.id === internId);
+  const selectedIntern = interns.find((intern) => intern.id === internId)
 
   const handleSave = () => {
     if (!title.trim()) {
-      alert("Please enter a title.");
-      return;
+      alert('Please enter a title.')
+      return
     }
 
     if (!internId) {
-      alert("Please select an intern.");
-      return;
+      alert('Please select an intern.')
+      return
     }
 
     addTraining({
       id: selectedTraining.id,
       title,
-      assignedTo: selectedIntern?.name || "",
+      assignedTo: selectedIntern?.name || '',
       internId: internId as number,
-      mentor: selectedIntern?.mentor || "",
+      mentor: selectedIntern?.mentor || '',
       mentorId: selectedIntern?.mentorId ?? null,
       startDate,
       endDate,
       status,
       progress,
-    });
+    })
 
-    handleClose();
-  };
+    handleClose()
+  }
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
@@ -92,7 +94,7 @@ function AddTrainingDialog({
           margin="dense"
           label="Assigned To"
           value={internId}
-          onChange={(e) => setInternId(e.target.value === "" ? "" : Number(e.target.value))}
+          onChange={(e) => setInternId(e.target.value === '' ? '' : Number(e.target.value))}
         >
           {interns.map((intern) => (
             <MenuItem key={intern.id} value={intern.id}>
@@ -105,7 +107,7 @@ function AddTrainingDialog({
           fullWidth
           margin="dense"
           label="Mentor"
-          value={selectedIntern?.mentor || ""}
+          value={selectedIntern?.mentor || ''}
           disabled
         />
 
@@ -133,7 +135,7 @@ function AddTrainingDialog({
           margin="dense"
           label="Status"
           value={status}
-          onChange={(e) => setStatus(e.target.value as Training["status"])}
+          onChange={(e) => setStatus(e.target.value as Training['status'])}
         >
           <MenuItem value="Not Started">Not Started</MenuItem>
           <MenuItem value="In Progress">In Progress</MenuItem>
@@ -157,7 +159,7 @@ function AddTrainingDialog({
         </Button>
       </DialogActions>
     </Dialog>
-  );
+  )
 }
 
-export default AddTrainingDialog;
+export default AddTrainingDialog
