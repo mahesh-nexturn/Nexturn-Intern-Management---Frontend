@@ -29,6 +29,7 @@ import AddAnnouncementDialog from '../components/AddAnnouncementDialog'
 import AnnouncementChart from '../components/AnnouncementChart'
 import type { Announcement } from '../types/Announcement'
 import * as announcementApi from '../services/announcementApi'
+import { useDialogs } from '../context/dialogState'
 
 type AnnouncementsProps = {
   announcements: Announcement[]
@@ -67,6 +68,7 @@ function todayString() {
 }
 
 function Announcements({ announcements, setAnnouncements }: AnnouncementsProps) {
+  const { confirm } = useDialogs()
   const role = sessionStorage.getItem('role') as Role
   const userName = sessionStorage.getItem('name') || ''
   const currentUserId = Number(sessionStorage.getItem('userId') || '0')
@@ -186,7 +188,7 @@ function Announcements({ announcements, setAnnouncements }: AnnouncementsProps) 
   const deleteAnnouncement = async (index: number) => {
     const announcement = filteredAnnouncements[index]
 
-    if (!window.confirm(`Delete announcement "${announcement.title}"?`)) {
+    if (!(await confirm(`Delete announcement "${announcement.title}"?`))) {
       return
     }
 

@@ -12,6 +12,7 @@ import {
 
 import type { PPO } from '../types/PPO'
 import type { Intern } from '../types/Intern'
+import { useDialogs } from '../context/dialogState'
 
 type AddPPODialogProps = {
   open: boolean
@@ -22,6 +23,7 @@ type AddPPODialogProps = {
 }
 
 function AddPPODialog({ open, handleClose, addPPO, selectedPPO, interns }: AddPPODialogProps) {
+  const { notify } = useDialogs()
   const [internId, setInternId] = useState<number | ''>('')
   const [attendance, setAttendance] = useState(0)
   const [trainingCompletion, setTrainingCompletion] = useState(0)
@@ -54,7 +56,7 @@ function AddPPODialog({ open, handleClose, addPPO, selectedPPO, interns }: AddPP
 
   const handleSave = () => {
     if (!internId) {
-      alert('Please select an intern.')
+      notify('Please select an intern.')
       return
     }
 

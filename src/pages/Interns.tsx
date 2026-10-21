@@ -36,6 +36,7 @@ import type { Mentor } from '../types/Mentor'
 import * as internApi from '../services/internApi'
 import * as hrApi from '../services/hrApi'
 import type { Hr } from '../types/Hr'
+import { useDialogs } from '../context/dialogState'
 
 type InternsProps = {
   interns: Intern[]
@@ -74,6 +75,7 @@ function toUiIntern(dto: internApi.InternDto): Intern {
 }
 
 function Interns({ interns, setInterns, mentors }: InternsProps) {
+  const { confirm, notify } = useDialogs()
   const role = (sessionStorage.getItem('role') as Role) || 'HR'
 
   const userName = sessionStorage.getItem('name') || ''
@@ -190,13 +192,13 @@ function Interns({ interns, setInterns, mentors }: InternsProps) {
     }
   }
 
-  const handleDelete = (index: number) => {
+  const handleDelete = async (index: number) => {
     const selected = filteredInterns[index]
 
     const actualIndex = interns.findIndex((i) => i.id === selected.id)
 
     if (actualIndex !== -1) {
-      if (window.confirm(`Delete ${selected.name}?`)) {
+      if (await confirm(`Delete ${selected.name}?`)) {
         internApi
           .deleteIntern(selected.id)
           .then(() => {
@@ -210,7 +212,7 @@ function Interns({ interns, setInterns, mentors }: InternsProps) {
 
   const handleSave = () => {
     if (!selectedIntern.name.trim() || !selectedIntern.department.trim()) {
-      alert('Please enter Name and Department.')
+      notify('Please enter Name and Department.')
       return
     }
 

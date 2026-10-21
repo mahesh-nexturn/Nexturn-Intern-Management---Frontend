@@ -34,6 +34,7 @@ import type { Mentor } from '../types/Mentor'
 import * as mentorApi from '../services/mentorApi'
 import * as hrApi from '../services/hrApi'
 import type { Hr } from '../types/Hr'
+import { useDialogs } from '../context/dialogState'
 
 type MentorsProps = {
   mentors: Mentor[]
@@ -54,6 +55,7 @@ function toUiMentor(dto: mentorApi.MentorDto): Mentor {
 }
 
 function Mentors({ mentors, setMentors }: MentorsProps) {
+  const { confirm, notify } = useDialogs()
   const role = sessionStorage.getItem('role') || 'HR'
   const isHr = role === 'HR'
   const isAdmin = sessionStorage.getItem('backendRole') === 'ADMIN'
@@ -147,12 +149,12 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
     }
   }
 
-  const handleDelete = (index: number) => {
+  const handleDelete = async (index: number) => {
     const selected = filteredMentors[index]
     const actualIndex = mentors.findIndex((m) => m.id === selected.id)
 
     if (actualIndex !== -1) {
-      const ok = window.confirm(`Delete mentor "${selected.name}"?`)
+      const ok = await confirm(`Delete mentor "${selected.name}"?`)
       if (ok) {
         mentorApi
           .deleteMentor(selected.id)
@@ -172,7 +174,7 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
       !selectedMentor.department.trim() ||
       !selectedMentor.designation.trim()
     ) {
-      alert('Please fill all fields.')
+      notify('Please fill all fields.')
       return
     }
 

@@ -12,6 +12,7 @@ import {
 } from '@mui/material'
 
 import type { Document } from '../types/Document'
+import { useDialogs } from '../context/dialogState'
 
 type AddDocumentDialogProps = {
   open: boolean
@@ -26,6 +27,7 @@ function AddDocumentDialog({
   addDocument,
   selectedDocument,
 }: AddDocumentDialogProps) {
+  const { notify } = useDialogs()
   const userName = sessionStorage.getItem('name') || ''
 
   const [documentType, setDocumentType] = useState<Document['documentType']>('Resume')
@@ -40,7 +42,7 @@ function AddDocumentDialog({
 
   const handleSave = () => {
     if (!file) {
-      alert('Please choose a file.')
+      notify('Please choose a file.')
       return
     }
 

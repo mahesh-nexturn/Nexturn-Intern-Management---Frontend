@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 
+import { getUpcomingMeetings } from '../utils/upcomingMeetings'
 import { Box, Chip, Divider, Paper, Typography } from '@mui/material'
 
 import {
@@ -208,10 +209,7 @@ function Dashboard({
     return items.slice(0, 4)
   }, [notifications, meetings, evaluations, trainings, documents])
 
-  const upcomingMeetings = useMemo(
-    () => [...meetings].sort((a, b) => a.date.localeCompare(b.date)).slice(0, 4),
-    [meetings],
-  )
+  const upcomingMeetings = useMemo(() => getUpcomingMeetings(meetings).slice(0, 4), [meetings])
 
   const latestNotifications = useMemo(
     () => [...notifications].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 4),

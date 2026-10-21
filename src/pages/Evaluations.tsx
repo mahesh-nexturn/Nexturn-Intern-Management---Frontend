@@ -1,10 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import {
   Alert,
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   IconButton,
+  Link,
   Paper,
   Snackbar,
   Table,
@@ -26,7 +33,10 @@ import type { Evaluation } from '../types/Evaluation'
 import type { Intern } from '../types/Intern'
 import * as evaluationApi from '../services/evaluationApi'
 import * as internApi from '../services/internApi'
+import * as taskApi from '../services/taskApi'
+import { EMPTY_RATINGS, EVALUATION_CRITERIA } from '../utils/evaluationCriteria'
 import { toUiEvaluation } from '../utils/mappers/evaluationMapper'
+import { useDialogs } from '../context/dialogState'
 
 type EvaluationsProps = {
   evaluations: Evaluation[]
@@ -49,6 +59,7 @@ function toUiIntern(dto: internApi.InternDto): Intern {
 }
 
 function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
+  const { notify } = useDialogs()
   const role = sessionStorage.getItem('role') as Role
   const userName = sessionStorage.getItem('name') || ''
 
@@ -58,12 +69,14 @@ function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
   const canManageEvaluations = isHr || isMentor
 
   const [open, setOpen] = useState(false)
-  const [editId, setEditId] = useState<number | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [toast, setToast] = useState<{ message: string; severity: 'success' | 'error' } | null>(
     null,
   )
   const [availableInterns, setAvailableInterns] = useState<Intern[]>([])
+  const [deleteTarget, setDeleteTarget] = useState<Evaluation | null>(null)
+  const [taskTitles, setTaskTitles] = useState<Record<number, string>>({})
+  const navigate = useNavigate()
 
   const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation>({
     id: 0,
@@ -71,10 +84,9 @@ function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
     internId: null,
     mentor: '',
     mentorId: null,
-    technicalRating: 1,
-    communicationRating: 1,
-    problemSolvingRating: 1,
-    overallRating: 1,
+    taskId: null,
+    ...EMPTY_RATINGS,
+    overallRating: 0,
     feedback: '',
   })
 
@@ -98,6 +110,13 @@ function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
       .catch(() => {
         if (!cancelled) setToast({ message: 'Failed to load interns.', severity: 'error' })
       })
+
+    taskApi
+      .listTasks()
+      .then((list) => {
+        if (!cancelled) setTaskTitles(Object.fromEntries(list.map((task) => [task.id, task.title])))
+      })
+      .catch(() => undefined)
 
     return () => {
       cancelled = true
@@ -136,32 +155,29 @@ function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
   )
 
   const total = visibleEvaluations.length
-  const technicalAverage =
-    total === 0
-      ? 0
-      : visibleEvaluations.reduce((sum, evaluation) => sum + evaluation.technicalRating, 0) / total
-  const communicationAverage =
-    total === 0
-      ? 0
-      : visibleEvaluations.reduce((sum, evaluation) => sum + evaluation.communicationRating, 0) /
-        total
-  const overallAverage =
-    total === 0
-      ? 0
-      : visibleEvaluations.reduce((sum, evaluation) => sum + evaluation.overallRating, 0) / total
+  const average = (pick: (evaluation: Evaluation) => number) => {
+    const rated = visibleEvaluations.map(pick).filter((value) => value > 0)
+    return rated.length === 0 ? 0 : rated.reduce((sum, value) => sum + value, 0) / rated.length
+  }
+  const averages = {
+    requirementUnderstanding: average((e) => e.requirementUnderstanding),
+    technicalKnowledge: average((e) => e.technicalKnowledge),
+    workQuality: average((e) => e.workQuality),
+    taskCompletion: average((e) => e.taskCompletion),
+    taskDemonstration: average((e) => e.taskDemonstration),
+    overall: average((e) => e.overallRating),
+  }
 
   const handleOpen = () => {
-    setEditId(null)
     setSelectedEvaluation({
       id: 0,
       intern: '',
       internId: null,
       mentor: '',
       mentorId: null,
-      technicalRating: 1,
-      communicationRating: 1,
-      problemSolvingRating: 1,
-      overallRating: 1,
+      taskId: null,
+      ...EMPTY_RATINGS,
+      overallRating: 0,
       feedback: '',
     })
     setOpen(true)
@@ -173,7 +189,7 @@ function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
 
   const saveEvaluation = async (evaluation: Evaluation) => {
     if (!evaluation.internId) {
-      alert('Please select an intern.')
+      notify('Please select an intern.')
       return
     }
 
@@ -181,19 +197,22 @@ function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
     const payload: evaluationApi.EvaluationPayload = {
       internId: evaluation.internId,
       mentorId: selectedIntern?.mentorId ?? evaluation.mentorId ?? null,
-      technicalRating: evaluation.technicalRating,
-      communicationRating: evaluation.communicationRating,
-      problemSolvingRating: evaluation.problemSolvingRating,
-      overallRating: evaluation.overallRating,
+      taskId: evaluation.taskId ?? null,
+      requirementUnderstanding: evaluation.requirementUnderstanding,
+      technicalKnowledge: evaluation.technicalKnowledge,
+      workQuality: evaluation.workQuality,
+      taskCompletion: evaluation.taskCompletion,
+      taskDemonstration: evaluation.taskDemonstration,
       feedback: evaluation.feedback,
     }
 
     try {
-      if (editId !== null) {
-        const updated = await evaluationApi.updateEvaluation(editId, payload)
+      const targetId = evaluation.id > 0 ? evaluation.id : null
+      if (targetId !== null) {
+        const updated = await evaluationApi.updateEvaluation(targetId, payload)
         setEvaluations((prev) =>
           prev.map((item) =>
-            item.id === editId ? toUiEvaluation(updated, availableInterns) : item,
+            item.id === targetId ? toUiEvaluation(updated, availableInterns) : item,
           ),
         )
         setToast({ message: 'Evaluation updated successfully.', severity: 'success' })
@@ -203,7 +222,6 @@ function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
         setToast({ message: 'Evaluation created successfully.', severity: 'success' })
       }
 
-      setEditId(null)
       setOpen(false)
     } catch {
       setToast({ message: 'Failed to save evaluation.', severity: 'error' })
@@ -212,17 +230,14 @@ function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
 
   const editEvaluation = (index: number) => {
     const evaluation = filteredEvaluations[index]
-    setEditId(evaluation.id)
     setSelectedEvaluation(evaluation)
     setOpen(true)
   }
 
-  const deleteEvaluation = async (index: number) => {
-    const evaluation = filteredEvaluations[index]
-
-    if (!window.confirm(`Delete evaluation for "${evaluation.intern}"?`)) {
-      return
-    }
+  const confirmDelete = async () => {
+    const evaluation = deleteTarget
+    if (!evaluation) return
+    setDeleteTarget(null)
 
     try {
       await evaluationApi.deleteEvaluation(evaluation.id)
@@ -245,12 +260,7 @@ function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
         )}
       </Box>
 
-      <EvaluationChart
-        total={total}
-        technicalAverage={technicalAverage}
-        communicationAverage={communicationAverage}
-        overallAverage={overallAverage}
-      />
+      <EvaluationChart total={total} averages={averages} />
 
       <Box sx={{ mb: 3 }}>
         <TextField
@@ -266,10 +276,11 @@ function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
           <TableHead>
             <TableRow>
               <TableCell>Intern</TableCell>
-              <TableCell>Mentor</TableCell>
-              <TableCell>Technical</TableCell>
-              <TableCell>Communication</TableCell>
-              <TableCell>Problem Solving</TableCell>
+              {!isMentor && <TableCell>Mentor</TableCell>}
+              <TableCell>Task</TableCell>
+              {EVALUATION_CRITERIA.map((criterion) => (
+                <TableCell key={criterion.key}>{criterion.label}</TableCell>
+              ))}
               <TableCell>Overall</TableCell>
               <TableCell>Feedback</TableCell>
               {canManageEvaluations && <TableCell>Actions</TableCell>}
@@ -279,7 +290,10 @@ function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
           <TableBody>
             {filteredEvaluations.length === 0 ? (
               <TableRow>
-                <TableCell align="center" colSpan={canManageEvaluations ? 8 : 7}>
+                <TableCell
+                  align="center"
+                  colSpan={(canManageEvaluations ? 11 : 10) - (isMentor ? 1 : 0)}
+                >
                   No evaluations found.
                 </TableCell>
               </TableRow>
@@ -287,10 +301,23 @@ function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
               filteredEvaluations.map((evaluation, index) => (
                 <TableRow key={evaluation.id}>
                   <TableCell>{evaluation.intern}</TableCell>
-                  <TableCell>{evaluation.mentor || '-'}</TableCell>
-                  <TableCell>{evaluation.technicalRating}</TableCell>
-                  <TableCell>{evaluation.communicationRating}</TableCell>
-                  <TableCell>{evaluation.problemSolvingRating}</TableCell>
+                  {!isMentor && <TableCell>{evaluation.mentor || '-'}</TableCell>}
+                  <TableCell>
+                    {evaluation.taskId ? (
+                      <Link
+                        component="button"
+                        underline="hover"
+                        onClick={() => navigate(`/tasks/${evaluation.taskId}`)}
+                      >
+                        {taskTitles[evaluation.taskId] || `Task #${evaluation.taskId}`}
+                      </Link>
+                    ) : (
+                      '-'
+                    )}
+                  </TableCell>
+                  {EVALUATION_CRITERIA.map((criterion) => (
+                    <TableCell key={criterion.key}>{evaluation[criterion.key] || '-'}</TableCell>
+                  ))}
                   <TableCell>{evaluation.overallRating}</TableCell>
                   <TableCell>{evaluation.feedback}</TableCell>
                   {canManageEvaluations && (
@@ -298,7 +325,10 @@ function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
                       <IconButton color="primary" onClick={() => editEvaluation(index)}>
                         <EditIcon />
                       </IconButton>
-                      <IconButton color="error" onClick={() => deleteEvaluation(index)}>
+                      <IconButton
+                        color="error"
+                        onClick={() => setDeleteTarget(filteredEvaluations[index])}
+                      >
                         <DeleteIcon />
                       </IconButton>
                     </TableCell>
@@ -309,6 +339,22 @@ function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)}>
+        <DialogTitle>Delete Evaluation</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete the evaluation for {deleteTarget?.intern}? This cannot
+            be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteTarget(null)}>Cancel</Button>
+          <Button color="error" variant="contained" onClick={() => void confirmDelete()}>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <AddEvaluationDialog
         open={open}

@@ -12,6 +12,7 @@ import {
 
 import type { Attendance } from '../types/Attendance'
 import type { Intern } from '../types/Intern'
+import { useDialogs } from '../context/dialogState'
 
 type AddAttendanceDialogProps = {
   open: boolean
@@ -30,6 +31,7 @@ function AddAttendanceDialog({
   selectedAttendance,
   interns,
 }: AddAttendanceDialogProps) {
+  const { notify } = useDialogs()
   const [internId, setInternId] = useState<number | typeof ALL | ''>('')
   const [date, setDate] = useState('')
   const [status, setStatus] = useState<Attendance['status']>('Present')
@@ -49,12 +51,12 @@ function AddAttendanceDialog({
 
   const handleSave = () => {
     if (!internId) {
-      alert('Please select an intern.')
+      notify('Please select an intern.')
       return
     }
 
     if (!date) {
-      alert('Please select a date.')
+      notify('Please select a date.')
       return
     }
 

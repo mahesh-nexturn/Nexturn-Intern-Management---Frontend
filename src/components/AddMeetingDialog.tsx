@@ -12,6 +12,7 @@ import {
 
 import type { Meeting } from '../types/Meeting'
 import type { Intern } from '../types/Intern'
+import { useDialogs } from '../context/dialogState'
 
 type AddMeetingDialogProps = {
   open: boolean
@@ -28,6 +29,7 @@ function AddMeetingDialog({
   selectedMeeting,
   interns,
 }: AddMeetingDialogProps) {
+  const { notify } = useDialogs()
   const [title, setTitle] = useState('')
   const [agenda, setAgenda] = useState('')
   const [internId, setInternId] = useState<number | ''>('')
@@ -56,17 +58,17 @@ function AddMeetingDialog({
 
   const handleSave = () => {
     if (!title.trim()) {
-      alert('Please enter a meeting title.')
+      notify('Please enter a meeting title.')
       return
     }
 
     if (!internId) {
-      alert('Please select an intern.')
+      notify('Please select an intern.')
       return
     }
 
     if (!date || !time) {
-      alert('Please select both date and time.')
+      notify('Please select both date and time.')
       return
     }
 

@@ -30,12 +30,14 @@ import AssignmentIndIcon from '@mui/icons-material/AssignmentInd'
 import type { Hr } from '../types/Hr'
 import * as hrApi from '../services/hrApi'
 import HrAssignmentsDialog from '../components/HrAssignmentsDialog'
+import { useDialogs } from '../context/dialogState'
 
 type FormState = { id: number | null; name: string; email: string; password: string }
 
 const emptyForm: FormState = { id: null, name: '', email: '', password: '' }
 
 function HrManagement() {
+  const { confirm, notify } = useDialogs()
   const [hrs, setHrs] = useState<Hr[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [toast, setToast] = useState<{ message: string; severity: 'success' | 'error' } | null>(
@@ -77,7 +79,7 @@ function HrManagement() {
 
   const handleSave = () => {
     if (!form.name.trim() || !form.email.trim()) {
-      alert('Please enter name and email.')
+      notify('Please enter name and email.')
       return
     }
 
@@ -106,8 +108,8 @@ function HrManagement() {
       )
   }
 
-  const handleDelete = (hr: Hr) => {
-    if (!window.confirm(`Delete HR "${hr.name}"?`)) return
+  const handleDelete = async (hr: Hr) => {
+    if (!(await confirm(`Delete HR "${hr.name}"?`))) return
     hrApi
       .deleteHr(hr.id)
       .then(() => {

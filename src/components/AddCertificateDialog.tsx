@@ -12,6 +12,7 @@ import {
 
 import type { Certificate } from '../types/Certificate'
 import type { Intern } from '../types/Intern'
+import { useDialogs } from '../context/dialogState'
 
 type AddCertificateDialogProps = {
   open: boolean
@@ -28,6 +29,7 @@ function AddCertificateDialog({
   selectedCertificate,
   interns,
 }: AddCertificateDialogProps) {
+  const { notify } = useDialogs()
   const [internId, setInternId] = useState<number | ''>('')
   const [certificateName, setCertificateName] = useState('')
   const [issuedBy, setIssuedBy] = useState('')
@@ -53,7 +55,7 @@ function AddCertificateDialog({
 
   const handleSave = () => {
     if (!internId) {
-      alert('Please select an intern.')
+      notify('Please select an intern.')
       return
     }
 

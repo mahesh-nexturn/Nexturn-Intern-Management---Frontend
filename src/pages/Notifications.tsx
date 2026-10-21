@@ -31,6 +31,7 @@ import NotificationChart from '../components/NotificationChart'
 import type { Notification } from '../types/Notification'
 import * as notificationApi from '../services/notificationApi'
 import { toUiNotification } from '../utils/mappers/notificationMapper'
+import { useDialogs } from '../context/dialogState'
 
 type NotificationsProps = {
   notifications: Notification[]
@@ -44,6 +45,7 @@ function todayString() {
 }
 
 function Notifications({ notifications, setNotifications }: NotificationsProps) {
+  const { confirm } = useDialogs()
   const role = sessionStorage.getItem('role') as Role
   const userName = sessionStorage.getItem('name') || ''
   const currentUserId = Number(sessionStorage.getItem('userId') || '0')
@@ -157,7 +159,7 @@ function Notifications({ notifications, setNotifications }: NotificationsProps) 
   const deleteNotification = async (index: number) => {
     const notification = filteredNotifications[index]
 
-    if (!window.confirm(`Delete notification "${notification.title}"?`)) {
+    if (!(await confirm(`Delete notification "${notification.title}"?`))) {
       return
     }
 
@@ -177,6 +179,7 @@ function Notifications({ notifications, setNotifications }: NotificationsProps) 
         setNotifications((prev) =>
           prev.map((item) => (item.id === notification.id ? { ...item, status: 'Read' } : item)),
         )
+        window.dispatchEvent(new Event('notifications-changed'))
       } catch {
         // navigation should still work if marking read fails
       }

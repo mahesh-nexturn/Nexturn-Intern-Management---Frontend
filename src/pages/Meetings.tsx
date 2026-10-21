@@ -33,6 +33,7 @@ import AddMeetingDialog from '../components/AddMeetingDialog'
 import MeetingChart from '../components/MeetingChart'
 import * as meetingApi from '../services/meetingApi'
 import { toUiMeeting } from '../utils/mappers/meetingMapper'
+import { useDialogs } from '../context/dialogState'
 
 type MeetingsProps = {
   meetings: Meeting[]
@@ -44,6 +45,7 @@ type MeetingsProps = {
 type Role = 'HR' | 'MENTOR' | 'INTERN' | null
 
 function Meetings({ meetings, setMeetings, interns, mentors }: MeetingsProps) {
+  const { notify } = useDialogs()
   const [open, setOpen] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -121,7 +123,7 @@ function Meetings({ meetings, setMeetings, interns, mentors }: MeetingsProps) {
 
   const saveMeeting = async (meeting: Meeting) => {
     if (!meeting.internId) {
-      alert('Please select an intern.')
+      notify('Please select an intern.')
       return
     }
 

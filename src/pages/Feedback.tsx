@@ -22,6 +22,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import { useAuth } from '../context/useAuth'
 import type { UserRole } from '../context/authState'
 import * as feedbackApi from '../services/feedbackApi'
+import { useDialogs } from '../context/dialogState'
 
 type ToastState = {
   message: string
@@ -38,6 +39,7 @@ function formatDateTime(value: string) {
 }
 
 function Feedback() {
+  const { confirm } = useDialogs()
   const { user } = useAuth()
 
   const role = user?.role ?? (sessionStorage.getItem('role') as UserRole | null)
@@ -136,7 +138,7 @@ function Feedback() {
   }
 
   const handleDelete = async (id: number) => {
-    const ok = window.confirm('Delete this feedback entry?')
+    const ok = await confirm('Delete this feedback entry?')
 
     if (!ok) return
 

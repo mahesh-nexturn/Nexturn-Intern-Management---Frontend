@@ -12,6 +12,7 @@ import {
 
 import type { Training } from '../types/Training'
 import type { Intern } from '../types/Intern'
+import { useDialogs } from '../context/dialogState'
 
 type AddTrainingDialogProps = {
   open: boolean
@@ -28,6 +29,7 @@ function AddTrainingDialog({
   selectedTraining,
   interns,
 }: AddTrainingDialogProps) {
+  const { notify } = useDialogs()
   const [title, setTitle] = useState('')
   const [internId, setInternId] = useState<number | ''>('')
   const [startDate, setStartDate] = useState('')
@@ -50,12 +52,12 @@ function AddTrainingDialog({
 
   const handleSave = () => {
     if (!title.trim()) {
-      alert('Please enter a title.')
+      notify('Please enter a title.')
       return
     }
 
     if (!internId) {
-      alert('Please select an intern.')
+      notify('Please select an intern.')
       return
     }
 

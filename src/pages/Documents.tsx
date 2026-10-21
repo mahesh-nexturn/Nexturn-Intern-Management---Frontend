@@ -31,6 +31,7 @@ import AddDocumentDialog from '../components/AddDocumentDialog'
 import DocumentChart from '../components/DocumentChart'
 import * as documentApi from '../services/documentApi'
 import { toUiDocument } from '../utils/mappers/documentMapper'
+import { useDialogs } from '../context/dialogState'
 
 type DocumentsProps = {
   documents: Document[]
@@ -38,6 +39,7 @@ type DocumentsProps = {
 }
 
 function Documents({ documents, setDocuments }: DocumentsProps) {
+  const { notify } = useDialogs()
   const [open, setOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [typeFilter, setTypeFilter] = useState('All')
@@ -95,7 +97,7 @@ function Documents({ documents, setDocuments }: DocumentsProps) {
 
   const saveDocument = async (item: Document, file?: File | null) => {
     if (!file) {
-      alert('Please choose a file to upload.')
+      notify('Please choose a file to upload.')
       return
     }
 

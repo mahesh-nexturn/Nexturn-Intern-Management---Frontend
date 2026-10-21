@@ -31,6 +31,7 @@ import type { PPO } from '../types/PPO'
 import type { Intern } from '../types/Intern'
 import * as ppoApi from '../services/ppoApi'
 import * as internApi from '../services/internApi'
+import { useDialogs } from '../context/dialogState'
 
 type PPOProps = {
   ppoData: PPO[]
@@ -71,6 +72,7 @@ function toUiIntern(dto: internApi.InternDto): Intern {
 }
 
 function PPOPage({ ppoData, setPPOData }: PPOProps) {
+  const { confirm, notify } = useDialogs()
   const role = sessionStorage.getItem('role') as Role
   const userName = sessionStorage.getItem('name') || ''
 
@@ -185,7 +187,7 @@ function PPOPage({ ppoData, setPPOData }: PPOProps) {
 
   const savePPO = async (ppo: PPO) => {
     if (!ppo.internId) {
-      alert('Please select an intern.')
+      notify('Please select an intern.')
       return
     }
 
@@ -231,7 +233,7 @@ function PPOPage({ ppoData, setPPOData }: PPOProps) {
   const deletePPO = async (index: number) => {
     const ppo = filteredPPO[index]
 
-    if (!window.confirm(`Delete PPO record for "${ppo.intern}"?`)) {
+    if (!(await confirm(`Delete PPO record for "${ppo.intern}"?`))) {
       return
     }
 

@@ -12,6 +12,7 @@ import {
 
 import type { Task } from '../types/Task'
 import type { Intern } from '../types/Intern'
+import { useDialogs } from '../context/dialogState'
 
 type Props = {
   open: boolean
@@ -22,6 +23,7 @@ type Props = {
 }
 
 function AddTaskDialog({ open, handleClose, addTask, selectedTask, interns }: Props) {
+  const { notify } = useDialogs()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
 
@@ -56,7 +58,7 @@ function AddTaskDialog({ open, handleClose, addTask, selectedTask, interns }: Pr
 
   const handleSave = () => {
     if (!internId) {
-      alert('Please select an intern to assign this task to.')
+      notify('Please select an intern to assign this task to.')
       return
     }
 

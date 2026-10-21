@@ -22,6 +22,9 @@ import AssignmentIcon from '@mui/icons-material/Assignment'
 
 import * as taskApi from '../services/taskApi'
 import * as mentorApi from '../services/mentorApi'
+import * as evaluationApi from '../services/evaluationApi'
+import TaskCompletionEvaluationDialog from '../components/TaskCompletionEvaluationDialog'
+import type { CriteriaRatings } from '../utils/evaluationCriteria'
 
 const MAX_COMMENT = 2000
 
@@ -74,6 +77,8 @@ function TaskDetail() {
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
   const [commentDraft, setCommentDraft] = useState('')
   const [saving, setSaving] = useState(false)
+  const [evaluating, setEvaluating] = useState(false)
+  const isIntern = sessionStorage.getItem('role') === 'INTERN'
 
   const saveWork = async (payload: {
     status?: string
@@ -101,10 +106,43 @@ function TaskDetail() {
     if (await saveWork({ description: reqDraft })) setEditingReq(false)
   }
 
-  const savePlanning = async () => {
-    const progress = Math.min(100, Math.max(0, progressDraft))
+  const finishPlanning = async (progress: number) => {
     if (await saveWork({ status: taskApi.statusToBackend(statusDraft), progress }))
       setEditingPlan(false)
+  }
+
+  const savePlanning = async () => {
+    const progress = Math.min(100, Math.max(0, progressDraft))
+    if (!isIntern && statusDraft === 'Completed' && task?.status !== 'Completed') {
+      setEvaluating(true)
+      return
+    }
+    await finishPlanning(progress)
+  }
+
+  const submitEvaluation = async (ratings: CriteriaRatings, feedback: string) => {
+    if (!task?.internId) {
+      setError('This task has no intern assigned, so it cannot be evaluated.')
+      setEvaluating(false)
+      return
+    }
+    setSaving(true)
+    try {
+      await evaluationApi.createEvaluation({
+        internId: task.internId,
+        mentorId: task.mentorId,
+        taskId: task.id,
+        ...ratings,
+        feedback,
+      })
+    } catch {
+      setSaving(false)
+      setError('Failed to save the evaluation.')
+      return
+    }
+    setSaving(false)
+    setEvaluating(false)
+    await finishPlanning(Math.min(100, Math.max(0, progressDraft)))
   }
 
   const saveComment = async (commentId: number) => {
@@ -477,11 +515,13 @@ function TaskDetail() {
                 value={statusDraft}
                 onChange={(e) => setStatusDraft(e.target.value)}
               >
-                {['Not Started', 'Pending', 'In Progress', 'Completed'].map((s) => (
-                  <MenuItem key={s} value={s}>
-                    {s}
-                  </MenuItem>
-                ))}
+                {['Not Started', 'Pending', 'In Progress', 'Completed']
+                  .filter((s) => !isIntern || s !== 'Completed' || status === 'Completed')
+                  .map((s) => (
+                    <MenuItem key={s} value={s}>
+                      {s}
+                    </MenuItem>
+                  ))}
               </TextField>
             ) : (
               <Typography>{status}</Typography>
@@ -522,6 +562,15 @@ function TaskDetail() {
           )}
         </Paper>
       </Box>
+      {evaluating && (
+        <TaskCompletionEvaluationDialog
+          open
+          taskTitle={task.title}
+          saving={saving}
+          onCancel={() => setEvaluating(false)}
+          onSubmit={(ratings, feedback) => void submitEvaluation(ratings, feedback)}
+        />
+      )}
     </Box>
   )
 }

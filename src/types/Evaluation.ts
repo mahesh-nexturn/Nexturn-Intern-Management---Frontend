@@ -4,9 +4,12 @@ export type Evaluation = {
   internId?: number | null
   mentor: string
   mentorId?: number | null
-  technicalRating: number
-  communicationRating: number
-  problemSolvingRating: number
+  taskId?: number | null
+  requirementUnderstanding: number
+  technicalKnowledge: number
+  workQuality: number
+  taskCompletion: number
+  taskDemonstration: number
   overallRating: number
   feedback: string
 }

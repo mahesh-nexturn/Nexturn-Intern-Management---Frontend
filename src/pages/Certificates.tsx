@@ -31,6 +31,7 @@ import type { Certificate } from '../types/Certificate'
 import type { Intern } from '../types/Intern'
 import * as certificateApi from '../services/certificateApi'
 import * as internApi from '../services/internApi'
+import { useDialogs } from '../context/dialogState'
 
 type CertificatesProps = {
   certificates: Certificate[]
@@ -68,6 +69,7 @@ function toUiIntern(dto: internApi.InternDto): Intern {
 }
 
 function Certificates({ certificates, setCertificates }: CertificatesProps) {
+  const { confirm, notify } = useDialogs()
   const role = sessionStorage.getItem('role') as Role
   const userName = sessionStorage.getItem('name') || ''
 
@@ -188,7 +190,7 @@ function Certificates({ certificates, setCertificates }: CertificatesProps) {
 
   const saveCertificate = async (certificate: Certificate) => {
     if (!certificate.internId) {
-      alert('Please select an intern.')
+      notify('Please select an intern.')
       return
     }
 
@@ -234,9 +236,9 @@ function Certificates({ certificates, setCertificates }: CertificatesProps) {
     const certificate = filteredCertificates[index]
 
     if (
-      !window.confirm(
+      !(await confirm(
         `Delete certificate "${certificate.certificateName}" for "${certificate.intern}"?`,
-      )
+      ))
     ) {
       return
     }

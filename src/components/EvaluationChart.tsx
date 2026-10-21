@@ -1,18 +1,13 @@
 import { Box, Paper, Typography } from '@mui/material'
 
+import { EVALUATION_CRITERIA, type CriterionKey } from '../utils/evaluationCriteria'
+
 type EvaluationChartProps = {
   total: number
-  technicalAverage: number
-  communicationAverage: number
-  overallAverage: number
+  averages: Record<CriterionKey | 'overall', number>
 }
 
-function EvaluationChart({
-  total,
-  technicalAverage,
-  communicationAverage,
-  overallAverage,
-}: EvaluationChartProps) {
+function EvaluationChart({ total, averages }: EvaluationChartProps) {
   return (
     <Paper
       sx={{
@@ -35,25 +30,19 @@ function EvaluationChart({
           <Typography>Total Evaluations</Typography>
         </Box>
 
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="h4" color="primary.main">
-            {technicalAverage.toFixed(1)}
-          </Typography>
+        {EVALUATION_CRITERIA.map((criterion) => (
+          <Box key={criterion.key} sx={{ textAlign: 'center' }}>
+            <Typography variant="h4" color="primary.main">
+              {averages[criterion.key].toFixed(1)}
+            </Typography>
 
-          <Typography>Technical Avg</Typography>
-        </Box>
-
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="h4" color="warning.main">
-            {communicationAverage.toFixed(1)}
-          </Typography>
-
-          <Typography>Communication Avg</Typography>
-        </Box>
+            <Typography>{criterion.label} Avg</Typography>
+          </Box>
+        ))}
 
         <Box sx={{ textAlign: 'center' }}>
           <Typography variant="h4" color="success.main">
-            {overallAverage.toFixed(1)}
+            {averages.overall.toFixed(1)}
           </Typography>
 
           <Typography>Overall Avg</Typography>

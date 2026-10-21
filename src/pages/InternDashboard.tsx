@@ -4,6 +4,7 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts'
 
 import type { Task } from '../types/Task'
 import type { Meeting } from '../types/Meeting'
+import { getUpcomingMeetings } from '../utils/upcomingMeetings'
 import type { Attendance } from '../types/Attendance'
 import type { Evaluation } from '../types/Evaluation'
 
@@ -70,7 +71,7 @@ function InternDashboard({ tasks, meetings, attendance, evaluations }: InternDas
 
   const myTasks = tasks.filter((t) => t.assignedTo === internName)
 
-  const myMeetings = meetings.filter((m) => m.intern === internName)
+  const myMeetings = getUpcomingMeetings(meetings.filter((m) => m.intern === internName))
 
   const myAttendance = attendance.filter((a) => a.intern === internName)
 

@@ -1,11 +1,25 @@
-import { AppBar, Box, Toolbar, Typography, IconButton, Avatar, Menu, MenuItem } from '@mui/material'
+import {
+  AppBar,
+  Avatar,
+  Badge,
+  Box,
+  Button,
+  Divider,
+  IconButton,
+  Menu,
+  MenuItem,
+  Toolbar,
+  Typography,
+} from '@mui/material'
 
 import MenuIcon from '@mui/icons-material/Menu'
 import LogoutIcon from '@mui/icons-material/Logout'
+import NotificationsIcon from '@mui/icons-material/Notifications'
 
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
+import * as notificationApi from '../services/notificationApi'
 import AvatarUploadDialog from './AvatarUploadDialog'
 
 function Navbar({
@@ -21,6 +35,39 @@ function Navbar({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
   const open = Boolean(anchorEl)
+
+  const [bellAnchor, setBellAnchor] = useState<null | HTMLElement>(null)
+  const [unread, setUnread] = useState<notificationApi.NotificationDto[]>([])
+
+  useEffect(() => {
+    let active = true
+    const load = () =>
+      notificationApi
+        .listNotifications()
+        .then((list) => {
+          if (active) setUnread(list.filter((n) => n.status === 'Unread'))
+        })
+        .catch(() => undefined)
+
+    load()
+    const timer = window.setInterval(load, 60000)
+    window.addEventListener('notifications-changed', load)
+    return () => {
+      active = false
+      window.clearInterval(timer)
+      window.removeEventListener('notifications-changed', load)
+    }
+  }, [])
+
+  const handleNotificationClick = (id: number) => {
+    setBellAnchor(null)
+    setUnread((prev) => prev.filter((n) => n.id !== id))
+    notificationApi
+      .markNotificationRead(id)
+      .catch(() => undefined)
+      .finally(() => window.dispatchEvent(new Event('notifications-changed')))
+    navigate('/notifications')
+  }
 
   const avatarKey = `avatar_${sessionStorage.getItem('userId') ?? 'me'}`
   const [avatar, setAvatar] = useState(localStorage.getItem(avatarKey) || '')
@@ -90,6 +137,56 @@ function Navbar({
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <IconButton color="inherit" onClick={(e) => setBellAnchor(e.currentTarget)}>
+            <Badge badgeContent={unread.length} color="error" max={99}>
+              <NotificationsIcon />
+            </Badge>
+          </IconButton>
+
+          <Menu
+            anchorEl={bellAnchor}
+            open={Boolean(bellAnchor)}
+            onClose={() => setBellAnchor(null)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            slotProps={{ paper: { sx: { width: 340, maxHeight: 420 } } }}
+          >
+            <Typography sx={{ px: 2, py: 1, fontWeight: 700 }}>
+              Notifications ({unread.length} unread)
+            </Typography>
+            <Divider />
+            {unread.length === 0 && (
+              <Typography variant="body2" color="text.secondary" sx={{ px: 2, py: 2 }}>
+                No unread notifications
+              </Typography>
+            )}
+            {unread.slice(0, 5).map((n) => (
+              <MenuItem key={n.id} onClick={() => handleNotificationClick(n.id)}>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography noWrap sx={{ fontWeight: 600 }}>
+                    {n.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" noWrap>
+                    {n.message}
+                  </Typography>
+                </Box>
+              </MenuItem>
+            ))}
+            <Divider />
+            <Box sx={{ px: 1, py: 0.5 }}>
+              <Button
+                fullWidth
+                size="small"
+                onClick={() => {
+                  setBellAnchor(null)
+                  navigate('/notifications')
+                }}
+              >
+                View all notifications
+              </Button>
+            </Box>
+          </Menu>
+
           <Box sx={{ textAlign: 'right' }}>
             <Typography sx={{ fontWeight: 700 }}>{name}</Typography>
             <Typography variant="body2" color="text.secondary">

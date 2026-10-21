@@ -38,6 +38,7 @@ import type { Intern } from '../types/Intern'
 import type { Mentor } from '../types/Mentor'
 import * as attendanceApi from '../services/attendanceApi'
 import { toUiAttendance } from '../utils/mappers/attendanceMapper'
+import { useDialogs } from '../context/dialogState'
 
 type AttendanceProps = {
   attendance: AttendanceType[]
@@ -53,6 +54,7 @@ function formatTime(iso?: string | null) {
 }
 
 function Attendance({ attendance, setAttendance, interns, mentors }: AttendanceProps) {
+  const { notify } = useDialogs()
   const [open, setOpen] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
   const [weekOffset, setWeekOffset] = useState(0)
@@ -280,7 +282,7 @@ function Attendance({ attendance, setAttendance, interns, mentors }: AttendanceP
     }
 
     if (!record.internId) {
-      alert('Please select an intern.')
+      notify('Please select an intern.')
       return
     }
 

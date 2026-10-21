@@ -4,6 +4,7 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 import type { Intern } from '../types/Intern'
 import type { Meeting } from '../types/Meeting'
+import { getUpcomingMeetings } from '../utils/upcomingMeetings'
 import type { Task } from '../types/Task'
 import type { Evaluation } from '../types/Evaluation'
 
@@ -117,7 +118,7 @@ function MentorDashboard({ interns = [], meetings = [], tasks = [] }: MentorDash
     },
   ].filter((item) => item.value > 0)
 
-  const upcomingMeetingsList = myMeetings.filter((meeting) => meeting.status === 'Scheduled')
+  const upcomingMeetingsList = getUpcomingMeetings(myMeetings)
 
   const today = new Date().toLocaleDateString('en-IN', {
     day: 'numeric',

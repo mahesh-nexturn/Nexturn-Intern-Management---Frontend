@@ -35,6 +35,7 @@ import TrainingChart from '../components/TrainingChart'
 import * as trainingApi from '../services/trainingApi'
 import { statusToBackend } from '../services/trainingApi'
 import { toUiTraining } from '../utils/mappers/trainingMapper'
+import { useDialogs } from '../context/dialogState'
 
 type TrainingProps = {
   trainings: TrainingType[]
@@ -46,6 +47,7 @@ type TrainingProps = {
 type Role = 'HR' | 'MENTOR' | 'INTERN' | null
 
 function Training({ trainings, setTrainings, interns, mentors }: TrainingProps) {
+  const { notify } = useDialogs()
   const [open, setOpen] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -129,7 +131,7 @@ function Training({ trainings, setTrainings, interns, mentors }: TrainingProps) 
 
   const saveTraining = async (training: TrainingType) => {
     if (!training.internId) {
-      alert('Please select an intern.')
+      notify('Please select an intern.')
       return
     }
 
