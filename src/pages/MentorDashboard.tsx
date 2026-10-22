@@ -3,7 +3,7 @@ import { Box, Chip, Divider, Paper, Typography } from '@mui/material'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 import type { Evaluation, Intern, Meeting, Task } from '../types'
-import { getUpcomingMeetings } from '../utils/upcomingMeetings'
+import { getUpcomingMeetings } from '../utils'
 
 type MentorDashboardProps = {
   interns?: Intern[]

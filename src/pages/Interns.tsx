@@ -32,8 +32,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 
 import type { Hr, Intern, Mentor } from '../types'
-import * as internApi from '../services/internApi'
-import * as hrApi from '../services/hrApi'
+import { hrApi, internApi } from '../services'
 import { useDialogs } from '../context/dialogState'
 
 type InternsProps = {

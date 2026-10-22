@@ -2,22 +2,26 @@ import { useEffect, useState } from 'react'
 
 import AppRoutes from './routes/AppRoutes'
 import { useAuth } from './context/useAuth'
-import * as mentorApi from './services/mentorApi'
-import * as internApi from './services/internApi'
-import * as attendanceApi from './services/attendanceApi'
-import * as meetingApi from './services/meetingApi'
-import * as documentApi from './services/documentApi'
-import * as trainingApi from './services/trainingApi'
-import * as evaluationApi from './services/evaluationApi'
-import * as notificationApi from './services/notificationApi'
-import * as taskApi from './services/taskApi'
-import { toUiAttendance } from './utils/mappers/attendanceMapper'
-import { toUiMeeting } from './utils/mappers/meetingMapper'
-import { toUiDocument } from './utils/mappers/documentMapper'
-import { toUiTraining } from './utils/mappers/trainingMapper'
-import { toUiEvaluation } from './utils/mappers/evaluationMapper'
-import { toUiNotification } from './utils/mappers/notificationMapper'
-import { toUiTask } from './utils/mappers/taskMapper'
+import {
+  attendanceApi,
+  documentApi,
+  evaluationApi,
+  internApi,
+  meetingApi,
+  mentorApi,
+  notificationApi,
+  taskApi,
+  trainingApi,
+} from './services'
+import {
+  toUiAttendance,
+  toUiDocument,
+  toUiEvaluation,
+  toUiMeeting,
+  toUiNotification,
+  toUiTask,
+  toUiTraining,
+} from './utils'
 
 import type {
   Announcement,

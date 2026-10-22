@@ -28,8 +28,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import AddPPODialog from '../components/AddPPODialog'
 import PPOChart from '../components/PPOChart'
 import type { Intern, PPO } from '../types'
-import * as ppoApi from '../services/ppoApi'
-import * as internApi from '../services/internApi'
+import { internApi, ppoApi } from '../services'
 import { useDialogs } from '../context/dialogState'
 
 type PPOProps = {

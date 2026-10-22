@@ -1,6 +1,6 @@
 import { Box, Rating, TextField, Typography } from '@mui/material'
 
-import { EVALUATION_CRITERIA, type CriteriaRatings } from '../utils/evaluationCriteria'
+import { EVALUATION_CRITERIA, type CriteriaRatings } from '../utils'
 
 type Props = {
   ratings: CriteriaRatings

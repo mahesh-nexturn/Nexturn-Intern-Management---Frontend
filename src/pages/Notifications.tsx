@@ -29,8 +29,8 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import AddNotificationDialog from '../components/AddNotificationDialog'
 import NotificationChart from '../components/NotificationChart'
 import type { Notification } from '../types'
-import * as notificationApi from '../services/notificationApi'
-import { toUiNotification } from '../utils/mappers/notificationMapper'
+import { notificationApi } from '../services'
+import { toUiNotification } from '../utils'
 import { useDialogs } from '../context/dialogState'
 
 type NotificationsProps = {

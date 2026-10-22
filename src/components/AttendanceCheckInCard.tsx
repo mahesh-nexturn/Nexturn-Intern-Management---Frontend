@@ -4,7 +4,7 @@ import { Alert, Box, Button, Chip, Paper, Typography } from '@mui/material'
 import LoginIcon from '@mui/icons-material/Login'
 import LogoutIcon from '@mui/icons-material/Logout'
 
-import * as attendanceApi from '../services/attendanceApi'
+import { attendanceApi } from '../services'
 
 type Props = {
   onChange: (record: attendanceApi.AttendanceDto, requiredSeconds: number) => void

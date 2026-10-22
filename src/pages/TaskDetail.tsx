@@ -20,11 +20,9 @@ import EditIcon from '@mui/icons-material/Edit'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import AssignmentIcon from '@mui/icons-material/Assignment'
 
-import * as taskApi from '../services/taskApi'
-import * as mentorApi from '../services/mentorApi'
-import * as evaluationApi from '../services/evaluationApi'
+import { evaluationApi, mentorApi, taskApi } from '../services'
 import TaskCompletionEvaluationDialog from '../components/TaskCompletionEvaluationDialog'
-import type { CriteriaRatings } from '../utils/evaluationCriteria'
+import type { CriteriaRatings } from '../utils'
 
 const MAX_COMMENT = 2000
 

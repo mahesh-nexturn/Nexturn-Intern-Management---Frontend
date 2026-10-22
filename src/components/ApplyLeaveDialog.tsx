@@ -12,7 +12,7 @@ import {
   Typography,
 } from '@mui/material'
 
-import type { LeavePayload } from '../services/leaveApi'
+import type { LeavePayload } from '../services'
 
 const LEAVE_TYPES = ['Casual Leave', 'Sick Leave', 'Emergency Leave', 'Other']
 

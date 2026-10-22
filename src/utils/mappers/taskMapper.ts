@@ -1,6 +1,5 @@
 import type { Intern, Task } from '../../types'
-import type * as taskApi from '../../services/taskApi'
-import { statusToUi } from '../../services/taskApi'
+import { taskApi } from '../../services'
 
 export function toUiTask(dto: taskApi.TaskDto, interns: Intern[] = []): Task {
   const intern = interns.find((item) => item.id === dto.internId)
@@ -15,7 +14,7 @@ export function toUiTask(dto: taskApi.TaskDto, interns: Intern[] = []): Task {
     mentorId: dto.mentorId ?? intern?.mentorId ?? null,
     priority: dto.priority as Task['priority'],
     dueDate: dto.dueDate || '',
-    status: statusToUi(dto.status) as Task['status'],
+    status: taskApi.statusToUi(dto.status) as Task['status'],
     progress: dto.progress,
   }
 }

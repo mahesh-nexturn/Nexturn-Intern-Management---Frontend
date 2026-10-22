@@ -28,8 +28,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import AddCertificateDialog from '../components/AddCertificateDialog'
 import CertificateChart from '../components/CertificateChart'
 import type { Certificate, Intern } from '../types'
-import * as certificateApi from '../services/certificateApi'
-import * as internApi from '../services/internApi'
+import { certificateApi, internApi } from '../services'
 import { useDialogs } from '../context/dialogState'
 
 type CertificatesProps = {

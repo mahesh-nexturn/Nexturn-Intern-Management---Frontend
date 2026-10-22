@@ -30,11 +30,8 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import AddEvaluationDialog from '../components/AddEvaluationDialog'
 import EvaluationChart from '../components/EvaluationChart'
 import type { Evaluation, Intern } from '../types'
-import * as evaluationApi from '../services/evaluationApi'
-import * as internApi from '../services/internApi'
-import * as taskApi from '../services/taskApi'
-import { EMPTY_RATINGS, EVALUATION_CRITERIA } from '../utils/evaluationCriteria'
-import { toUiEvaluation } from '../utils/mappers/evaluationMapper'
+import { evaluationApi, internApi, taskApi } from '../services'
+import { EMPTY_RATINGS, EVALUATION_CRITERIA, toUiEvaluation } from '../utils'
 import { useDialogs } from '../context/dialogState'
 
 type EvaluationsProps = {

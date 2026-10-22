@@ -29,8 +29,8 @@ import type { Document } from '../types'
 
 import AddDocumentDialog from '../components/AddDocumentDialog'
 import DocumentChart from '../components/DocumentChart'
-import * as documentApi from '../services/documentApi'
-import { toUiDocument } from '../utils/mappers/documentMapper'
+import { documentApi } from '../services'
+import { toUiDocument } from '../utils'
 import { useDialogs } from '../context/dialogState'
 
 type DocumentsProps = {

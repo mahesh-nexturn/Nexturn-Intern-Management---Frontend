@@ -1,5 +1,5 @@
 import type { Intern, Meeting, Mentor } from '../../types'
-import type * as meetingApi from '../../services/meetingApi'
+import type { meetingApi } from '../../services'
 
 export function toUiMeeting(
   dto: meetingApi.MeetingDto,

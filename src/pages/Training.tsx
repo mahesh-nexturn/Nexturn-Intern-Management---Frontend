@@ -30,9 +30,8 @@ import type { Intern, Mentor, Training as TrainingType } from '../types'
 
 import AddTrainingDialog from '../components/AddTrainingDialog'
 import TrainingChart from '../components/TrainingChart'
-import * as trainingApi from '../services/trainingApi'
-import { statusToBackend } from '../services/trainingApi'
-import { toUiTraining } from '../utils/mappers/trainingMapper'
+import { trainingApi } from '../services'
+import { toUiTraining } from '../utils'
 import { useDialogs } from '../context/dialogState'
 
 type TrainingProps = {
@@ -139,7 +138,7 @@ function Training({ trainings, setTrainings, interns, mentors }: TrainingProps) 
       mentorId: training.mentorId ?? null,
       startDate: training.startDate || undefined,
       endDate: training.endDate || undefined,
-      status: statusToBackend(training.status),
+      status: trainingApi.statusToBackend(training.status),
       progress: training.progress,
     }
 

@@ -29,8 +29,8 @@ import type { Intern, Meeting, Mentor } from '../types'
 
 import AddMeetingDialog from '../components/AddMeetingDialog'
 import MeetingChart from '../components/MeetingChart'
-import * as meetingApi from '../services/meetingApi'
-import { toUiMeeting } from '../utils/mappers/meetingMapper'
+import { meetingApi } from '../services'
+import { toUiMeeting } from '../utils'
 import { useDialogs } from '../context/dialogState'
 
 type MeetingsProps = {

@@ -14,7 +14,7 @@ import {
   Typography,
 } from '@mui/material'
 
-import * as leaveApi from '../services/leaveApi'
+import { leaveApi } from '../services'
 
 type Props = {
   isApprover: boolean

@@ -24,7 +24,7 @@ import {
 import type { Report } from '../types'
 
 import ReportChart from '../components/ReportChart'
-import * as reportApi from '../services/reportApi'
+import { reportApi } from '../services'
 
 type ReportsProps = {
   reports: Report[]

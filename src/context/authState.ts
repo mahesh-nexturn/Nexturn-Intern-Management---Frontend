@@ -1,5 +1,5 @@
 import { createContext } from 'react'
-import * as authApi from '../services/authApi'
+import { authApi } from '../services'
 
 // UI-facing role: "HR" means a management user (backend "ADMIN" or backend "HR").
 // Pages check role === "HR" for manage permissions. The exact backend role is kept

@@ -32,9 +32,8 @@ import AddTaskDialog from '../components/AddTaskDialog'
 import TaskChart from '../components/TaskChart'
 
 import type { Intern, Task } from '../types'
-import * as taskApi from '../services/taskApi'
-import { statusToBackend } from '../services/taskApi'
-import { toUiTask } from '../utils/mappers/taskMapper'
+import { taskApi } from '../services'
+import { toUiTask } from '../utils'
 
 type TasksProps = {
   tasks: Task[]
@@ -151,7 +150,7 @@ function Tasks({ tasks, setTasks, interns }: TasksProps) {
       mentorId: task.mentorId,
       priority: task.priority,
       dueDate: task.dueDate,
-      status: statusToBackend(task.status),
+      status: taskApi.statusToBackend(task.status),
       progress: task.progress,
     }
 

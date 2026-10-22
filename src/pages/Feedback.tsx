@@ -21,7 +21,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 
 import { useAuth } from '../context/useAuth'
 import type { UserRole } from '../context/authState'
-import * as feedbackApi from '../services/feedbackApi'
+import { feedbackApi } from '../services'
 import { useDialogs } from '../context/dialogState'
 
 type ToastState = {

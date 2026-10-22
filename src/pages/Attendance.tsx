@@ -31,11 +31,10 @@ import AddAttendanceDialog from '../components/AddAttendanceDialog'
 import AttendanceCheckInCard from '../components/AttendanceCheckInCard'
 import ApplyLeaveDialog from '../components/ApplyLeaveDialog'
 import LeaveRequestsPanel from '../components/LeaveRequestsPanel'
-import * as leaveApi from '../services/leaveApi'
+import { attendanceApi, leaveApi } from '../services'
 
 import type { Attendance as AttendanceType, Intern, Mentor } from '../types'
-import * as attendanceApi from '../services/attendanceApi'
-import { toUiAttendance } from '../utils/mappers/attendanceMapper'
+import { toUiAttendance } from '../utils'
 import { useDialogs } from '../context/dialogState'
 
 type AttendanceProps = {

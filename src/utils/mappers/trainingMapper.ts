@@ -1,6 +1,5 @@
 import type { Intern, Mentor, Training as TrainingType } from '../../types'
-import type * as trainingApi from '../../services/trainingApi'
-import { statusToUi } from '../../services/trainingApi'
+import { trainingApi } from '../../services'
 
 export function toUiTraining(
   dto: trainingApi.TrainingDto,
@@ -19,7 +18,7 @@ export function toUiTraining(
     mentorId: dto.mentorId,
     startDate: dto.startDate || '',
     endDate: dto.endDate || '',
-    status: statusToUi(dto.status) as TrainingType['status'],
+    status: trainingApi.statusToUi(dto.status) as TrainingType['status'],
     progress: dto.progress,
   }
 }

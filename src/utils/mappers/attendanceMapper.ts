@@ -1,5 +1,5 @@
 import type { Attendance as AttendanceType, Intern, Mentor } from '../../types'
-import type * as attendanceApi from '../../services/attendanceApi'
+import type { attendanceApi } from '../../services'
 
 export function toUiAttendance(
   dto: attendanceApi.AttendanceDto,

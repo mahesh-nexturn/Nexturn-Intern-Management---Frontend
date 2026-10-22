@@ -11,15 +11,9 @@ import {
 } from '@mui/material'
 
 import EvaluationFormFields from './EvaluationFormFields'
-import {
-  EMPTY_RATINGS,
-  allRated,
-  overallFromRatings,
-  type CriteriaRatings,
-} from '../utils/evaluationCriteria'
+import { EMPTY_RATINGS, allRated, overallFromRatings, type CriteriaRatings } from '../utils'
 import type { Evaluation, Intern } from '../types'
-import * as taskApi from '../services/taskApi'
-import * as evaluationApi from '../services/evaluationApi'
+import { evaluationApi, taskApi } from '../services'
 import { useDialogs } from '../context/dialogState'
 
 type AddEvaluationDialogProps = {

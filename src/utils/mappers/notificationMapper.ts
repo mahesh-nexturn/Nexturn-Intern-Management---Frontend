@@ -1,5 +1,5 @@
 import type { Notification } from '../../types'
-import type * as notificationApi from '../../services/notificationApi'
+import type { notificationApi } from '../../services'
 
 function formatDate(value?: string | null) {
   return value ? value.split('T')[0] : ''

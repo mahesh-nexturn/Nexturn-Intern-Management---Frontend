@@ -1,6 +1,6 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Backdrop, CircularProgress } from '@mui/material'
-import { hasPendingRequests, subscribeToLoading } from '../services/loadingStore'
+import { hasPendingRequests, subscribeToLoading } from '../services'
 
 // Wait briefly before showing so fast requests don't flash a spinner.
 const SHOW_DELAY_MS = 250

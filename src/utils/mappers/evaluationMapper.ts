@@ -1,5 +1,5 @@
 import type { Evaluation, Intern } from '../../types'
-import type * as evaluationApi from '../../services/evaluationApi'
+import type { evaluationApi } from '../../services'
 
 export function toUiEvaluation(
   dto: evaluationApi.EvaluationDto,

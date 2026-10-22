@@ -10,7 +10,7 @@ import {
 } from '@mui/material'
 
 import EvaluationFormFields from './EvaluationFormFields'
-import { EMPTY_RATINGS, allRated, type CriteriaRatings } from '../utils/evaluationCriteria'
+import { EMPTY_RATINGS, allRated, type CriteriaRatings } from '../utils'
 
 type Props = {
   open: boolean

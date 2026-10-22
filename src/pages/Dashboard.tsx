@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { listHrs } from '../services/hrApi'
-import { isAdminUser } from '../services/authService'
-import { getUpcomingMeetings } from '../utils/upcomingMeetings'
+import { hrApi, isAdminUser } from '../services'
+import { getUpcomingMeetings } from '../utils'
 import { Box, Chip, Divider, Paper, Typography } from '@mui/material'
 
 import {
@@ -133,7 +132,8 @@ function Dashboard({
 
   useEffect(() => {
     if (!isAdmin) return
-    listHrs()
+    hrApi
+      .listHrs()
       .then((list) => setHrCount(list.length))
       .catch(() => setHrCount(0))
   }, [isAdmin])

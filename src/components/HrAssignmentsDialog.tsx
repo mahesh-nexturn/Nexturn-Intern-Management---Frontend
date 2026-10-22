@@ -14,9 +14,7 @@ import {
 } from '@mui/material'
 
 import type { Hr } from '../types'
-import * as hrApi from '../services/hrApi'
-import * as mentorApi from '../services/mentorApi'
-import * as internApi from '../services/internApi'
+import { hrApi, internApi, mentorApi } from '../services'
 
 type Option = { id: number; label: string }
 

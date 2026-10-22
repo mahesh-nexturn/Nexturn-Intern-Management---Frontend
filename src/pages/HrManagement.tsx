@@ -28,7 +28,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd'
 
 import type { Hr } from '../types'
-import * as hrApi from '../services/hrApi'
+import { hrApi } from '../services'
 import HrAssignmentsDialog from '../components/HrAssignmentsDialog'
 import { useDialogs } from '../context/dialogState'
 

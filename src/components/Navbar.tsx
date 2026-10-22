@@ -19,7 +19,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
-import * as notificationApi from '../services/notificationApi'
+import { notificationApi } from '../services'
 import AvatarUploadDialog from './AvatarUploadDialog'
 
 function Navbar({

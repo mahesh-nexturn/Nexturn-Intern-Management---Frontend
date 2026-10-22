@@ -1,6 +1,6 @@
 import { Box, Paper, Typography } from '@mui/material'
 
-import { EVALUATION_CRITERIA, type CriterionKey } from '../utils/evaluationCriteria'
+import { EVALUATION_CRITERIA, type CriterionKey } from '../utils'
 
 type EvaluationChartProps = {
   total: number

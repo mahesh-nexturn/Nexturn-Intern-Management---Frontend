@@ -13,8 +13,7 @@ import {
   Typography,
 } from '@mui/material'
 
-import * as authApi from '../services/authApi'
-import * as settingsApi from '../services/settingsApi'
+import { authApi, settingsApi } from '../services'
 
 type ToastState = {
   message: string

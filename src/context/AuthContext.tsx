@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import type { ReactNode } from 'react'
-import * as authApi from '../services/authApi'
-import { clearTokens, getAccessToken } from '../services/api'
+import { authApi, clearTokens, getAccessToken } from '../services'
 import { AuthContext, backendRoleToUi, type AuthUser } from './authState'
 
 type Props = {
