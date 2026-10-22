@@ -27,7 +27,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 
 import AddAnnouncementDialog from '../components/AddAnnouncementDialog'
 import AnnouncementChart from '../components/AnnouncementChart'
-import type { Announcement } from '../types/Announcement'
+import type { Announcement } from '../types'
 import * as announcementApi from '../services/announcementApi'
 import { useDialogs } from '../context/dialogState'
 

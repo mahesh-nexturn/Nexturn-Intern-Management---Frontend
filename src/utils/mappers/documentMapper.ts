@@ -1,4 +1,4 @@
-import type { Document } from '../../types/Document'
+import type { Document } from '../../types'
 import type * as documentApi from '../../services/documentApi'
 
 export function toUiDocument(dto: documentApi.DocumentDto): Document {

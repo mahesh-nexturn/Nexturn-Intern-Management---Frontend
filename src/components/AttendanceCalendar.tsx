@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { Box, Paper, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 
-import type { Attendance } from '../types/Attendance'
-import type { Intern } from '../types/Intern'
+import type { Attendance, Intern } from '../types'
 
 import AttendanceChart from './AttendanceChart'
 import AttendanceLegend from './AttendanceLegend'

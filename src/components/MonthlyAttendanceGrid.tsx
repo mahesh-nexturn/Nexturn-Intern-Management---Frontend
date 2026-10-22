@@ -1,5 +1,5 @@
 import { Box, Paper, Typography } from '@mui/material'
-import type { Attendance } from '../types/Attendance'
+import type { Attendance } from '../types'
 
 type Props = {
   attendance: Attendance[]

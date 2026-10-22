@@ -1,4 +1,4 @@
-import type { Meeting } from '../types/Meeting'
+import type { Meeting } from '../types'
 
 function meetingTimestamp(meeting: Pick<Meeting, 'date' | 'time'>) {
   return new Date(`${meeting.date}T${(meeting.time || '00:00').slice(0, 5)}`).getTime()

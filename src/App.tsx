@@ -19,19 +19,21 @@ import { toUiEvaluation } from './utils/mappers/evaluationMapper'
 import { toUiNotification } from './utils/mappers/notificationMapper'
 import { toUiTask } from './utils/mappers/taskMapper'
 
-import type { Mentor } from './types/Mentor'
-import type { Intern } from './types/Intern'
-import type { Attendance } from './types/Attendance'
-import type { Meeting } from './types/Meeting'
-import type { Document } from './types/Document'
-import type { Training } from './types/Training'
-import type { Evaluation } from './types/Evaluation'
-import type { Notification } from './types/Notification'
-import type { Task } from './types/Task'
-import type { PPO } from './types/PPO'
-import type { Report } from './types/Report'
-import type { Certificate } from './types/Certificate'
-import type { Announcement } from './types/Announcement'
+import type {
+  Announcement,
+  Attendance,
+  Certificate,
+  Document,
+  Evaluation,
+  Intern,
+  Meeting,
+  Mentor,
+  Notification,
+  PPO,
+  Report,
+  Task,
+  Training,
+} from './types'
 
 function App() {
   const { user } = useAuth()

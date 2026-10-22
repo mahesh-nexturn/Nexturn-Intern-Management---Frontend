@@ -1,6 +1,6 @@
 import api from './api'
 import type { ApiResponse } from './api'
-import type { Hr } from '../types/Hr'
+import type { Hr } from '../types'
 import type { MentorDto } from './mentorApi'
 import type { InternDto } from './internApi'
 

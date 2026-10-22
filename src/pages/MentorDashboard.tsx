@@ -2,11 +2,8 @@ import { Box, Chip, Divider, Paper, Typography } from '@mui/material'
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
-import type { Intern } from '../types/Intern'
-import type { Meeting } from '../types/Meeting'
+import type { Evaluation, Intern, Meeting, Task } from '../types'
 import { getUpcomingMeetings } from '../utils/upcomingMeetings'
-import type { Task } from '../types/Task'
-import type { Evaluation } from '../types/Evaluation'
 
 type MentorDashboardProps = {
   interns?: Intern[]

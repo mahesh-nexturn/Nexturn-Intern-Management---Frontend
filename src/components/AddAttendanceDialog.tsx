@@ -10,8 +10,7 @@ import {
   TextField,
 } from '@mui/material'
 
-import type { Attendance } from '../types/Attendance'
-import type { Intern } from '../types/Intern'
+import type { Attendance, Intern } from '../types'
 import { useDialogs } from '../context/dialogState'
 
 type AddAttendanceDialogProps = {

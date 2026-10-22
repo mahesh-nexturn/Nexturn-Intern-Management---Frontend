@@ -10,7 +10,7 @@ import {
   TextField,
 } from '@mui/material'
 
-import type { Announcement } from '../types/Announcement'
+import type { Announcement } from '../types'
 
 type AddAnnouncementDialogProps = {
   open: boolean

@@ -11,7 +11,7 @@ import {
   Typography,
 } from '@mui/material'
 
-import type { Document } from '../types/Document'
+import type { Document } from '../types'
 import { useDialogs } from '../context/dialogState'
 
 type AddDocumentDialogProps = {

@@ -10,8 +10,7 @@ import {
   TextField,
 } from '@mui/material'
 
-import type { PPO } from '../types/PPO'
-import type { Intern } from '../types/Intern'
+import type { Intern, PPO } from '../types'
 import { useDialogs } from '../context/dialogState'
 
 type AddPPODialogProps = {

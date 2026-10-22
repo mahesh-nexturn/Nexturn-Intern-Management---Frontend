@@ -1,6 +1,4 @@
-import type { Meeting } from '../../types/Meeting'
-import type { Intern } from '../../types/Intern'
-import type { Mentor } from '../../types/Mentor'
+import type { Intern, Meeting, Mentor } from '../../types'
 import type * as meetingApi from '../../services/meetingApi'
 
 export function toUiMeeting(

@@ -1,6 +1,4 @@
-import type { Training as TrainingType } from '../../types/Training'
-import type { Intern } from '../../types/Intern'
-import type { Mentor } from '../../types/Mentor'
+import type { Intern, Mentor, Training as TrainingType } from '../../types'
 import type * as trainingApi from '../../services/trainingApi'
 import { statusToUi } from '../../services/trainingApi'
 

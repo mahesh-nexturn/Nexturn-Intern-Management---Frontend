@@ -27,19 +27,21 @@ import HrManagement from '../pages/HrManagement'
 import MainLayout from '../layouts/MainLayout'
 import ProtectedRoute from '../components/ProtectedRoute'
 
-import type { Mentor } from '../types/Mentor'
-import type { Intern } from '../types/Intern'
-import type { Task } from '../types/Task'
-import type { Attendance as AttendanceType } from '../types/Attendance'
-import type { Meeting } from '../types/Meeting'
-import type { Document } from '../types/Document'
-import type { Training as TrainingType } from '../types/Training'
-import type { Evaluation } from '../types/Evaluation'
-import type { Notification } from '../types/Notification'
-import type { PPO as PPOType } from '../types/PPO'
-import type { Report } from '../types/Report'
-import type { Announcement } from '../types/Announcement'
-import type { Certificate } from '../types/Certificate'
+import type {
+  Announcement,
+  Attendance as AttendanceType,
+  Certificate,
+  Document,
+  Evaluation,
+  Intern,
+  Meeting,
+  Mentor,
+  Notification,
+  PPO as PPOType,
+  Report,
+  Task,
+  Training as TrainingType,
+} from '../types'
 
 type AppRoutesProps = {
   mentors: Mentor[]

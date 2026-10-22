@@ -10,7 +10,7 @@ import {
   TextField,
 } from '@mui/material'
 
-import type { Notification } from '../types/Notification'
+import type { Notification } from '../types'
 
 type AddNotificationDialogProps = {
   open: boolean

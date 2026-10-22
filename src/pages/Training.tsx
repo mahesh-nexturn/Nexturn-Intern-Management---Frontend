@@ -26,9 +26,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 
-import type { Training as TrainingType } from '../types/Training'
-import type { Intern } from '../types/Intern'
-import type { Mentor } from '../types/Mentor'
+import type { Intern, Mentor, Training as TrainingType } from '../types'
 
 import AddTrainingDialog from '../components/AddTrainingDialog'
 import TrainingChart from '../components/TrainingChart'

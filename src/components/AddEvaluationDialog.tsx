@@ -17,8 +17,7 @@ import {
   overallFromRatings,
   type CriteriaRatings,
 } from '../utils/evaluationCriteria'
-import type { Evaluation } from '../types/Evaluation'
-import type { Intern } from '../types/Intern'
+import type { Evaluation, Intern } from '../types'
 import * as taskApi from '../services/taskApi'
 import * as evaluationApi from '../services/evaluationApi'
 import { useDialogs } from '../context/dialogState'

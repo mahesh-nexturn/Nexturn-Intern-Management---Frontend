@@ -18,13 +18,15 @@ import {
   YAxis,
 } from 'recharts'
 
-import type { Intern } from '../types/Intern'
-import type { Attendance } from '../types/Attendance'
-import type { Meeting } from '../types/Meeting'
-import type { Document } from '../types/Document'
-import type { Training } from '../types/Training'
-import type { Evaluation } from '../types/Evaluation'
-import type { Notification } from '../types/Notification'
+import type {
+  Attendance,
+  Document,
+  Evaluation,
+  Intern,
+  Meeting,
+  Notification,
+  Training,
+} from '../types'
 
 type DashboardProps = {
   interns: Intern[]

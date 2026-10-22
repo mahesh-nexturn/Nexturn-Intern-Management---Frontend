@@ -10,8 +10,7 @@ import {
   MenuItem,
 } from '@mui/material'
 
-import type { Task } from '../types/Task'
-import type { Intern } from '../types/Intern'
+import type { Intern, Task } from '../types'
 import { useDialogs } from '../context/dialogState'
 
 type Props = {

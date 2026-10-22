@@ -1,5 +1,4 @@
-import type { Task } from '../../types/Task'
-import type { Intern } from '../../types/Intern'
+import type { Intern, Task } from '../../types'
 import type * as taskApi from '../../services/taskApi'
 import { statusToUi } from '../../services/taskApi'
 

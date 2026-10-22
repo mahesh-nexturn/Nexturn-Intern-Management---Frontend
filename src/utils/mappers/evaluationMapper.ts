@@ -1,5 +1,4 @@
-import type { Evaluation } from '../../types/Evaluation'
-import type { Intern } from '../../types/Intern'
+import type { Evaluation, Intern } from '../../types'
 import type * as evaluationApi from '../../services/evaluationApi'
 
 export function toUiEvaluation(

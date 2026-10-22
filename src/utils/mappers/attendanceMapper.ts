@@ -1,6 +1,4 @@
-import type { Attendance as AttendanceType } from '../../types/Attendance'
-import type { Intern } from '../../types/Intern'
-import type { Mentor } from '../../types/Mentor'
+import type { Attendance as AttendanceType, Intern, Mentor } from '../../types'
 import type * as attendanceApi from '../../services/attendanceApi'
 
 export function toUiAttendance(

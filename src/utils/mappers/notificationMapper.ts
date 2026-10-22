@@ -1,4 +1,4 @@
-import type { Notification } from '../../types/Notification'
+import type { Notification } from '../../types'
 import type * as notificationApi from '../../services/notificationApi'
 
 function formatDate(value?: string | null) {

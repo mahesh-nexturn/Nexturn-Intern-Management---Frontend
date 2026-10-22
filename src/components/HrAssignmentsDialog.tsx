@@ -13,7 +13,7 @@ import {
   Typography,
 } from '@mui/material'
 
-import type { Hr } from '../types/Hr'
+import type { Hr } from '../types'
 import * as hrApi from '../services/hrApi'
 import * as mentorApi from '../services/mentorApi'
 import * as internApi from '../services/internApi'

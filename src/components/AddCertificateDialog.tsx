@@ -10,8 +10,7 @@ import {
   TextField,
 } from '@mui/material'
 
-import type { Certificate } from '../types/Certificate'
-import type { Intern } from '../types/Intern'
+import type { Certificate, Intern } from '../types'
 import { useDialogs } from '../context/dialogState'
 
 type AddCertificateDialogProps = {

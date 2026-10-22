@@ -25,9 +25,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 
-import type { Meeting } from '../types/Meeting'
-import type { Intern } from '../types/Intern'
-import type { Mentor } from '../types/Mentor'
+import type { Intern, Meeting, Mentor } from '../types'
 
 import AddMeetingDialog from '../components/AddMeetingDialog'
 import MeetingChart from '../components/MeetingChart'

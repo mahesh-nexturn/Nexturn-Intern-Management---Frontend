@@ -25,7 +25,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete'
 import DownloadIcon from '@mui/icons-material/Download'
 
-import type { Document } from '../types/Document'
+import type { Document } from '../types'
 
 import AddDocumentDialog from '../components/AddDocumentDialog'
 import DocumentChart from '../components/DocumentChart'

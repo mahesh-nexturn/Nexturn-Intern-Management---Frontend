@@ -21,7 +21,7 @@ import {
   Snackbar,
 } from '@mui/material'
 
-import type { Report } from '../types/Report'
+import type { Report } from '../types'
 
 import ReportChart from '../components/ReportChart'
 import * as reportApi from '../services/reportApi'

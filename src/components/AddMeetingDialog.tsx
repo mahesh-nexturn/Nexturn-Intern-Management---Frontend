@@ -10,8 +10,7 @@ import {
   TextField,
 } from '@mui/material'
 
-import type { Meeting } from '../types/Meeting'
-import type { Intern } from '../types/Intern'
+import type { Intern, Meeting } from '../types'
 import { useDialogs } from '../context/dialogState'
 
 type AddMeetingDialogProps = {
