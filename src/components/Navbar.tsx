@@ -63,7 +63,8 @@ function Navbar({
   }, [avatarKey])
 
   const name = sessionStorage.getItem('name') || 'User'
-  const role = sessionStorage.getItem('role') || ''
+  const backendRole = sessionStorage.getItem('backendRole')
+  const role = backendRole === 'ADMIN' ? 'Admin' : sessionStorage.getItem('role') || ''
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
