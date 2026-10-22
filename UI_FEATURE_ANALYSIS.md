@@ -1,267 +1,193 @@
-# Nexturn Intern Management – UI & Feature Analysis
-
-## App Overview
-
-**Nexturn Intern Management** is a role-based (HR/Admin, Mentor, Intern) React + MUI
-single-page app for managing an internship program. All data is currently mock/in-memory
-(`useState` in `App.tsx`) — there is no backend/API integration yet.
-
-## Screens (Routes) & Features
-
-| Route               | Screen                        | Purpose                                                                                                |
-| ------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `/`                 | **Login**                     | Auth entry point (hardcoded demo users in `utils/users.ts`)                                            |
-| `/dashboard`        | **HR/Admin Dashboard**        | Org-wide stats: interns, attendance, meetings, docs, trainings, evaluations, notifications (617 lines) |
-| `/mentor-dashboard` | **Mentor Dashboard**          | Mentor's assigned interns, meetings, tasks, evaluations (544 lines)                                    |
-| `/intern-dashboard` | **Intern Dashboard**          | Intern's own tasks, meetings, attendance, evaluations (569 lines)                                      |
-| `/interns`          | **Interns**                   | Full CRUD table of interns (largest page, 735 lines)                                                   |
-| `/mentors`          | **Mentors**                   | CRUD table of mentors                                                                                  |
-| `/tasks`            | **Tasks**                     | Task assignment/tracking + chart                                                                       |
-| `/meetings`         | **Meetings**                  | Scheduling + upcoming-meetings widget                                                                  |
-| `/attendance`       | **Attendance**                | Calendar grid, filters, legend, chart                                                                  |
-| `/feedback`         | **Feedback**                  | Feedback form/list                                                                                     |
-| `/documents`        | **Documents**                 | Upload/list + "latest documents" widget + chart                                                        |
-| `/training`         | **Training**                  | Training programs + chart                                                                              |
-| `/evaluations`      | **Evaluations**               | Intern performance evaluations + chart                                                                 |
-| `/ppo`              | **PPO** (Pre-Placement Offer) | PPO tracking + chart                                                                                   |
-| `/announcements`    | **Announcements**             | Org announcements + chart                                                                              |
-| `/certificates`     | **Certificates**              | Certificate issuance/tracking + chart                                                                  |
-| `/notifications`    | **Notifications**             | Notification center + widget/chart                                                                     |
-| `/reports`          | **Reports**                   | Aggregated reporting + chart                                                                           |
-| `/settings`         | **Settings**                  | App/user settings                                                                                      |
-
-## Sidebar Navigation (Role-Based Menu)
-
-- **HR**: Dashboard, Mentors, Interns, Tasks, Meetings, Attendance, Training, Evaluations, Documents, Certificates, Announcements, Notifications, Reports, Settings (full 14 items).
-- **Mentor**: Dashboard, My Interns, Tasks, Meetings, Evaluations, Reports, Settings (7 items).
-- **Intern**: Dashboard, Tasks, Meetings, Training, Documents, Certificates, Notifications, Settings (8 items).
-
-## Detailed Screen-by-Screen Breakdown
-
-### 1. Login (`/`)
-
-**Features:** Email + password text fields, a Role dropdown (HR / Mentor / Intern), "Sign In" button, and a visible "Demo Credentials" panel listing all seeded accounts.
-**Operations:**
-
-- Enter email, password, select role → click **Sign In**.
-- `loginUser()` checks credentials/role against the hardcoded list in `utils/users.ts`.
-- On success, redirects by role: HR → `/dashboard`, Mentor → `/mentor-dashboard`, Intern → `/intern-dashboard`.
-- On failure, shows a browser `alert("Invalid credentials")`.
-- No "forgot password", no real session/token — role/name are written to `localStorage` for later screens to read.
-
-### 2. HR/Admin Dashboard (`/dashboard`)
-
-**Features:** Org-wide stat cards and charts aggregating interns, attendance, meetings, documents, trainings, evaluations, and notifications (read-only, no add/edit here).
-**Operations:** View-only overview; navigation to detail screens happens via the sidebar.
-
-### 3. Mentor Dashboard (`/mentor-dashboard`)
-
-**Features:** Scoped view of the mentor's own interns, their tasks, meetings, and evaluations.
-**Operations:** View-only aggregated widgets/charts; data is pre-filtered to the logged-in mentor.
-
-### 4. Intern Dashboard (`/intern-dashboard`)
-
-**Features:** Scoped view of the intern's own tasks, meetings, attendance, and evaluations.
-**Operations:** View-only aggregated widgets/charts filtered to the logged-in intern.
-
-### 5. Interns (`/interns`)
-
-**Features:** Stat row (Total / Active / Inactive / Departments), search box, Department + Status filters, a data table (Name, Email, Department, Mentor, Status), and an Add/Edit dialog.
-**Fields (Add/Edit dialog):** Name, Email, Department, Mentor, Status (Active/Inactive).
-**Operations:**
-
-- **HR only** sees "Add Intern" button and Edit/Delete icons (role-gated via `canManageInterns = isHr`).
-- **Mentor** view auto-filters to interns where `mentor === loggedInUser`.
-- **Intern** view auto-filters to just their own record.
-- Search filters by name/email (case-insensitive); Department/Status dropdowns filter the table.
-- Delete asks `window.confirm()` before removing.
-- Validation: Name and Department are required before Save.
-
-### 6. Mentors (`/mentors`)
-
-**Features:** Stat row (Total / Active / Inactive / Departments), search, Department + Status filters, table (Name, Email, Department, Designation, Status), Add/Edit dialog.
-**Fields:** Name, Email, Department, Designation, Status.
-**Operations:**
-
-- **HR only** can Add/Edit/Delete (`isHr` gate); other roles get a read-only table.
-- Validation requires all 4 text fields filled before saving.
-- Delete confirms via `window.confirm()`.
-
-### 7. Tasks (`/tasks`)
-
-**Features:** `TaskChart` (Total/Pending/In Progress/Completed), search, Status + Priority filters, table (Title, Assigned To, Mentor, Priority chip, Due Date, Status chip, Progress bar), Add/Edit dialog (`AddTaskDialog`).
-**Fields:** Title, Description, Assigned To, Mentor, Priority (High/Medium/Low), Due Date, Status (Pending/In Progress/Completed), Progress (%).
-**Operations:**
-
-- **HR & Mentor** can manage (add/edit/delete); **Intern** sees only tasks assigned to them, read-only.
-- Mentor view is auto-scoped to `task.mentor === loggedInUser`; Intern view to `task.assignedTo === loggedInUser`.
-- Progress shown as a `LinearProgress` bar + percentage text.
-- Priority/Status rendered as color-coded Chips (red/orange/green, blue/orange/green respectively).
-
-### 8. Meetings (`/meetings`)
-
-**Features:** `MeetingChart` (Total/Scheduled/Completed/Cancelled), search, Status filter, table (Title, Intern, Mentor, Date, Time, Status chip), Add/Edit dialog.
-**Fields:** Title, Agenda, Mentor, Intern, Date, Time, Status (Scheduled/Completed/Cancelled).
-**Operations:**
-
-- **HR & Mentor** can add/edit/delete; **Intern** view is read-only and scoped to meetings where they're the invitee.
-- Status Chip colors: Completed=green, Scheduled=blue, Cancelled=red.
-
-### 9. Attendance (`/attendance`)
-
-**Features:** A calendar-style view (`AttendanceCalendar`) rather than a plain table, plus an Add/Edit dialog (`AddAttendanceDialog`).
-**Fields:** Intern, Mentor, Date, Status (Present/Absent/etc.).
-**Operations:**
-
-- Adding a record for an intern+date that already exists **updates** the existing entry instead of duplicating it (dedup by `intern` + `date`).
-- Calendar renders per-intern attendance visually (grid/legend components support this).
-
-### 10. Feedback (`/feedback`)
-
-**Features:** Currently a placeholder — renders only an `<h1>Feedback Page</h1>`. **Not implemented yet.**
-
-### 11. Documents (`/documents`)
-
-**Features:** `DocumentChart` (Total/Resumes/Certificates/Reports), search, Type filter (Resume/Certificate/Offer Letter/Report/Other), table (File Name, Type chip, Uploaded By, Upload Date), Add/Edit dialog (`AddDocumentDialog`), and per-row Download/Edit/Delete icons.
-**Operations:**
-
-- All 3 roles can manage their own uploads (`canManageDocuments = isHr || isMentor || isIntern`); HR sees all documents, others see only their own uploads.
-- **Download icon is present but not wired to an actual file** — no real file storage/upload backend yet.
-
-### 12. Training (`/training`)
-
-**Features:** `TrainingChart` (Total/Not Started/In Progress/Completed), search, Status filter, table (Title, Assigned To, Mentor, Start/End Date, Status chip, Progress bar), Add/Edit dialog.
-**Operations:** HR & Mentor manage; Intern sees only their own assigned trainings, read-only. Progress shown with `LinearProgress`.
-
-### 13. Evaluations (`/evaluations`)
-
-**Features:** `EvaluationChart` (averages for Technical/Communication/Overall), search by intern, table (Intern, Mentor, Technical/Communication/Problem-Solving/Overall ratings, Feedback text), Add/Edit dialog.
-**Operations:** HR & Mentor manage; Intern view is read-only, scoped to their own evaluations. No 1–5/1–10 scale validation visible in the list page (handled in the Add dialog).
-
-### 14. PPO – Pre-Placement Offer (`/ppo`)
-
-**Features:** `PPOChart` (Total/Eligible/Not Eligible/Offered), search, Status filter, table (Intern, Mentor, Attendance %, Training %, Technical/Communication/Overall scores, Status chip), Add/Edit dialog.
-**Fields:** Attendance %, Training Completion %, Technical Score, Communication Score, Overall Score, Mentor Recommendation (Yes/No), HR Recommendation (Yes/No), Status (Eligible/Not Eligible/Offered).
-**Operations:** HR & Mentor manage; Intern sees only their own PPO record, read-only.
-
-### 15. Announcements (`/announcements`)
-
-**Features:** `AnnouncementChart` (Total/High/Medium/Low priority), search, Priority filter, table (Title, Description, Created By, Publish/Expiry Date, Priority chip, Target Audience), Add/Edit dialog.
-**Operations:**
-
-- **HR only** can manage (`canManageAnnouncements = isHr`).
-- Visibility for all roles is filtered by `targetAudience === "All" || targetAudience === role` — i.e., announcements can be targeted to a specific role.
-
-### 16. Certificates (`/certificates`)
-
-**Features:** `CertificateChart` (Total/Active/Expired/Issued This Month), search, Status filter (Active/Expired), table (Intern, Mentor, Certificate Name, Issued By, Issue/Expiry Date, Status chip), Add/Edit dialog.
-**Operations:**
-
-- **HR only** can manage; Mentor sees only certificates for their interns; Intern sees only their own — all read-only for non-HR.
-- "Issued This Month" stat computed by comparing `issueDate`'s month to the current month.
-
-### 17. Notifications (`/notifications`)
-
-**Features:** `NotificationChart` (Total/Unread/Read/Today), search, Status filter (Unread/Read), table (Title, Message, Recipient, Created By, Date, Status chip), Add/Edit dialog.
-**Operations:**
-
-- **HR only** can manage; visibility for all roles filtered by `recipient === "All" || recipient === role`.
-- No explicit "mark as read" action wired in the table (status is only set via the Add/Edit dialog).
-
-### 18. Reports (`/reports`)
-
-**Features:** `ReportChart` (Total/Avg Attendance/Avg Evaluation/PPO Offered), search by intern, PPO-Status filter, read-only table (Intern, Mentor, Attendance %, Completed/Pending Tasks, Training %, Evaluation Score, PPO status chip), and an **"Export Report"** button (HR only).
-**Operations:**
-
-- No create/edit/delete — this is a pure aggregation/reporting screen.
-- **Export button only shows a placeholder `alert()`** ("Export functionality can be integrated with Excel/PDF") — not actually implemented.
-- Mentor/Intern views are auto-scoped to their own data.
-
-### 19. Settings (`/settings`)
-
-**Features:** Currently a placeholder — renders only an `<h1>Settings Page</h1>`. **Not implemented yet.**
-
-## Recurring UI/Operation Patterns Across Screens
-
-- **Role-based visibility, not route-based**: Every list page (Interns, Tasks, Meetings, Training, Evaluations, PPO, Certificates, Documents, Notifications, Announcements) independently reads `localStorage.getItem("role")`/`"name"` and filters its own data — the same 3-way `isHr/isMentor/isIntern` branching logic is duplicated in ~12 files.
-- **Add/Edit via the same dialog**: Every domain reuses one dialog component for both create and edit, keyed off an `editIndex` (`null` = add, otherwise = edit); Save button label switches between "Save/Add" and "Update".
-- **Delete confirmation**: Most delete actions use a plain `window.confirm()` (no custom confirmation modal).
-- **Client-side only filtering**: Search + dropdown filters (status/priority/department/type) are computed in-memory via `.filter()` — no server-side pagination or search.
-- **Identity matching by field values, not IDs**: Several screens (Tasks, Meetings, Training, Evaluations, PPO, Certificates, Announcements, Notifications) find the "actual index" to edit/delete by matching multiple field values (e.g., title+date) instead of using a stable unique ID — risk of mismatched rows if two records share the same values.
-- **Charts are decorative stat summaries**: Each `*Chart` component receives pre-computed counts/averages as props and renders them (not raw data), so charts are simple visual summaries, not interactive drill-downs.
-- **Not-yet-implemented screens**: `Feedback` and `Settings` are placeholder stubs with no real UI.
-- **No pagination**: All tables render every filtered row directly — could be slow with large datasets.
-
-## UI Composition Patterns
-
-- **Layout**: `MainLayout` = `Navbar` + `Sidebar`, wrapping every protected page.
-- **Access control**: `ProtectedRoute` gates all routes except `/`, but it reads
-  `localStorage` directly, bypassing `AuthContext`.
-- **CRUD pattern**: Each domain (Interns, Tasks, Meetings, Attendance, Documents,
-  Training, Evaluations, PPO, Announcements, Certificates, Notifications) consists of a
-  table/list page plus a matching `Add*Dialog` modal for create/edit.
-- **Visualization**: Nearly every domain has a dedicated `*Chart.tsx` (11 chart
-  components) shown on its list page and/or dashboards.
-- **Widgets**: Dashboard-only reusable pieces — `StatCard` / `DashboardStatCard`,
-  `UpcomingMeetingsWidget`, `LatestDocumentsWidget`, `NotificationWidget`.
-- **Styling**: No theme/design system — styling relies entirely on per-component MUI
-  `sx` props, with hardcoded hex colors repeated across pages. Two CSS files
-  (`App.css`, `index.css`) exist but are dead/unused (never imported).
-
-## Key Structural Observations
-
-1. **State ownership** — `App.tsx` holds all 13 domain slices as `useState` and
-   prop-drills 40+ props through `AppRoutes.tsx` into pages; there is no
-   context/query layer per feature.
-2. **Auth is fragmented** — three separate implementations exist
-   (`AuthContext`, `authService`, and `ProtectedRoute`'s direct `localStorage` read)
-   that don't talk to each other; login doesn't actually populate `AuthContext`.
-3. **No data/API layer** — everything is in-memory mock state; there are no
-   loading/error states anywhere in the app.
-4. **Repeated anti-pattern** — all 12 `Add*Dialog` components use the same
-   `useEffect(() => setState(...), [selected])` sync pattern; a single reusable
-   hook would fix all 12 related lint errors at once.
-5. **Oversized pages** — the 4 dashboard/list pages mix fetch + filter + table +
-   dialog + chart logic in a single file (600–735 lines each).
-
-## Suggested Direction
-
-This aligns with `ARCHITECTURE_ANALYSIS.md`'s recommended restructure:
-
-- Reorganize into `features/<domain>/` folders with a colocated page, dialog, chart,
-  and data hook per domain.
-- Consolidate auth into a single `AuthContext` source of truth.
-- Introduce a real theme (`ThemeProvider` + `CssBaseline`) and remove dead CSS files.
-- Extract a shared `useEditableForm`-style hook to eliminate the repeated dialog
-  anti-pattern.
-- Add a real API/data-fetching layer once a backend is available.
-
-## HR Module & Role Matrix
-
-Backend roles: `ADMIN` (super user), `HR`, `MENTOR`, `INTERN`. In the UI, both `ADMIN`
-and `HR` map to the UI role `"HR"` (localStorage `role`), so every existing page treats
-them as managers. The exact backend role is stored in localStorage `backendRole`
-(helpers `isAdminUser()` / `isHrUser()` in `authService.ts`, `user.backendRole` in
-`AuthContext`).
-
-| Capability                                           | ADMIN    | HR                                           | MENTOR       | INTERN       |
-| ---------------------------------------------------- | -------- | -------------------------------------------- | ------------ | ------------ |
-| Admin dashboard (`/dashboard`), all existing modules | all data | own mentors/interns only (scoped by backend) | mentor views | intern views |
-| HR Management (`/hr`, sidebar "HR Management")       | yes      | no (redirected to `/dashboard`)              | no           | no           |
-| HR column in Mentors / Interns tables                | yes      | yes                                          | -            | -            |
-| HR select in Add/Edit Mentor and Intern dialogs      | yes      | hidden (backend forces own HR)               | -            | -            |
-
-HR Management page (`pages/HrManagement.tsx`): stats (Total HRs, mentors/interns
-assigned), search, table (Name, Email, Mentors, Interns), Add/Edit dialog (password
-optional), delete with confirm, and "Manage assignments" (`components/HrAssignmentsDialog.tsx`)
-with multi-selects of mentors and interns saved through `PUT /api/hr/{id}/mentors|interns`.
-Service: `services/hrApi.ts`; type: `types/Hr.ts`; route guard: `<ProtectedRoute adminOnly>`.
-
-## Backend Mapping
-
-See `BACKEND_ARCHITECTURE.md` for the proposed Java Spring Boot + PostgreSQL
-backend that replaces this mock state. It maps 1:1 to the screens/fields
-documented above (exact entity fields per domain, role-scoped API rules for
-Mentors/Interns/HR, and dedicated endpoints to make the currently-placeholder
-**Documents download**, **Reports export**, and **Notifications mark-read**
-actions actually work).
+# Nexturn Intern Management – Frontend Guide
+
+One-file reference for how the frontend is built, what it does and which packages it uses.
+Last updated: 2026-10-22.
+
+## 1. App Overview
+
+**Nexturn Intern Management** is a role-based single-page app for running an internship
+program. It talks to a Spring Boot REST API (`VITE_API_BASE_URL`, default
+`http://localhost:8082/api`) and uses JWT login with automatic token refresh.
+
+| Backend role | UI role  | What they can do                                                          |
+| ------------ | -------- | ------------------------------------------------------------------------- |
+| `ADMIN`      | `HR`     | Everything, plus HR Management and the HR-count dashboard card            |
+| `HR`         | `HR`     | Manage their own mentors/interns (the backend scopes the data)            |
+| `MENTOR`     | `MENTOR` | Manage tasks, meetings, evaluations for their interns                     |
+| `INTERN`     | `INTERN` | See own tasks, meetings, attendance, trainings; check in/out; apply leave |
+
+The UI role `HR` covers both `ADMIN` and `HR`. The exact role is kept in
+`sessionStorage.backendRole`. Use `isAdminUser()` / `isHrUser()` from `services` to tell them apart.
+
+## 2. Tech Stack and Packages
+
+| Package                                                                | Used for                                                   |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `react` 19, `react-dom`                                                | UI                                                         |
+| `typescript` 6, `vite` 8, `@vitejs/plugin-react`                       | Language, dev server, build                                |
+| `@reduxjs/toolkit`, `react-redux`                                      | **RTK Query**: server-data fetching, caching, invalidation |
+| `axios`                                                                | HTTP client (token header, 401/403 refresh, global loader) |
+| `react-router-dom` 7                                                   | Routing                                                    |
+| `@mui/material`, `@mui/icons-material`, `@emotion/*`                   | Component library and icons                                |
+| `chart.js`, `react-chartjs-2`, `recharts`                              | Charts                                                     |
+| `@fullcalendar/*`, `react-calendar`                                    | Calendars (meetings, attendance)                           |
+| `jspdf`                                                                | PDF generation                                             |
+| `eslint` (+ react-hooks, react-refresh, typescript-eslint), `prettier` | Linting and formatting                                     |
+| `husky`, `lint-staged`                                                 | Pre-commit checks                                          |
+| `madge`                                                                | Circular dependency check                                  |
+| `knip`                                                                 | Unused file/export detection                               |
+
+Scripts: `npm run dev`, `build` (`tsc -b && vite build`), `lint`, `format`, `format:check`,
+`circular`, `knip`, `audit`.
+
+Install note: `.npmrc` sets `legacy-peer-deps=true`, so plain `npm install` works. It is needed
+because `madge` has an optional peer on TypeScript 5 while the app uses TypeScript 6.
+
+## 3. Project Structure (`src/`)
+
+```
+main.tsx            Provider(store) > AuthProvider > DialogProvider > App + GlobalLoader
+App.tsx             Renders AppRoutes only (no data/state)
+routes/AppRoutes    All routes, wrapped by ProtectedRoute + MainLayout
+store/              RTK Query: baseApi.ts, index.ts (store + hook re-exports), endpoints/*
+hooks/useAppData.ts UI-mapped data hooks (useInterns, useTasks, ...)
+services/           Axios API modules + barrel (index.ts) + api.ts (axios instance)
+utils/              Mappers DTO -> UI, evaluation criteria, upcoming meetings (barrel index.ts)
+types/              UI types (barrel index.ts)
+context/            AuthContext, DialogProvider (confirm dialogs), useAuth
+pages/              One file per screen
+components/         Dialogs (Add*Dialog), charts (*Chart), widgets, Navbar, Sidebar, ...
+layouts/            MainLayout (Navbar + Sidebar)
+```
+
+Barrels: import from `'../services'`, `'../types'`, `'../utils'`, `'../store'` instead of individual files.
+
+## 4. Data Flow (RTK Query)
+
+```
+Page/Component
+  -> hook (useAppData.ts or a store hook)  e.g. useInterns(), useCreateTaskMutation()
+  -> RTK Query endpoint (store/endpoints/*)
+  -> service function (services/*Api.ts)
+  -> axios instance (services/api.ts)  -> Spring Boot API
+```
+
+- **One API slice** (`store/baseApi.ts`) with `fakeBaseQuery`. Each endpoint's `queryFn` calls the
+  existing service function through `run()`, which converts failures to `{ status?, message }`.
+- **Caching**: every list query is fetched on first use, then served from the cache and shared
+  by all pages. Components that mount together share one request. Opening `/dashboard` only loads
+  what the dashboard needs.
+- **Invalidation**: queries `provide` tags (`Task`, `Intern`, `Report`, ...) and mutations
+  `invalidate` them, so lists refetch on their own. There is no manual `setState` after saving.
+  Mentor/intern/HR changes invalidate every resource that shows their names.
+- **Endpoint files**: `people.ts` (mentors, interns, HRs and assignments), `work.ts` (tasks,
+  comments, evaluations, trainings, meetings, attendance, leaves), `content.ts` (announcements,
+  certificates, documents, notifications, PPO, reports, feedback, settings), `auth.ts`.
+- **UI mapping**: the cache stores raw DTOs. `hooks/useAppData.ts` maps them with `utils/mappers/*`
+  inside `useMemo` and joins names from the intern/mentor caches.
+- **Usage**:
+  ```ts
+  const { interns } = useInterns()
+  const [createTask] = useCreateTaskMutation()
+  await createTask(payload).unwrap() // errors are { status?, message }
+  ```
+- **Session safety**: login and logout dispatch `baseApi.util.resetApiState()`, so one user's
+  cached data never shows for the next user.
+- **Not in the cache**: document download (binary blob stays a direct `documentApi` call).
+  Report Excel export is a mutation that returns nothing.
+- **Redux store**: only the API slice. The serializable check ignores mutation args (the `File` in
+  document upload).
+
+## 5. Authentication
+
+- `AuthContext` logs in via the `login` endpoint, stores tokens in `sessionStorage`
+  (`accessToken`, `refreshToken`) and user info (`role`, `backendRole`, `name`, `email`, `userId`).
+- On page load, if a token exists, `GET /api/auth/user` re-hydrates the session.
+- `services/api.ts` adds the `Authorization` header. On 401/403 it refreshes the token once
+  (a shared in-flight refresh), retries the request, and otherwise sends the user to `/`.
+- `ProtectedRoute` guards pages; `adminOnly` restricts `/hr` to `ADMIN`.
+- `GlobalLoader` shows a spinner while any axios request is pending (`loadingStore.ts`).
+
+## 6. Screens (Routes)
+
+| Route               | Screen             | Notes                                                                           |
+| ------------------- | ------------------ | ------------------------------------------------------------------------------- |
+| `/`                 | Login              | Email and password; redirects by role                                           |
+| `/dashboard`        | HR/Admin dashboard | Stat cards and charts; **HR count card visible to ADMIN only**                  |
+| `/mentor-dashboard` | Mentor dashboard   | Own interns, meetings, tasks                                                    |
+| `/intern-dashboard` | Intern dashboard   | Own tasks, meetings, attendance, evaluations                                    |
+| `/interns`          | Interns            | CRUD, search/filters, HR column/select for ADMIN                                |
+| `/mentors`          | Mentors            | CRUD, search/filters, HR column/select for ADMIN                                |
+| `/tasks`            | Tasks              | CRUD, status/priority filters, progress                                         |
+| `/tasks/:id`        | Task detail        | Work updates, comments (add/edit), completion evaluation                        |
+| `/meetings`         | Meetings           | Scheduling, calendar and upcoming widget                                        |
+| `/attendance`       | Attendance         | Calendar and week table, intern check-in/out card, apply leave, leave approvals |
+| `/feedback`         | Feedback           | HR sees all feedback, others see their own; create/delete                       |
+| `/documents`        | Documents          | Upload (multipart), download, delete                                            |
+| `/training`         | Training           | CRUD with progress                                                              |
+| `/evaluations`      | Evaluations        | Criteria ratings and overall score                                              |
+| `/ppo`              | PPO                | HR/mentor list; intern sees own PPO                                             |
+| `/announcements`    | Announcements      | Target audience and priority (menu item currently commented out in Sidebar)     |
+| `/certificates`     | Certificates       | Issue/track, scoped by role                                                     |
+| `/notifications`    | Notifications      | Create/edit/delete, mark read                                                   |
+| `/reports`          | Reports            | Aggregated table and **Excel export**                                           |
+| `/hr`               | HR Management      | **ADMIN only**: HR CRUD and mentor/intern assignment                            |
+| `/profile`          | Profile            | Avatar upload dialog                                                            |
+| `/settings`         | Settings           | Notification toggles, theme, phone, change password                             |
+
+Sidebar menus: **HR/Admin** gets Dashboard, Mentors, Interns, Tasks, Meetings, Attendance, Training,
+Evaluations, Documents, Certificates, Notifications, Reports, Settings (+ HR Management for ADMIN).
+**Mentor** gets Dashboard, My Interns, Tasks, Meetings, Evaluations, Notifications, Reports, Settings.
+**Intern** gets Dashboard, Tasks, Meetings, Attendance, Training, Documents, Certificates,
+Notifications, Settings. The Navbar shows a notification bell (unread count, polled every 60 s).
+
+## 7. Key Features
+
+- **Role-scoped data**: the backend filters data per role. The UI additionally hides manage actions
+  (`isHr`, `isMentor`, `isIntern` checks).
+- **Attendance**: interns check in/out (`AttendanceCheckInCard`), see worked time, apply for leave
+  (`ApplyLeaveDialog`); HR approves or rejects in `LeaveRequestsPanel`; approval updates attendance.
+- **Tasks**: progress, status flow, discussion comments, and an evaluation prompt on completion.
+- **HR Management** (ADMIN): HR users with assigned mentors/interns (`HrAssignmentsDialog`).
+- **Reports**: aggregate table, charts and Excel export.
+- **Confirm dialogs**: `DialogProvider` and `useDialogs().confirm` replace `window.confirm`.
+- **Settings**: profile info, notification preferences, password change.
+
+## 8. API Endpoints Used (Backend `/api`)
+
+`auth` (login, refresh, logout, `user`, change-password) · `mentors` · `interns` · `hr`
+(+ `/{id}/mentors|interns`) · `tasks` (+ `/{id}/work`, `/{id}/comments`) · `meetings` · `attendance`
+(+ `today`, `check-in`, `check-out`) · `leaves` (+ approve/reject) · `training` · `evaluations` ·
+`ppo` (+ `my`) · `certificates` · `documents` (+ upload/download) · `announcements` ·
+`notifications` (+ mark-read) · `reports` (+ export) · `feedback` (+ my) · `settings/user` ·
+`users` · `dashboard`.
+
+Backend stack: Spring Boot, Spring Security with JWT (jjwt), JPA, Flyway, PostgreSQL (H2 for dev),
+Apache POI (Excel), springdoc OpenAPI. See `BACKEND_ARCHITECTURE.md`.
+
+## 9. Code Conventions
+
+- Barrel imports (`services`, `types`, `utils`, `store`); services keep importing each other directly.
+- `verbatimModuleSyntax` and `erasableSyntaxOnly` are on: use `import type`, no TS enums.
+- Pages hold only UI state (dialogs, filters, toasts). Server data comes from RTK Query hooks.
+- Page-level "failed to load" toasts are driven by query `isError`.
+- Before committing: `npx prettier --write src`, `npx tsc -b`, `npx eslint src`, `npm run circular`.
+
+## 10. How to Add a New Resource
+
+1. Add `services/fooApi.ts` (DTOs, payload, HTTP functions) and export it from `services/index.ts`.
+2. Add a tag to `tagTypes` in `store/baseApi.ts`.
+3. Add query and mutation endpoints in the matching `store/endpoints/*.ts` (`queryFn: () => run(...)`,
+   `providesTags`/`invalidatesTags`) and export the hooks.
+4. If the UI needs mapped data, add a mapper in `utils/mappers/` and a hook in `hooks/useAppData.ts`.
+5. Build the page in `pages/`, add the route in `routes/AppRoutes.tsx` and a Sidebar entry.
+
+## 11. Known Gaps and Ideas
+
+- Hooks in `useAppData.ts` return `isLoading` but not `isError`.
+- `toUiIntern` and `toUiMentor` do not map `hrId`/`hrName`, so Interns and Mentors keep local mappers.
+- No pagination: tables render all filtered rows client-side.
+- No theme/design system: styling is per-component MUI `sx` with repeated hex colors.
+- `App.css` and `index.css` are unused.
+- Possible next step: split `pages/` into `features/<domain>/` folders; optimistic updates and
+  optional polling via RTK Query `pollingInterval` for notifications and attendance.
