@@ -20,11 +20,11 @@ export type SettingsPayload = {
 }
 
 export async function getMySettings() {
-  const { data } = await api.get<ApiResponse<SettingsDto>>('/settings/me')
+  const { data } = await api.get<ApiResponse<SettingsDto>>('/settings/user')
   return data.data
 }
 
 export async function updateMySettings(payload: SettingsPayload) {
-  const { data } = await api.put<ApiResponse<SettingsDto>>('/settings/me', payload)
+  const { data } = await api.put<ApiResponse<SettingsDto>>('/settings/user', payload)
   return data.data
 }

@@ -31,7 +31,7 @@ export function AuthProvider({ children }: Props) {
 
   useEffect(() => {
     // On app load, if we still hold an access token, re-hydrate the session
-    // from the backend (/auth/me) instead of trusting stale sessionStorage values.
+    // from the backend (/auth/user) instead of trusting stale sessionStorage values.
     const token = getAccessToken()
     if (!token) return
 

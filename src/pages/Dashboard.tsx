@@ -1,5 +1,7 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
+import { listHrs } from '../services/hrApi'
+import { isAdminUser } from '../services/authService'
 import { getUpcomingMeetings } from '../utils/upcomingMeetings'
 import { Box, Chip, Divider, Paper, Typography } from '@mui/material'
 
@@ -123,6 +125,16 @@ function Dashboard({
   const pendingEvaluations = Math.max(interns.length - evaluations.length, 0)
   const departments = new Set(interns.map((i) => i.department)).size
   const mentors = new Set(interns.map((i) => i.mentor)).size
+
+  const isAdmin = isAdminUser()
+  const [hrCount, setHrCount] = useState(0)
+
+  useEffect(() => {
+    if (!isAdmin) return
+    listHrs()
+      .then((list) => setHrCount(list.length))
+      .catch(() => setHrCount(0))
+  }, [isAdmin])
 
   const departmentData = useMemo(() => {
     const map = new Map<string, number>()
@@ -313,6 +325,9 @@ function Dashboard({
           accent="#06b6d4"
         />
         <MetricCard title="Mentors" value={mentors} subtitle="Assigned mentors" accent="#14b8a6" />
+        {isAdmin ? (
+          <MetricCard title="HR" value={hrCount} subtitle="HR users" accent="#ec4899" />
+        ) : null}
         {/* <MetricCard
           title="Attendance %"
           value={`${attendancePercentage}%`}

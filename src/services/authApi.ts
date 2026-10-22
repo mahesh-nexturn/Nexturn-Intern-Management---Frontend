@@ -30,7 +30,7 @@ export async function login(email: string, password: string) {
 }
 
 export async function me() {
-  const { data } = await api.get<ApiResponse<CurrentUser>>('/auth/me')
+  const { data } = await api.get<ApiResponse<CurrentUser>>('/auth/user')
   return data.data
 }
 
