@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import {
@@ -31,20 +31,26 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import AddTaskDialog from '../components/AddTaskDialog'
 import TaskChart from '../components/TaskChart'
 
-import type { Intern, Task } from '../types'
+import type { Task } from '../types'
 import { taskApi } from '../services'
-import { toUiTask } from '../utils'
-
-type TasksProps = {
-  tasks: Task[]
-  setTasks: React.Dispatch<React.SetStateAction<Task[]>>
-  interns: Intern[]
-}
+import { useInterns, useTasks } from '../hooks/useAppData'
+import {
+  useCreateTaskMutation,
+  useDeleteTaskMutation,
+  useListTasksQuery,
+  useUpdateTaskMutation,
+} from '../store'
 
 type Role = 'HR' | 'MENTOR' | 'INTERN' | null
 
-function Tasks({ tasks, setTasks, interns }: TasksProps) {
+function Tasks() {
   const navigate = useNavigate()
+  const { tasks } = useTasks()
+  const { interns } = useInterns()
+  const { isError: isLoadError } = useListTasksQuery()
+  const [createTask] = useCreateTaskMutation()
+  const [updateTask] = useUpdateTaskMutation()
+  const [removeTask] = useDeleteTaskMutation()
   const [open, setOpen] = useState(false)
 
   const [editId, setEditId] = useState<number | null>(null)
@@ -74,13 +80,11 @@ function Tasks({ tasks, setTasks, interns }: TasksProps) {
     progress: 0,
   })
 
-  useEffect(() => {
-    taskApi
-      .listTasks()
-      .then((list) => setTasks(list.map((item) => toUiTask(item))))
-      .catch(() => setToast({ message: 'Failed to load tasks.', severity: 'error' }))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  const [loadErrorShown, setLoadErrorShown] = useState(false)
+  if (isLoadError && !loadErrorShown) {
+    setLoadErrorShown(true)
+    setToast({ message: 'Failed to load tasks.', severity: 'error' })
+  }
 
   // Resolve mentor names via the interns list (task DTOs only carry mentorId).
   const tasksWithMentor = tasks.map((t) => ({
@@ -156,12 +160,10 @@ function Tasks({ tasks, setTasks, interns }: TasksProps) {
 
     try {
       if (editId !== null) {
-        const updated = await taskApi.updateTask(editId, payload)
-        setTasks((prev) => prev.map((t) => (t.id === editId ? toUiTask(updated, interns) : t)))
+        await updateTask({ id: editId, payload }).unwrap()
         setToast({ message: 'Task updated successfully.', severity: 'success' })
       } else {
-        const created = await taskApi.createTask(payload)
-        setTasks((prev) => [...prev, toUiTask(created, interns)])
+        await createTask(payload).unwrap()
         setToast({ message: 'Task created successfully.', severity: 'success' })
       }
 
@@ -184,8 +186,7 @@ function Tasks({ tasks, setTasks, interns }: TasksProps) {
     const taskToDelete = filteredTasks[index]
 
     try {
-      await taskApi.deleteTask(taskToDelete.id)
-      setTasks((prev) => prev.filter((t) => t.id !== taskToDelete.id))
+      await removeTask(taskToDelete.id).unwrap()
       setToast({ message: 'Task deleted successfully.', severity: 'success' })
     } catch {
       setToast({ message: 'Failed to delete task.', severity: 'error' })

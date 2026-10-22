@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
   Alert,
@@ -29,6 +29,12 @@ import AssignmentIndIcon from '@mui/icons-material/AssignmentInd'
 
 import type { Hr } from '../types'
 import { hrApi } from '../services'
+import {
+  useCreateHrMutation,
+  useDeleteHrMutation,
+  useListHrsQuery,
+  useUpdateHrMutation,
+} from '../store'
 import HrAssignmentsDialog from '../components/HrAssignmentsDialog'
 import { useDialogs } from '../context/dialogState'
 
@@ -38,7 +44,11 @@ const emptyForm: FormState = { id: null, name: '', email: '', password: '' }
 
 function HrManagement() {
   const { confirm, notify } = useDialogs()
-  const [hrs, setHrs] = useState<Hr[]>([])
+  const { data, isError } = useListHrsQuery()
+  const hrs = useMemo<Hr[]>(() => data ?? [], [data])
+  const [createHr] = useCreateHrMutation()
+  const [updateHr] = useUpdateHrMutation()
+  const [deleteHr] = useDeleteHrMutation()
   const [searchTerm, setSearchTerm] = useState('')
   const [toast, setToast] = useState<{ message: string; severity: 'success' | 'error' } | null>(
     null,
@@ -49,15 +59,11 @@ function HrManagement() {
 
   const [assignHr, setAssignHr] = useState<Hr | null>(null)
 
-  const loadHrs = () =>
-    hrApi
-      .listHrs()
-      .then(setHrs)
-      .catch(() => setToast({ message: 'Failed to load HRs.', severity: 'error' }))
-
-  useEffect(() => {
-    loadHrs()
-  }, [])
+  const [prevError, setPrevError] = useState(false)
+  if (isError !== prevError) {
+    setPrevError(isError)
+    if (isError) setToast({ message: 'Failed to load HRs.', severity: 'error' })
+  }
 
   const filtered = useMemo(() => {
     const s = searchTerm.toLowerCase()
@@ -77,7 +83,7 @@ function HrManagement() {
     setFormOpen(true)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name.trim() || !form.email.trim()) {
       notify('Please enter name and email.')
       return
@@ -89,34 +95,30 @@ function HrManagement() {
     }
     if (form.password.trim()) payload.password = form.password
 
-    const request = form.id !== null ? hrApi.updateHr(form.id, payload) : hrApi.createHr(payload)
-
-    request
-      .then(() => {
-        setToast({
-          message: form.id !== null ? 'HR updated.' : 'HR created.',
-          severity: 'success',
-        })
-        setFormOpen(false)
-        return loadHrs()
+    try {
+      if (form.id !== null) await updateHr({ id: form.id, payload }).unwrap()
+      else await createHr(payload).unwrap()
+      setToast({
+        message: form.id !== null ? 'HR updated.' : 'HR created.',
+        severity: 'success',
       })
-      .catch(() =>
-        setToast({
-          message: form.id !== null ? 'Failed to update HR.' : 'Failed to create HR.',
-          severity: 'error',
-        }),
-      )
+      setFormOpen(false)
+    } catch {
+      setToast({
+        message: form.id !== null ? 'Failed to update HR.' : 'Failed to create HR.',
+        severity: 'error',
+      })
+    }
   }
 
   const handleDelete = async (hr: Hr) => {
     if (!(await confirm(`Delete HR "${hr.name}"?`))) return
-    hrApi
-      .deleteHr(hr.id)
-      .then(() => {
-        setHrs((prev) => prev.filter((h) => h.id !== hr.id))
-        setToast({ message: 'HR deleted.', severity: 'success' })
-      })
-      .catch(() => setToast({ message: 'Failed to delete HR.', severity: 'error' }))
+    try {
+      await deleteHr(hr.id).unwrap()
+      setToast({ message: 'HR deleted.', severity: 'success' })
+    } catch {
+      setToast({ message: 'Failed to delete HR.', severity: 'error' })
+    }
   }
 
   return (
@@ -290,10 +292,7 @@ function HrManagement() {
         open={assignHr !== null}
         hr={assignHr}
         handleClose={() => setAssignHr(null)}
-        onSaved={() => {
-          setToast({ message: 'Assignments saved.', severity: 'success' })
-          loadHrs()
-        }}
+        onSaved={() => setToast({ message: 'Assignments saved.', severity: 'success' })}
       />
 
       <Snackbar

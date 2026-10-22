@@ -4,11 +4,7 @@ import { Alert, Box, Button, Chip, Paper, Typography } from '@mui/material'
 import LoginIcon from '@mui/icons-material/Login'
 import LogoutIcon from '@mui/icons-material/Logout'
 
-import { attendanceApi } from '../services'
-
-type Props = {
-  onChange: (record: attendanceApi.AttendanceDto, requiredSeconds: number) => void
-}
+import { useCheckInMutation, useCheckOutMutation, useGetTodayAttendanceQuery } from '../store'
 
 function formatDuration(totalSeconds: number) {
   const s = Math.max(0, Math.floor(totalSeconds))
@@ -18,28 +14,23 @@ function formatDuration(totalSeconds: number) {
   return `${hh}:${mm}:${ss}`
 }
 
-function AttendanceCheckInCard({ onChange }: Props) {
-  const [today, setToday] = useState<attendanceApi.TodayAttendanceDto | null>(null)
-  const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
+function AttendanceCheckInCard() {
+  const {
+    data: today,
+    isError: loadFailed,
+    refetch,
+    fulfilledTimeStamp,
+  } = useGetTodayAttendanceQuery(undefined, { refetchOnMountOrArgChange: true })
+  const [checkIn, { isLoading: checkingIn }] = useCheckInMutation()
+  const [checkOut, { isLoading: checkingOut }] = useCheckOutMutation()
+  const [actionError, setActionError] = useState('')
   const [now, setNow] = useState(() => Date.now())
-  // server clock minus browser clock, so the timer is correct even if the browser clock is off
-  const [offset, setOffset] = useState(0)
+  const busy = checkingIn || checkingOut
+  const error = actionError || (loadFailed && !today ? "Failed to load today's attendance." : '')
 
-  const apply = (data: attendanceApi.TodayAttendanceDto) => {
-    setOffset(new Date(data.serverTime).getTime() - Date.now())
-    setToday(data)
-    setNow(Date.now())
-    if (data.record) onChange(data.record, data.requiredSeconds)
-  }
-
-  useEffect(() => {
-    attendanceApi
-      .getToday()
-      .then(apply)
-      .catch(() => setError("Failed to load today's attendance."))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // server clock minus browser clock (at fetch time), so the timer is correct even if the browser clock is off
+  const offset =
+    today && fulfilledTimeStamp ? new Date(today.serverTime).getTime() - fulfilledTimeStamp : 0
 
   const record = today?.record ?? null
   const checkedIn = !!record?.checkInTime
@@ -61,25 +52,16 @@ function AttendanceCheckInCard({ onChange }: Props) {
 
   // The server auto-checks-out after 24 hours; refresh so the card reflects it.
   useEffect(() => {
-    if (running && sessionSeconds >= 24 * 3600) {
-      attendanceApi
-        .getToday()
-        .then(apply)
-        .catch(() => undefined)
-    }
+    if (running && sessionSeconds >= 24 * 3600) void refetch()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running, sessionSeconds >= 24 * 3600])
 
-  const run = async (action: () => Promise<attendanceApi.TodayAttendanceDto>) => {
-    setBusy(true)
-    setError('')
+  const run = async (action: () => { unwrap: () => Promise<unknown> }) => {
+    setActionError('')
     try {
-      apply(await action())
+      await action().unwrap()
     } catch (e: unknown) {
-      const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message
-      setError(msg || 'Action failed. Please try again.')
-    } finally {
-      setBusy(false)
+      setActionError((e as { message?: string })?.message || 'Action failed. Please try again.')
     }
   }
 
@@ -118,7 +100,7 @@ function AttendanceCheckInCard({ onChange }: Props) {
               variant="contained"
               startIcon={<LoginIcon />}
               disabled={busy || !today}
-              onClick={() => run(attendanceApi.checkIn)}
+              onClick={() => run(checkIn)}
             >
               {checkedOut ? 'Check In Again' : 'Check In'}
             </Button>
@@ -129,7 +111,7 @@ function AttendanceCheckInCard({ onChange }: Props) {
               color="error"
               startIcon={<LogoutIcon />}
               disabled={busy}
-              onClick={() => run(attendanceApi.checkOut)}
+              onClick={() => run(checkOut)}
             >
               Check Out
             </Button>
@@ -138,7 +120,7 @@ function AttendanceCheckInCard({ onChange }: Props) {
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mt: 2 }} onClose={() => setError('')}>
+        <Alert severity="error" sx={{ mt: 2 }} onClose={() => setActionError('')}>
           {error}
         </Alert>
       )}

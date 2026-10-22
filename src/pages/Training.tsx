@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
   Alert,
@@ -26,25 +26,30 @@ import {
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 
-import type { Intern, Mentor, Training as TrainingType } from '../types'
+import type { Training as TrainingType } from '../types'
 
 import AddTrainingDialog from '../components/AddTrainingDialog'
 import TrainingChart from '../components/TrainingChart'
 import { trainingApi } from '../services'
-import { toUiTraining } from '../utils'
+import { useInterns, useTrainings } from '../hooks/useAppData'
+import {
+  useCreateTrainingMutation,
+  useDeleteTrainingMutation,
+  useListTrainingsQuery,
+  useUpdateTrainingMutation,
+} from '../store'
 import { useDialogs } from '../context/dialogState'
-
-type TrainingProps = {
-  trainings: TrainingType[]
-  setTrainings: React.Dispatch<React.SetStateAction<TrainingType[]>>
-  interns: Intern[]
-  mentors: Mentor[]
-}
 
 type Role = 'HR' | 'MENTOR' | 'INTERN' | null
 
-function Training({ trainings, setTrainings, interns, mentors }: TrainingProps) {
+function Training() {
   const { notify } = useDialogs()
+  const { trainings } = useTrainings()
+  const { interns } = useInterns()
+  const { isError: isLoadError } = useListTrainingsQuery()
+  const [createTraining] = useCreateTrainingMutation()
+  const [updateTraining] = useUpdateTrainingMutation()
+  const [removeTraining] = useDeleteTrainingMutation()
   const [open, setOpen] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -75,13 +80,11 @@ function Training({ trainings, setTrainings, interns, mentors }: TrainingProps) 
   const isIntern = role === 'INTERN'
   const canManageTrainings = isHr || isMentor
 
-  useEffect(() => {
-    trainingApi
-      .listTrainings()
-      .then((list) => setTrainings(list.map((item) => toUiTraining(item, interns, mentors))))
-      .catch(() => setToast({ message: 'Failed to load trainings.', severity: 'error' }))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  const [loadErrorShown, setLoadErrorShown] = useState(false)
+  if (isLoadError && !loadErrorShown) {
+    setLoadErrorShown(true)
+    setToast({ message: 'Failed to load trainings.', severity: 'error' })
+  }
 
   const visibleTrainings = useMemo(() => {
     if (isHr) return trainings
@@ -144,14 +147,10 @@ function Training({ trainings, setTrainings, interns, mentors }: TrainingProps) 
 
     try {
       if (editId !== null) {
-        const updated = await trainingApi.updateTraining(editId, payload)
-        setTrainings((prev) =>
-          prev.map((item) => (item.id === editId ? toUiTraining(updated, interns, mentors) : item)),
-        )
+        await updateTraining({ id: editId, payload }).unwrap()
         setToast({ message: 'Training updated successfully.', severity: 'success' })
       } else {
-        const created = await trainingApi.createTraining(payload)
-        setTrainings((prev) => [...prev, toUiTraining(created, interns, mentors)])
+        await createTraining(payload).unwrap()
         setToast({ message: 'Training created successfully.', severity: 'success' })
       }
 
@@ -173,8 +172,7 @@ function Training({ trainings, setTrainings, interns, mentors }: TrainingProps) 
 
   const deleteTraining = async (id: number) => {
     try {
-      await trainingApi.deleteTraining(id)
-      setTrainings((prev) => prev.filter((item) => item.id !== id))
+      await removeTraining(id).unwrap()
       setToast({ message: 'Training deleted successfully.', severity: 'success' })
     } catch {
       setToast({ message: 'Failed to delete training.', severity: 'error' })

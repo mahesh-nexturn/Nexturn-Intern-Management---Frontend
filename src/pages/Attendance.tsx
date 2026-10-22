@@ -31,18 +31,20 @@ import AddAttendanceDialog from '../components/AddAttendanceDialog'
 import AttendanceCheckInCard from '../components/AttendanceCheckInCard'
 import ApplyLeaveDialog from '../components/ApplyLeaveDialog'
 import LeaveRequestsPanel from '../components/LeaveRequestsPanel'
-import { attendanceApi, leaveApi } from '../services'
+import type { attendanceApi } from '../services'
+import {
+  useApplyLeaveMutation,
+  useCreateAttendanceMutation,
+  useDeleteAttendanceMutation,
+  useGetTodayAttendanceQuery,
+  useListAttendanceQuery,
+  useUpdateAttendanceMutation,
+} from '../store'
+import { useAttendance, useInterns, useMentors } from '../hooks/useAppData'
 
-import type { Attendance as AttendanceType, Intern, Mentor } from '../types'
+import type { Attendance as AttendanceType } from '../types'
 import { toUiAttendance } from '../utils'
 import { useDialogs } from '../context/dialogState'
-
-type AttendanceProps = {
-  attendance: AttendanceType[]
-  setAttendance: React.Dispatch<React.SetStateAction<AttendanceType[]>>
-  interns: Intern[]
-  mentors: Mentor[]
-}
 
 type Role = 'HR' | 'MENTOR' | 'INTERN' | null
 
@@ -50,15 +52,20 @@ function formatTime(iso?: string | null) {
   return iso ? new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'
 }
 
-function Attendance({ attendance, setAttendance, interns, mentors }: AttendanceProps) {
+function Attendance() {
   const { notify } = useDialogs()
+  const { attendance } = useAttendance()
+  const { interns } = useInterns()
+  const { mentors } = useMentors()
+  const [createAttendance] = useCreateAttendanceMutation()
+  const [updateAttendance] = useUpdateAttendanceMutation()
+  const [deleteAttendanceMutation] = useDeleteAttendanceMutation()
+  const [applyLeave] = useApplyLeaveMutation()
   const [open, setOpen] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
   const [weekOffset, setWeekOffset] = useState(0)
   const [leaveOpen, setLeaveOpen] = useState(false)
   const [selectedInternName, setSelectedInternName] = useState('')
-  const [leaveRefresh, setLeaveRefresh] = useState(0)
-  const [weekRecords, setWeekRecords] = useState<AttendanceType[]>([])
   const [statusFilter, setStatusFilter] = useState('All')
   const [toast, setToast] = useState<{
     message: string
@@ -83,21 +90,14 @@ function Attendance({ attendance, setAttendance, interns, mentors }: AttendanceP
   const canManageAttendance = isHr || isMentor
 
   const [now, setNow] = useState(() => Date.now())
-  const [requiredMs, setRequiredMs] = useState(3 * 60 * 60 * 1000)
+  const { data: today } = useGetTodayAttendanceQuery(undefined, { skip: role !== 'INTERN' })
+  const requiredMs = (today?.requiredSeconds ?? 3 * 60 * 60) * 1000
   const hasInProgress = attendance.some((r) => r.checkInTime && !r.checkOutTime)
   useEffect(() => {
     if (!hasInProgress) return
     const id = setInterval(() => setNow(Date.now()), 15000)
     return () => clearInterval(id)
   }, [hasInProgress])
-
-  useEffect(() => {
-    attendanceApi
-      .listAttendance()
-      .then((list) => setAttendance(list.map((item) => toUiAttendance(item, interns, mentors))))
-      .catch(() => setToast({ message: 'Failed to load attendance.', severity: 'error' }))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   const weekRange = useMemo(() => {
     const start = new Date()
@@ -110,17 +110,15 @@ function Attendance({ attendance, setAttendance, interns, mentors }: AttendanceP
     return { from: fmt(start), to: fmt(end) }
   }, [weekOffset])
 
-  useEffect(() => {
-    attendanceApi
-      .listAttendance({
-        from: weekRange.from,
-        to: weekRange.to,
-        status: statusFilter === 'All' ? undefined : statusFilter,
-      })
-      .then((list) => setWeekRecords(list.map((item) => toUiAttendance(item, interns, mentors))))
-      .catch(() => setToast({ message: 'Failed to load attendance.', severity: 'error' }))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [weekRange, statusFilter, attendance])
+  const { data: weekData } = useListAttendanceQuery({
+    from: weekRange.from,
+    to: weekRange.to,
+    status: statusFilter === 'All' ? undefined : statusFilter,
+  })
+  const weekRecords = useMemo(
+    () => weekData?.map((dto) => toUiAttendance(dto, interns, mentors)) ?? [],
+    [weekData, interns, mentors],
+  )
 
   const attendanceWithMentor = useMemo(
     () =>
@@ -218,16 +216,6 @@ function Attendance({ attendance, setAttendance, interns, mentors }: AttendanceP
     [visibleAttendance, now, requiredMs],
   )
 
-  const handleCheckInChange = (dto: attendanceApi.AttendanceDto, requiredSeconds: number) => {
-    setRequiredMs(requiredSeconds * 1000)
-    const ui = toUiAttendance(dto, interns, mentors)
-    setAttendance((prev) =>
-      prev.some((item) => item.id === ui.id)
-        ? prev.map((item) => (item.id === ui.id ? ui : item))
-        : [...prev, ui],
-    )
-  }
-
   const handleOpen = () => {
     setEditId(null)
     setSelectedAttendance({
@@ -255,17 +243,14 @@ function Attendance({ attendance, setAttendance, interns, mentors }: AttendanceP
       try {
         const created = await Promise.all(
           interns.map((intern) =>
-            attendanceApi.createAttendance({
+            createAttendance({
               internId: intern.id,
               mentorId: intern.mentorId ?? null,
               attendanceDate: record.date,
               status: record.status,
-            }),
+            }).unwrap(),
           ),
         )
-        const ui = created.map((dto) => toUiAttendance(dto, interns, mentors))
-        const ids = new Set(ui.map((item) => item.id))
-        setAttendance((prev) => [...prev.filter((item) => !ids.has(item.id)), ...ui])
         setToast({
           message: `${record.status} applied to ${created.length} interns.`,
           severity: 'success',
@@ -292,16 +277,10 @@ function Attendance({ attendance, setAttendance, interns, mentors }: AttendanceP
 
     try {
       if (editId !== null) {
-        const updated = await attendanceApi.updateAttendance(editId, payload)
-        setAttendance((prev) =>
-          prev.map((item) =>
-            item.id === editId ? toUiAttendance(updated, interns, mentors) : item,
-          ),
-        )
+        await updateAttendance({ id: editId, payload }).unwrap()
         setToast({ message: 'Attendance updated successfully.', severity: 'success' })
       } else {
-        const created = await attendanceApi.createAttendance(payload)
-        setAttendance((prev) => [...prev, toUiAttendance(created, interns, mentors)])
+        await createAttendance(payload).unwrap()
         setToast({ message: 'Attendance recorded successfully.', severity: 'success' })
       }
 
@@ -323,8 +302,7 @@ function Attendance({ attendance, setAttendance, interns, mentors }: AttendanceP
 
   const deleteAttendance = async (id: number) => {
     try {
-      await attendanceApi.deleteAttendance(id)
-      setAttendance((prev) => prev.filter((item) => item.id !== id))
+      await deleteAttendanceMutation(id).unwrap()
       setToast({ message: 'Attendance deleted successfully.', severity: 'success' })
     } catch {
       setToast({ message: 'Failed to delete attendance.', severity: 'error' })
@@ -358,7 +336,7 @@ function Attendance({ attendance, setAttendance, interns, mentors }: AttendanceP
         )}
       </Box>
 
-      {role === 'INTERN' && <AttendanceCheckInCard onChange={handleCheckInChange} />}
+      {role === 'INTERN' && <AttendanceCheckInCard />}
 
       <AttendanceCalendar
         attendance={calendarAttendance}
@@ -462,14 +440,6 @@ function Attendance({ attendance, setAttendance, interns, mentors }: AttendanceP
         <LeaveRequestsPanel
           isApprover={isHr}
           internName={isHr ? selectedInternName : undefined}
-          refreshKey={leaveRefresh}
-          onChanged={() =>
-            attendanceApi
-              .listAttendance()
-              .then((list) =>
-                setAttendance(list.map((item) => toUiAttendance(item, interns, mentors))),
-              )
-          }
           onError={(message) => setToast({ message, severity: 'error' })}
         />
       )}
@@ -479,8 +449,7 @@ function Attendance({ attendance, setAttendance, interns, mentors }: AttendanceP
         hrName={interns.find((intern) => intern.name === userName)?.hrName}
         onClose={() => setLeaveOpen(false)}
         onSubmit={async (payload) => {
-          await leaveApi.applyLeave(payload)
-          setLeaveRefresh((n) => n + 1)
+          await applyLeave(payload).unwrap()
           setToast({ message: 'Leave request sent to HR for approval.', severity: 'success' })
         }}
       />

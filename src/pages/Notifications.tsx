@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import {
@@ -29,14 +29,16 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import AddNotificationDialog from '../components/AddNotificationDialog'
 import NotificationChart from '../components/NotificationChart'
 import type { Notification } from '../types'
-import { notificationApi } from '../services'
-import { toUiNotification } from '../utils'
+import type { notificationApi } from '../services'
 import { useDialogs } from '../context/dialogState'
-
-type NotificationsProps = {
-  notifications: Notification[]
-  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>
-}
+import { useNotifications } from '../hooks/useAppData'
+import {
+  useCreateNotificationMutation,
+  useDeleteNotificationMutation,
+  useListNotificationsQuery,
+  useMarkNotificationReadMutation,
+  useUpdateNotificationMutation,
+} from '../store'
 
 type Role = 'HR' | 'MENTOR' | 'INTERN' | null
 
@@ -44,13 +46,20 @@ function todayString() {
   return new Date().toISOString().split('T')[0]
 }
 
-function Notifications({ notifications, setNotifications }: NotificationsProps) {
+function Notifications() {
   const { confirm } = useDialogs()
   const role = sessionStorage.getItem('role') as Role
   const userName = sessionStorage.getItem('name') || ''
   const currentUserId = Number(sessionStorage.getItem('userId') || '0')
   const isHr = role === 'HR'
   const navigate = useNavigate()
+
+  const { notifications } = useNotifications()
+  const { isError: loadFailed } = useListNotificationsQuery()
+  const [createNotification] = useCreateNotificationMutation()
+  const [updateNotification] = useUpdateNotificationMutation()
+  const [removeNotification] = useDeleteNotificationMutation()
+  const [markNotificationRead] = useMarkNotificationReadMutation()
 
   const [open, setOpen] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
@@ -71,22 +80,9 @@ function Notifications({ notifications, setNotifications }: NotificationsProps) 
     status: 'Unread',
   })
 
-  useEffect(() => {
-    let cancelled = false
-
-    notificationApi
-      .listNotifications()
-      .then((list) => {
-        if (!cancelled) setNotifications(list.map(toUiNotification))
-      })
-      .catch(() => {
-        if (!cancelled) setToast({ message: 'Failed to load notifications.', severity: 'error' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [setNotifications])
+  const activeToast =
+    toast ??
+    (loadFailed ? { message: 'Failed to load notifications.', severity: 'error' as const } : null)
 
   const filteredNotifications = useMemo(
     () =>
@@ -131,14 +127,10 @@ function Notifications({ notifications, setNotifications }: NotificationsProps) 
 
     try {
       if (editId !== null) {
-        const updated = await notificationApi.updateNotification(editId, payload)
-        setNotifications((prev) =>
-          prev.map((item) => (item.id === editId ? toUiNotification(updated) : item)),
-        )
+        await updateNotification({ id: editId, payload }).unwrap()
         setToast({ message: 'Notification updated successfully.', severity: 'success' })
       } else {
-        const created = await notificationApi.createNotification(payload)
-        setNotifications((prev) => [...prev, toUiNotification(created)])
+        await createNotification(payload).unwrap()
         setToast({ message: 'Notification created successfully.', severity: 'success' })
       }
 
@@ -164,8 +156,7 @@ function Notifications({ notifications, setNotifications }: NotificationsProps) 
     }
 
     try {
-      await notificationApi.deleteNotification(notification.id)
-      setNotifications((prev) => prev.filter((item) => item.id !== notification.id))
+      await removeNotification(notification.id).unwrap()
       setToast({ message: 'Notification deleted successfully.', severity: 'success' })
     } catch {
       setToast({ message: 'Failed to delete notification.', severity: 'error' })
@@ -175,10 +166,7 @@ function Notifications({ notifications, setNotifications }: NotificationsProps) 
   const openNotification = async (notification: Notification) => {
     if (notification.status === 'Unread') {
       try {
-        await notificationApi.markNotificationRead(notification.id)
-        setNotifications((prev) =>
-          prev.map((item) => (item.id === notification.id ? { ...item, status: 'Read' } : item)),
-        )
+        await markNotificationRead(notification.id).unwrap()
         window.dispatchEvent(new Event('notifications-changed'))
       } catch {
         // navigation should still work if marking read fails
@@ -297,13 +285,13 @@ function Notifications({ notifications, setNotifications }: NotificationsProps) 
       />
 
       <Snackbar
-        open={!!toast}
+        open={!!activeToast}
         autoHideDuration={4000}
         onClose={() => setToast(null)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert onClose={() => setToast(null)} severity={toast?.severity} variant="filled">
-          {toast?.message}
+        <Alert onClose={() => setToast(null)} severity={activeToast?.severity} variant="filled">
+          {activeToast?.message}
         </Alert>
       </Snackbar>
     </>

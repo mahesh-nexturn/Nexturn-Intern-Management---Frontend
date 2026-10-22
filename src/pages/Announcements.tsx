@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
   Alert,
@@ -30,11 +30,12 @@ import AnnouncementChart from '../components/AnnouncementChart'
 import type { Announcement } from '../types'
 import { announcementApi } from '../services'
 import { useDialogs } from '../context/dialogState'
-
-type AnnouncementsProps = {
-  announcements: Announcement[]
-  setAnnouncements: React.Dispatch<React.SetStateAction<Announcement[]>>
-}
+import {
+  useCreateAnnouncementMutation,
+  useDeleteAnnouncementMutation,
+  useListAnnouncementsQuery,
+  useUpdateAnnouncementMutation,
+} from '../store'
 
 type Role = 'HR' | 'MENTOR' | 'INTERN' | null
 
@@ -67,7 +68,11 @@ function todayString() {
   return new Date().toISOString().split('T')[0]
 }
 
-function Announcements({ announcements, setAnnouncements }: AnnouncementsProps) {
+function Announcements() {
+  const { data: announcementDtos, isError: loadFailed } = useListAnnouncementsQuery()
+  const [createAnnouncement] = useCreateAnnouncementMutation()
+  const [updateAnnouncement] = useUpdateAnnouncementMutation()
+  const [removeAnnouncement] = useDeleteAnnouncementMutation()
   const { confirm } = useDialogs()
   const role = sessionStorage.getItem('role') as Role
   const userName = sessionStorage.getItem('name') || ''
@@ -94,22 +99,14 @@ function Announcements({ announcements, setAnnouncements }: AnnouncementsProps) 
     targetAudience: 'All',
   })
 
-  useEffect(() => {
-    let cancelled = false
+  const announcements = useMemo(
+    () => (announcementDtos ?? []).map(toUiAnnouncement),
+    [announcementDtos],
+  )
 
-    announcementApi
-      .listAnnouncements()
-      .then((list) => {
-        if (!cancelled) setAnnouncements(list.map(toUiAnnouncement))
-      })
-      .catch(() => {
-        if (!cancelled) setToast({ message: 'Failed to load announcements.', severity: 'error' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [setAnnouncements])
+  const activeToast =
+    toast ??
+    (loadFailed ? { message: 'Failed to load announcements.', severity: 'error' as const } : null)
 
   const filteredAnnouncements = useMemo(
     () =>
@@ -160,14 +157,10 @@ function Announcements({ announcements, setAnnouncements }: AnnouncementsProps) 
 
     try {
       if (editId !== null) {
-        const updated = await announcementApi.updateAnnouncement(editId, payload)
-        setAnnouncements((prev) =>
-          prev.map((item) => (item.id === editId ? toUiAnnouncement(updated) : item)),
-        )
+        await updateAnnouncement({ id: editId, payload }).unwrap()
         setToast({ message: 'Announcement updated successfully.', severity: 'success' })
       } else {
-        const created = await announcementApi.createAnnouncement(payload)
-        setAnnouncements((prev) => [...prev, toUiAnnouncement(created)])
+        await createAnnouncement(payload).unwrap()
         setToast({ message: 'Announcement created successfully.', severity: 'success' })
       }
 
@@ -193,8 +186,7 @@ function Announcements({ announcements, setAnnouncements }: AnnouncementsProps) 
     }
 
     try {
-      await announcementApi.deleteAnnouncement(announcement.id)
-      setAnnouncements((prev) => prev.filter((item) => item.id !== announcement.id))
+      await removeAnnouncement(announcement.id).unwrap()
       setToast({ message: 'Announcement deleted successfully.', severity: 'success' })
     } catch {
       setToast({ message: 'Failed to delete announcement.', severity: 'error' })
@@ -306,13 +298,13 @@ function Announcements({ announcements, setAnnouncements }: AnnouncementsProps) 
       />
 
       <Snackbar
-        open={!!toast}
+        open={!!activeToast}
         autoHideDuration={4000}
         onClose={() => setToast(null)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert onClose={() => setToast(null)} severity={toast?.severity} variant="filled">
-          {toast?.message}
+        <Alert onClose={() => setToast(null)} severity={activeToast?.severity} variant="filled">
+          {activeToast?.message}
         </Alert>
       </Snackbar>
     </>

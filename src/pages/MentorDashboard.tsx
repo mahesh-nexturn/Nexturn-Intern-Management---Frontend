@@ -2,15 +2,8 @@ import { Box, Chip, Divider, Paper, Typography } from '@mui/material'
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
-import type { Evaluation, Intern, Meeting, Task } from '../types'
 import { getUpcomingMeetings } from '../utils'
-
-type MentorDashboardProps = {
-  interns?: Intern[]
-  meetings?: Meeting[]
-  tasks?: Task[]
-  evaluations?: Evaluation[]
-}
+import { useInterns, useMeetings, useTasks } from '../hooks/useAppData'
 
 type StatCardProps = {
   title: string
@@ -68,7 +61,10 @@ function StatCard({ title, value, subtitle, color }: StatCardProps) {
   )
 }
 
-function MentorDashboard({ interns = [], meetings = [], tasks = [] }: MentorDashboardProps) {
+function MentorDashboard() {
+  const { interns } = useInterns()
+  const { meetings } = useMeetings()
+  const { tasks } = useTasks()
   const mentorName = sessionStorage.getItem('name') || 'Rahul'
 
   const myInterns = interns.filter((intern) => intern.mentor === mentorName)

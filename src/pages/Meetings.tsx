@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
   Alert,
@@ -25,25 +25,28 @@ import {
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 
-import type { Intern, Meeting, Mentor } from '../types'
+import type { Meeting } from '../types'
 
 import AddMeetingDialog from '../components/AddMeetingDialog'
 import MeetingChart from '../components/MeetingChart'
-import { meetingApi } from '../services'
-import { toUiMeeting } from '../utils'
+import type { meetingApi } from '../services'
+import {
+  useCreateMeetingMutation,
+  useDeleteMeetingMutation,
+  useUpdateMeetingMutation,
+} from '../store'
+import { useInterns, useMeetings } from '../hooks/useAppData'
 import { useDialogs } from '../context/dialogState'
-
-type MeetingsProps = {
-  meetings: Meeting[]
-  setMeetings: React.Dispatch<React.SetStateAction<Meeting[]>>
-  interns: Intern[]
-  mentors: Mentor[]
-}
 
 type Role = 'HR' | 'MENTOR' | 'INTERN' | null
 
-function Meetings({ meetings, setMeetings, interns, mentors }: MeetingsProps) {
+function Meetings() {
   const { notify } = useDialogs()
+  const { meetings } = useMeetings()
+  const { interns } = useInterns()
+  const [createMeeting] = useCreateMeetingMutation()
+  const [updateMeeting] = useUpdateMeetingMutation()
+  const [deleteMeetingMutation] = useDeleteMeetingMutation()
   const [open, setOpen] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -73,14 +76,6 @@ function Meetings({ meetings, setMeetings, interns, mentors }: MeetingsProps) {
   const isMentor = role === 'MENTOR'
   const isIntern = role === 'INTERN'
   const canManageMeetings = isMentor
-
-  useEffect(() => {
-    meetingApi
-      .listMeetings()
-      .then((list) => setMeetings(list.map((item) => toUiMeeting(item, interns, mentors))))
-      .catch(() => setToast({ message: 'Failed to load meetings.', severity: 'error' }))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   const visibleMeetings = useMemo(() => {
     if (isHr) return meetings
@@ -137,14 +132,10 @@ function Meetings({ meetings, setMeetings, interns, mentors }: MeetingsProps) {
 
     try {
       if (editId !== null) {
-        const updated = await meetingApi.updateMeeting(editId, payload)
-        setMeetings((prev) =>
-          prev.map((item) => (item.id === editId ? toUiMeeting(updated, interns, mentors) : item)),
-        )
+        await updateMeeting({ id: editId, payload }).unwrap()
         setToast({ message: 'Meeting updated successfully.', severity: 'success' })
       } else {
-        const created = await meetingApi.createMeeting(payload)
-        setMeetings((prev) => [...prev, toUiMeeting(created, interns, mentors)])
+        await createMeeting(payload).unwrap()
         setToast({ message: 'Meeting created successfully.', severity: 'success' })
       }
 
@@ -166,8 +157,7 @@ function Meetings({ meetings, setMeetings, interns, mentors }: MeetingsProps) {
 
   const deleteMeeting = async (id: number) => {
     try {
-      await meetingApi.deleteMeeting(id)
-      setMeetings((prev) => prev.filter((item) => item.id !== id))
+      await deleteMeetingMutation(id).unwrap()
       setToast({ message: 'Meeting deleted successfully.', severity: 'success' })
     } catch {
       setToast({ message: 'Failed to delete meeting.', severity: 'error' })

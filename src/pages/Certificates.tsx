@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
   Alert,
@@ -27,14 +27,16 @@ import DeleteIcon from '@mui/icons-material/Delete'
 
 import AddCertificateDialog from '../components/AddCertificateDialog'
 import CertificateChart from '../components/CertificateChart'
-import type { Certificate, Intern } from '../types'
-import { certificateApi, internApi } from '../services'
+import type { Certificate } from '../types'
+import type { certificateApi } from '../services'
 import { useDialogs } from '../context/dialogState'
-
-type CertificatesProps = {
-  certificates: Certificate[]
-  setCertificates: React.Dispatch<React.SetStateAction<Certificate[]>>
-}
+import { useInterns } from '../hooks/useAppData'
+import {
+  useCreateCertificateMutation,
+  useDeleteCertificateMutation,
+  useListCertificatesQuery,
+  useUpdateCertificateMutation,
+} from '../store'
 
 type Role = 'HR' | 'MENTOR' | 'INTERN' | null
 
@@ -53,20 +55,7 @@ function toUiCertificate(dto: certificateApi.CertificateDto): Certificate {
   }
 }
 
-function toUiIntern(dto: internApi.InternDto): Intern {
-  return {
-    id: dto.id,
-    name: dto.name,
-    email: dto.email,
-    department: dto.department ?? '',
-    mentor: dto.mentorName ?? '',
-    mentorId: dto.mentorId,
-    status: dto.status ?? 'Active',
-    userId: dto.userId,
-  }
-}
-
-function Certificates({ certificates, setCertificates }: CertificatesProps) {
+function Certificates() {
   const { confirm, notify } = useDialogs()
   const role = sessionStorage.getItem('role') as Role
   const userName = sessionStorage.getItem('name') || ''
@@ -75,6 +64,12 @@ function Certificates({ certificates, setCertificates }: CertificatesProps) {
   const isMentor = role === 'MENTOR'
   const canManageCertificates = isHr
 
+  const { data: certificateDtos, isError: loadFailed } = useListCertificatesQuery()
+  const { interns: availableInterns } = useInterns()
+  const [createCertificate] = useCreateCertificateMutation()
+  const [updateCertificate] = useUpdateCertificateMutation()
+  const [removeCertificate] = useDeleteCertificateMutation()
+
   const [open, setOpen] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -82,7 +77,6 @@ function Certificates({ certificates, setCertificates }: CertificatesProps) {
   const [toast, setToast] = useState<{ message: string; severity: 'success' | 'error' } | null>(
     null,
   )
-  const [availableInterns, setAvailableInterns] = useState<Intern[]>([])
 
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate>({
     id: 0,
@@ -97,31 +91,14 @@ function Certificates({ certificates, setCertificates }: CertificatesProps) {
     status: 'Active',
   })
 
-  useEffect(() => {
-    let cancelled = false
+  const certificates = useMemo(
+    () => (certificateDtos ?? []).map(toUiCertificate),
+    [certificateDtos],
+  )
 
-    certificateApi
-      .listCertificates()
-      .then((list) => {
-        if (!cancelled) setCertificates(list.map(toUiCertificate))
-      })
-      .catch(() => {
-        if (!cancelled) setToast({ message: 'Failed to load certificates.', severity: 'error' })
-      })
-
-    internApi
-      .listInterns()
-      .then((list) => {
-        if (!cancelled) setAvailableInterns(list.map(toUiIntern))
-      })
-      .catch(() => {
-        if (!cancelled) setToast({ message: 'Failed to load interns.', severity: 'error' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [setCertificates])
+  const activeToast =
+    toast ??
+    (loadFailed ? { message: 'Failed to load certificates.', severity: 'error' as const } : null)
 
   const certificatesWithRelations = useMemo(
     () =>
@@ -205,14 +182,10 @@ function Certificates({ certificates, setCertificates }: CertificatesProps) {
 
     try {
       if (editId !== null) {
-        const updated = await certificateApi.updateCertificate(editId, payload)
-        setCertificates((prev) =>
-          prev.map((item) => (item.id === editId ? toUiCertificate(updated) : item)),
-        )
+        await updateCertificate({ id: editId, payload }).unwrap()
         setToast({ message: 'Certificate updated successfully.', severity: 'success' })
       } else {
-        const created = await certificateApi.createCertificate(payload)
-        setCertificates((prev) => [...prev, toUiCertificate(created)])
+        await createCertificate(payload).unwrap()
         setToast({ message: 'Certificate created successfully.', severity: 'success' })
       }
 
@@ -242,8 +215,7 @@ function Certificates({ certificates, setCertificates }: CertificatesProps) {
     }
 
     try {
-      await certificateApi.deleteCertificate(certificate.id)
-      setCertificates((prev) => prev.filter((item) => item.id !== certificate.id))
+      await removeCertificate(certificate.id).unwrap()
       setToast({ message: 'Certificate deleted successfully.', severity: 'success' })
     } catch {
       setToast({ message: 'Failed to delete certificate.', severity: 'error' })
@@ -354,13 +326,13 @@ function Certificates({ certificates, setCertificates }: CertificatesProps) {
       />
 
       <Snackbar
-        open={!!toast}
+        open={!!activeToast}
         autoHideDuration={4000}
         onClose={() => setToast(null)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert onClose={() => setToast(null)} severity={toast?.severity} variant="filled">
-          {toast?.message}
+        <Alert onClose={() => setToast(null)} severity={activeToast?.severity} variant="filled">
+          {activeToast?.message}
         </Alert>
       </Snackbar>
     </>

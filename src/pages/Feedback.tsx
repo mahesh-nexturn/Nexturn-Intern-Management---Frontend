@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
   Alert,
@@ -21,8 +21,13 @@ import DeleteIcon from '@mui/icons-material/Delete'
 
 import { useAuth } from '../context/useAuth'
 import type { UserRole } from '../context/authState'
-import { feedbackApi } from '../services'
 import { useDialogs } from '../context/dialogState'
+import {
+  useCreateFeedbackMutation,
+  useDeleteFeedbackMutation,
+  useListAllFeedbackQuery,
+  useListMyFeedbackQuery,
+} from '../store'
 
 type ToastState = {
   message: string
@@ -45,50 +50,28 @@ function Feedback() {
   const role = user?.role ?? (sessionStorage.getItem('role') as UserRole | null)
   const isHr = role === 'HR'
 
-  const [feedback, setFeedback] = useState<feedbackApi.FeedbackDto[]>([])
+  const allQuery = useListAllFeedbackQuery(undefined, { skip: !isHr })
+  const myQuery = useListMyFeedbackQuery(undefined, { skip: isHr })
+  const activeQuery = isHr ? allQuery : myQuery
+  const loading = activeQuery.isLoading
+  const feedback = useMemo(() => activeQuery.data ?? [], [activeQuery.data])
+  const [createFeedback] = useCreateFeedbackMutation()
+  const [removeFeedback] = useDeleteFeedbackMutation()
 
   const [form, setForm] = useState<FeedbackFormState>({
     subject: '',
     message: '',
   })
 
-  const [loading, setLoading] = useState(true)
-
   const [submitting, setSubmitting] = useState(false)
 
   const [toast, setToast] = useState<ToastState>(null)
 
-  useEffect(() => {
-    let cancelled = false
-
-    const loadFeedback = async () => {
-      setLoading(true)
-      try {
-        const list = isHr ? await feedbackApi.listAllFeedback() : await feedbackApi.listMyFeedback()
-
-        if (!cancelled) {
-          setFeedback(list)
-        }
-      } catch {
-        if (!cancelled) {
-          setToast({
-            message: 'Failed to load feedback.',
-            severity: 'error',
-          })
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false)
-        }
-      }
-    }
-
-    void loadFeedback()
-
-    return () => {
-      cancelled = true
-    }
-  }, [isHr])
+  const activeToast =
+    toast ??
+    (activeQuery.isError
+      ? { message: 'Failed to load feedback.', severity: 'error' as const }
+      : null)
 
   const totalFeedback = feedback.length
 
@@ -113,12 +96,11 @@ function Feedback() {
 
     setSubmitting(true)
     try {
-      const created = await feedbackApi.createFeedback({
+      await createFeedback({
         subject: form.subject.trim() || undefined,
         message: form.message.trim(),
-      })
+      }).unwrap()
 
-      setFeedback((current) => [created, ...current])
       setForm({
         subject: '',
         message: '',
@@ -143,8 +125,7 @@ function Feedback() {
     if (!ok) return
 
     try {
-      await feedbackApi.deleteFeedback(id)
-      setFeedback((current) => current.filter((item) => item.id !== id))
+      await removeFeedback(id).unwrap()
       setToast({
         message: 'Feedback deleted.',
         severity: 'success',
@@ -387,7 +368,7 @@ function Feedback() {
       </Paper>
 
       <Snackbar
-        open={!!toast}
+        open={!!activeToast}
         autoHideDuration={3000}
         onClose={() => setToast(null)}
         anchorOrigin={{
@@ -395,9 +376,9 @@ function Feedback() {
           horizontal: 'right',
         }}
       >
-        {toast ? (
-          <Alert severity={toast.severity} onClose={() => setToast(null)}>
-            {toast.message}
+        {activeToast ? (
+          <Alert severity={activeToast.severity} onClose={() => setToast(null)}>
+            {activeToast.message}
           </Alert>
         ) : undefined}
       </Snackbar>

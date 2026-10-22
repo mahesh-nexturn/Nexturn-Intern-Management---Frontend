@@ -1,5 +1,3 @@
-import { useEffect, useState } from 'react'
-
 import {
   Box,
   Button,
@@ -14,35 +12,26 @@ import {
   Typography,
 } from '@mui/material'
 
-import { leaveApi } from '../services'
+import { useApproveLeaveMutation, useListLeavesQuery, useRejectLeaveMutation } from '../store'
 
 type Props = {
   isApprover: boolean
   internName?: string
-  refreshKey: number
-  onChanged?: () => void
   onError: (message: string) => void
 }
 
 const statusColor = { Pending: 'warning', Approved: 'success', Rejected: 'error' } as const
 
-function LeaveRequestsPanel({ isApprover, internName, refreshKey, onChanged, onError }: Props) {
-  const [allLeaves, setLeaves] = useState<leaveApi.LeaveDto[]>([])
+function LeaveRequestsPanel({ isApprover, internName, onError }: Props) {
+  const { data } = useListLeavesQuery()
+  const [approveLeave] = useApproveLeaveMutation()
+  const [rejectLeave] = useRejectLeaveMutation()
+  const allLeaves = data ?? []
   const leaves = internName ? allLeaves.filter((l) => l.internName === internName) : allLeaves
-
-  useEffect(() => {
-    leaveApi
-      .listLeaves()
-      .then(setLeaves)
-      .catch(() => onError('Failed to load leave requests.'))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshKey])
 
   const decide = async (id: number, approve: boolean) => {
     try {
-      const updated = approve ? await leaveApi.approveLeave(id) : await leaveApi.rejectLeave(id)
-      setLeaves((prev) => prev.map((l) => (l.id === id ? updated : l)))
-      onChanged?.()
+      await (approve ? approveLeave(id) : rejectLeave(id)).unwrap()
     } catch {
       onError('Failed to update leave request.')
     }

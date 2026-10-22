@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
   Button,
@@ -12,8 +12,9 @@ import {
 
 import EvaluationFormFields from './EvaluationFormFields'
 import { EMPTY_RATINGS, allRated, overallFromRatings, type CriteriaRatings } from '../utils'
-import type { Evaluation, Intern } from '../types'
-import { evaluationApi, taskApi } from '../services'
+import type { Evaluation } from '../types'
+import { useInterns } from '../hooks/useAppData'
+import { useListEvaluationsQuery, useListTasksQuery } from '../store'
 import { useDialogs } from '../context/dialogState'
 
 type AddEvaluationDialogProps = {
@@ -21,7 +22,6 @@ type AddEvaluationDialogProps = {
   handleClose: () => void
   addEvaluation: (evaluation: Evaluation) => void
   selectedEvaluation: Evaluation
-  interns: Intern[]
 }
 
 function AddEvaluationDialog({
@@ -29,15 +29,13 @@ function AddEvaluationDialog({
   handleClose,
   addEvaluation,
   selectedEvaluation,
-  interns,
 }: AddEvaluationDialogProps) {
   const { notify } = useDialogs()
+  const { interns } = useInterns()
   const [internId, setInternId] = useState<number | ''>('')
   const [ratings, setRatings] = useState<CriteriaRatings>(EMPTY_RATINGS)
   const [feedback, setFeedback] = useState('')
   const [taskId, setTaskId] = useState<number | ''>('')
-  const [internTasks, setInternTasks] = useState<taskApi.TaskDto[]>([])
-  const [internEvaluations, setInternEvaluations] = useState<evaluationApi.EvaluationDto[]>([])
   const [evaluationId, setEvaluationId] = useState(0)
 
   const [prevSelected, setPrevSelected] = useState<Evaluation | null>(null)
@@ -56,24 +54,21 @@ function AddEvaluationDialog({
     setEvaluationId(selectedEvaluation.id)
   }
 
-  useEffect(() => {
-    if (!internId) return
-    let cancelled = false
-    Promise.all([taskApi.listTasks({ internId }), evaluationApi.listEvaluations({ internId })])
-      .then(([tasks, evaluations]) => {
-        if (cancelled) return
-        setInternTasks(tasks.filter((task) => task.status === 'Completed'))
-        setInternEvaluations(evaluations)
-      })
-      .catch(() => {
-        if (cancelled) return
-        setInternTasks([])
-        setInternEvaluations([])
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [internId])
+  const { currentData: tasksData } = useListTasksQuery(internId ? { internId } : undefined, {
+    skip: !internId,
+  })
+  const { currentData: evaluationsData } = useListEvaluationsQuery(
+    internId ? { internId } : undefined,
+    { skip: !internId },
+  )
+  const internEvaluations = useMemo(
+    () => (internId ? (evaluationsData ?? []) : []),
+    [internId, evaluationsData],
+  )
+  const internTasks = useMemo(
+    () => (internId ? (tasksData ?? []).filter((task) => task.status === 'Completed') : []),
+    [internId, tasksData],
+  )
 
   const selectedIntern = useMemo(
     () => interns.find((intern) => intern.id === internId),
@@ -132,8 +127,6 @@ function AddEvaluationDialog({
           onChange={(e) => {
             setInternId(e.target.value === '' ? '' : Number(e.target.value))
             setTaskId('')
-            setInternTasks([])
-            setInternEvaluations([])
             setEvaluationId(0)
             setRatings(EMPTY_RATINGS)
             setFeedback('')

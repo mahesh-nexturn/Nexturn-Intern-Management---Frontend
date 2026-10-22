@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import {
   Alert,
@@ -30,16 +30,15 @@ import type { Document } from '../types'
 import AddDocumentDialog from '../components/AddDocumentDialog'
 import DocumentChart from '../components/DocumentChart'
 import { documentApi } from '../services'
-import { toUiDocument } from '../utils'
+import { useDeleteDocumentMutation, useUploadDocumentMutation } from '../store'
+import { useDocuments } from '../hooks/useAppData'
 import { useDialogs } from '../context/dialogState'
 
-type DocumentsProps = {
-  documents: Document[]
-  setDocuments: React.Dispatch<React.SetStateAction<Document[]>>
-}
-
-function Documents({ documents, setDocuments }: DocumentsProps) {
+function Documents() {
   const { notify } = useDialogs()
+  const { documents } = useDocuments()
+  const [uploadDocument] = useUploadDocumentMutation()
+  const [deleteDocumentMutation] = useDeleteDocumentMutation()
   const [open, setOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [typeFilter, setTypeFilter] = useState('All')
@@ -58,14 +57,6 @@ function Documents({ documents, setDocuments }: DocumentsProps) {
 
   const userName = sessionStorage.getItem('name') || ''
   const canManageDocuments = true
-
-  useEffect(() => {
-    documentApi
-      .listDocuments()
-      .then((list) => setDocuments(list.map(toUiDocument)))
-      .catch(() => setToast({ message: 'Failed to load documents.', severity: 'error' }))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   const visibleDocuments = documents
 
@@ -102,11 +93,10 @@ function Documents({ documents, setDocuments }: DocumentsProps) {
     }
 
     try {
-      const created = await documentApi.uploadDocument({
+      await uploadDocument({
         file,
         documentType: item.documentType,
-      })
-      setDocuments((prev) => [...prev, toUiDocument(created)])
+      }).unwrap()
       setToast({ message: 'Document uploaded successfully.', severity: 'success' })
       setOpen(false)
     } catch {
@@ -116,8 +106,7 @@ function Documents({ documents, setDocuments }: DocumentsProps) {
 
   const deleteDocument = async (id: number) => {
     try {
-      await documentApi.deleteDocument(id)
-      setDocuments((prev) => prev.filter((item) => item.id !== id))
+      await deleteDocumentMutation(id).unwrap()
       setToast({ message: 'Document deleted successfully.', severity: 'success' })
     } catch {
       setToast({ message: 'Failed to delete document.', severity: 'error' })

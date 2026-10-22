@@ -16,10 +16,10 @@ import MenuIcon from '@mui/icons-material/Menu'
 import LogoutIcon from '@mui/icons-material/Logout'
 import NotificationsIcon from '@mui/icons-material/Notifications'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
-import { notificationApi } from '../services'
+import { useListNotificationsQuery, useMarkNotificationReadMutation } from '../store'
 import AvatarUploadDialog from './AvatarUploadDialog'
 
 function Navbar({
@@ -37,35 +37,18 @@ function Navbar({
   const open = Boolean(anchorEl)
 
   const [bellAnchor, setBellAnchor] = useState<null | HTMLElement>(null)
-  const [unread, setUnread] = useState<notificationApi.NotificationDto[]>([])
-
-  useEffect(() => {
-    let active = true
-    const load = () =>
-      notificationApi
-        .listNotifications()
-        .then((list) => {
-          if (active) setUnread(list.filter((n) => n.status === 'Unread'))
-        })
-        .catch(() => undefined)
-
-    load()
-    const timer = window.setInterval(load, 60000)
-    window.addEventListener('notifications-changed', load)
-    return () => {
-      active = false
-      window.clearInterval(timer)
-      window.removeEventListener('notifications-changed', load)
-    }
-  }, [])
+  const { data: notifications } = useListNotificationsQuery(undefined, {
+    pollingInterval: 60000,
+  })
+  const unread = useMemo(
+    () => notifications?.filter((n) => n.status === 'Unread') ?? [],
+    [notifications],
+  )
+  const [markRead] = useMarkNotificationReadMutation()
 
   const handleNotificationClick = (id: number) => {
     setBellAnchor(null)
-    setUnread((prev) => prev.filter((n) => n.id !== id))
-    notificationApi
-      .markNotificationRead(id)
-      .catch(() => undefined)
-      .finally(() => window.dispatchEvent(new Event('notifications-changed')))
+    markRead(id)
     navigate('/notifications')
   }
 

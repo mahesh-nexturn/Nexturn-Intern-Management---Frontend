@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import {
   Alert,
@@ -13,7 +13,11 @@ import {
   Typography,
 } from '@mui/material'
 
-import { authApi, settingsApi } from '../services'
+import {
+  useChangePasswordMutation,
+  useGetMySettingsQuery,
+  useUpdateMySettingsMutation,
+} from '../store'
 
 type ToastState = {
   message: string
@@ -32,60 +36,35 @@ const defaultPasswordForm: PasswordFormState = {
   confirmPassword: '',
 }
 
+type NotificationDraft = {
+  emailNotifications?: boolean
+  pushNotifications?: boolean
+}
+
 function Settings() {
-  const [settings, setSettings] = useState<settingsApi.SettingsDto | null>(null)
+  const { data: serverSettings, isLoading: loading } = useGetMySettingsQuery()
+  const [updateSettings, { isLoading: saving }] = useUpdateMySettingsMutation()
+  const [changePassword, { isLoading: changingPassword }] = useChangePasswordMutation()
+
+  // Unsaved switch changes layered over the cached server settings.
+  const [draft, setDraft] = useState<NotificationDraft>({})
+  const settings = serverSettings ? { ...serverSettings, ...draft } : null
 
   const [passwordForm, setPasswordForm] = useState<PasswordFormState>(defaultPasswordForm)
 
-  const [loading, setLoading] = useState(true)
-
-  const [saving, setSaving] = useState(false)
-
-  const [changingPassword, setChangingPassword] = useState(false)
-
   const [toast, setToast] = useState<ToastState>(null)
-
-  useEffect(() => {
-    let cancelled = false
-
-    settingsApi
-      .getMySettings()
-      .then((data) => {
-        if (!cancelled) {
-          setSettings(data)
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setToast({
-            message: 'Failed to load settings.',
-            severity: 'error',
-          })
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoading(false)
-        }
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   const handleSaveSettings = async () => {
     if (!settings) return
 
-    setSaving(true)
     try {
-      const updated = await settingsApi.updateMySettings({
+      await updateSettings({
         emailNotifications: settings.emailNotifications,
         pushNotifications: settings.pushNotifications,
         theme: settings.theme,
         phone: settings.phone ?? '',
-      })
-      setSettings(updated)
+      }).unwrap()
+      setDraft({})
       setToast({
         message: 'Settings updated.',
         severity: 'success',
@@ -95,8 +74,6 @@ function Settings() {
         message: 'Failed to update settings.',
         severity: 'error',
       })
-    } finally {
-      setSaving(false)
     }
   }
 
@@ -121,9 +98,11 @@ function Settings() {
       return
     }
 
-    setChangingPassword(true)
     try {
-      await authApi.changePassword(passwordForm.currentPassword, passwordForm.newPassword)
+      await changePassword({
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      }).unwrap()
       setPasswordForm(defaultPasswordForm)
       setToast({
         message: 'Password changed.',
@@ -134,8 +113,6 @@ function Settings() {
         message: 'Failed to change password.',
         severity: 'error',
       })
-    } finally {
-      setChangingPassword(false)
     }
   }
 
@@ -256,14 +233,7 @@ function Settings() {
                 <Switch
                   checked={settings?.emailNotifications ?? false}
                   onChange={(e) =>
-                    setSettings((current) =>
-                      current
-                        ? {
-                            ...current,
-                            emailNotifications: e.target.checked,
-                          }
-                        : current,
-                    )
+                    setDraft((current) => ({ ...current, emailNotifications: e.target.checked }))
                   }
                 />
               }
@@ -275,14 +245,7 @@ function Settings() {
                 <Switch
                   checked={settings?.pushNotifications ?? false}
                   onChange={(e) =>
-                    setSettings((current) =>
-                      current
-                        ? {
-                            ...current,
-                            pushNotifications: e.target.checked,
-                          }
-                        : current,
-                    )
+                    setDraft((current) => ({ ...current, pushNotifications: e.target.checked }))
                   }
                 />
               }

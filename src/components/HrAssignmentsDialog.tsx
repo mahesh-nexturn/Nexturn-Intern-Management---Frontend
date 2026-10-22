@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
   Alert,
@@ -14,7 +14,14 @@ import {
 } from '@mui/material'
 
 import type { Hr } from '../types'
-import { hrApi, internApi, mentorApi } from '../services'
+import {
+  useAssignHrInternsMutation,
+  useAssignHrMentorsMutation,
+  useListHrInternsQuery,
+  useListHrMentorsQuery,
+  useListInternsQuery,
+  useListMentorsQuery,
+} from '../store'
 
 type Option = { id: number; label: string }
 
@@ -26,77 +33,78 @@ type HrAssignmentsDialogProps = {
 }
 
 function HrAssignmentsDialog({ open, hr, handleClose, onSaved }: HrAssignmentsDialogProps) {
-  const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
+  const [saveError, setSaveError] = useState('')
 
-  const [mentorOptions, setMentorOptions] = useState<Option[]>([])
-  const [internOptions, setInternOptions] = useState<Option[]>([])
-  const [selectedMentors, setSelectedMentors] = useState<Option[]>([])
-  const [selectedInterns, setSelectedInterns] = useState<Option[]>([])
+  const skip = !open || !hr
+  const hrId = hr?.id ?? 0
+  const mentorsQuery = useListMentorsQuery(undefined, { skip })
+  const internsQuery = useListInternsQuery(undefined, { skip })
+  const hrMentorsQuery = useListHrMentorsQuery(hrId, { skip })
+  const hrInternsQuery = useListHrInternsQuery(hrId, { skip })
+  const [assignMentors] = useAssignHrMentorsMutation()
+  const [assignInterns] = useAssignHrInternsMutation()
+
+  const loading =
+    !skip &&
+    (mentorsQuery.isLoading ||
+      internsQuery.isLoading ||
+      hrMentorsQuery.isLoading ||
+      hrInternsQuery.isLoading)
+  const loadFailed =
+    !skip &&
+    (mentorsQuery.isError ||
+      internsQuery.isError ||
+      hrMentorsQuery.isError ||
+      hrInternsQuery.isError)
+  const error = saveError || (loadFailed ? 'Failed to load assignments.' : '')
+
+  const mentorOptions = useMemo<Option[]>(
+    () => mentorsQuery.data?.map((m) => ({ id: m.id, label: m.name })) ?? [],
+    [mentorsQuery.data],
+  )
+  const internOptions = useMemo<Option[]>(
+    () => internsQuery.data?.map((i) => ({ id: i.id, label: i.name })) ?? [],
+    [internsQuery.data],
+  )
+
+  // User edits override the server-assigned selection until the dialog is reopened.
+  const [editedMentors, setEditedMentors] = useState<Option[] | null>(null)
+  const [editedInterns, setEditedInterns] = useState<Option[] | null>(null)
 
   const [prevOpen, setPrevOpen] = useState<boolean | null>(null)
   const [prevHr, setPrevHr] = useState<Hr | null>(null)
   if (prevOpen !== open || prevHr !== hr) {
     setPrevOpen(open)
     setPrevHr(hr)
-    if (open && hr) {
-      setLoading(true)
-      setError('')
-    }
+    setEditedMentors(null)
+    setEditedInterns(null)
+    setSaveError('')
   }
 
-  useEffect(() => {
-    if (!open || !hr) return
-    let cancelled = false
-
-    Promise.all([
-      mentorApi.listMentors(),
-      internApi.listInterns(),
-      hrApi.listHrMentors(hr.id),
-      hrApi.listHrInterns(hr.id),
-    ])
-      .then(([mentors, interns, hrMentors, hrInterns]) => {
-        if (cancelled) return
-        const mOpts = mentors.map((m) => ({ id: m.id, label: m.name }))
-        const iOpts = interns.map((i) => ({ id: i.id, label: i.name }))
-        setMentorOptions(mOpts)
-        setInternOptions(iOpts)
-        const mIds = new Set(hrMentors.map((m) => m.id))
-        const iIds = new Set(hrInterns.map((i) => i.id))
-        setSelectedMentors(mOpts.filter((m) => mIds.has(m.id)))
-        setSelectedInterns(iOpts.filter((i) => iIds.has(i.id)))
-      })
-      .catch(() => {
-        if (!cancelled) setError('Failed to load assignments.')
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [open, hr])
+  const selectedMentors = useMemo(() => {
+    if (editedMentors) return editedMentors
+    const ids = new Set(hrMentorsQuery.data?.map((m) => m.id))
+    return mentorOptions.filter((m) => ids.has(m.id))
+  }, [editedMentors, hrMentorsQuery.data, mentorOptions])
+  const selectedInterns = useMemo(() => {
+    if (editedInterns) return editedInterns
+    const ids = new Set(hrInternsQuery.data?.map((i) => i.id))
+    return internOptions.filter((i) => ids.has(i.id))
+  }, [editedInterns, hrInternsQuery.data, internOptions])
 
   const handleSave = async () => {
     if (!hr) return
     setSaving(true)
-    setError('')
+    setSaveError('')
     try {
       // Mentors first: their interns follow the mentor, then the explicit intern set is applied.
-      await hrApi.assignMentors(
-        hr.id,
-        selectedMentors.map((m) => m.id),
-      )
-      await hrApi.assignInterns(
-        hr.id,
-        selectedInterns.map((i) => i.id),
-      )
+      await assignMentors({ id: hr.id, ids: selectedMentors.map((m) => m.id) }).unwrap()
+      await assignInterns({ id: hr.id, ids: selectedInterns.map((i) => i.id) }).unwrap()
       onSaved()
       handleClose()
     } catch {
-      setError('Failed to save assignments.')
+      setSaveError('Failed to save assignments.')
     } finally {
       setSaving(false)
     }
@@ -129,7 +137,7 @@ function HrAssignmentsDialog({ open, hr, handleClose, onSaved }: HrAssignmentsDi
               value={selectedMentors}
               getOptionLabel={(o) => o.label}
               isOptionEqualToValue={(a, b) => a.id === b.id}
-              onChange={(_, value) => setSelectedMentors(value)}
+              onChange={(_, value) => setEditedMentors(value)}
               renderInput={(params) => <TextField {...params} label="Mentors" margin="normal" />}
             />
 
@@ -139,7 +147,7 @@ function HrAssignmentsDialog({ open, hr, handleClose, onSaved }: HrAssignmentsDi
               value={selectedInterns}
               getOptionLabel={(o) => o.label}
               isOptionEqualToValue={(a, b) => a.id === b.id}
-              onChange={(_, value) => setSelectedInterns(value)}
+              onChange={(_, value) => setEditedInterns(value)}
               renderInput={(params) => <TextField {...params} label="Interns" margin="normal" />}
             />
           </>

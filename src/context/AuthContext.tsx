@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react'
+import { useDispatch } from 'react-redux'
 
 import type { ReactNode } from 'react'
-import { authApi, clearTokens, getAccessToken } from '../services'
+import { clearTokens, getAccessToken } from '../services'
+import {
+  baseApi,
+  getCurrentUserEndpoint,
+  loginEndpoint,
+  logoutEndpoint,
+  type AppDispatch,
+} from '../store'
 import { AuthContext, backendRoleToUi, type AuthUser } from './authState'
 
 type Props = {
@@ -25,6 +33,7 @@ function clearUser() {
 }
 
 export function AuthProvider({ children }: Props) {
+  const dispatch = useDispatch<AppDispatch>()
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(() => !!getAccessToken())
 
@@ -34,8 +43,9 @@ export function AuthProvider({ children }: Props) {
     const token = getAccessToken()
     if (!token) return
 
-    authApi
-      .me()
+    const request = dispatch(getCurrentUserEndpoint.initiate(undefined, { forceRefetch: true }))
+    request
+      .unwrap()
       .then((current) => {
         const authUser: AuthUser = {
           id: current.id,
@@ -50,13 +60,16 @@ export function AuthProvider({ children }: Props) {
       .catch(() => {
         clearTokens()
         clearUser()
+        dispatch(baseApi.util.resetApiState())
         setUser(null)
       })
       .finally(() => setLoading(false))
-  }, [])
+
+    return () => request.unsubscribe()
+  }, [dispatch])
 
   const login = async (email: string, password: string) => {
-    const result = await authApi.login(email, password)
+    const result = await dispatch(loginEndpoint.initiate({ email, password })).unwrap()
     const authUser: AuthUser = {
       id: result.userId,
       role: backendRoleToUi(result.role),
@@ -65,15 +78,18 @@ export function AuthProvider({ children }: Props) {
       name: result.name,
     }
     persistUser(authUser)
+    // Drop anything cached for a previous session before the new user's pages mount.
+    dispatch(baseApi.util.resetApiState())
     setUser(authUser)
     return authUser
   }
 
   const logout = async () => {
     try {
-      await authApi.logout()
+      await dispatch(logoutEndpoint.initiate()).unwrap()
     } finally {
       clearUser()
+      dispatch(baseApi.util.resetApiState())
       setUser(null)
     }
   }

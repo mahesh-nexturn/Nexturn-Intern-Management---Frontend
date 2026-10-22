@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import {
@@ -29,33 +29,36 @@ import DeleteIcon from '@mui/icons-material/Delete'
 
 import AddEvaluationDialog from '../components/AddEvaluationDialog'
 import EvaluationChart from '../components/EvaluationChart'
-import type { Evaluation, Intern } from '../types'
-import { evaluationApi, internApi, taskApi } from '../services'
-import { EMPTY_RATINGS, EVALUATION_CRITERIA, toUiEvaluation } from '../utils'
+import type { Evaluation } from '../types'
+import { evaluationApi } from '../services'
+import { useInterns, useEvaluations } from '../hooks/useAppData'
+import {
+  useCreateEvaluationMutation,
+  useDeleteEvaluationMutation,
+  useListEvaluationsQuery,
+  useListInternsQuery,
+  useListTasksQuery,
+  useUpdateEvaluationMutation,
+} from '../store'
+import { EMPTY_RATINGS, EVALUATION_CRITERIA } from '../utils'
 import { useDialogs } from '../context/dialogState'
-
-type EvaluationsProps = {
-  evaluations: Evaluation[]
-  setEvaluations: React.Dispatch<React.SetStateAction<Evaluation[]>>
-}
 
 type Role = 'HR' | 'MENTOR' | 'INTERN' | null
 
-function toUiIntern(dto: internApi.InternDto): Intern {
-  return {
-    id: dto.id,
-    name: dto.name,
-    email: dto.email,
-    department: dto.department ?? '',
-    mentor: dto.mentorName ?? '',
-    mentorId: dto.mentorId,
-    status: dto.status ?? 'Active',
-    userId: dto.userId,
-  }
-}
-
-function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
+function Evaluations() {
   const { notify } = useDialogs()
+  const { evaluations } = useEvaluations()
+  const { interns: availableInterns } = useInterns()
+  const { isError: evaluationsError } = useListEvaluationsQuery()
+  const { isError: internsError } = useListInternsQuery()
+  const { data: tasksData } = useListTasksQuery()
+  const [createEvaluation] = useCreateEvaluationMutation()
+  const [updateEvaluation] = useUpdateEvaluationMutation()
+  const [removeEvaluation] = useDeleteEvaluationMutation()
+  const taskTitles = useMemo(
+    () => Object.fromEntries((tasksData ?? []).map((task) => [task.id, task.title])),
+    [tasksData],
+  )
   const role = sessionStorage.getItem('role') as Role
   const userName = sessionStorage.getItem('name') || ''
 
@@ -69,9 +72,7 @@ function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
   const [toast, setToast] = useState<{ message: string; severity: 'success' | 'error' } | null>(
     null,
   )
-  const [availableInterns, setAvailableInterns] = useState<Intern[]>([])
   const [deleteTarget, setDeleteTarget] = useState<Evaluation | null>(null)
-  const [taskTitles, setTaskTitles] = useState<Record<number, string>>({})
   const navigate = useNavigate()
 
   const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation>({
@@ -86,38 +87,14 @@ function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
     feedback: '',
   })
 
-  useEffect(() => {
-    let cancelled = false
-
-    evaluationApi
-      .listEvaluations()
-      .then((list) => {
-        if (!cancelled) setEvaluations(list.map((item) => toUiEvaluation(item)))
-      })
-      .catch(() => {
-        if (!cancelled) setToast({ message: 'Failed to load evaluations.', severity: 'error' })
-      })
-
-    internApi
-      .listInterns()
-      .then((list) => {
-        if (!cancelled) setAvailableInterns(list.map(toUiIntern))
-      })
-      .catch(() => {
-        if (!cancelled) setToast({ message: 'Failed to load interns.', severity: 'error' })
-      })
-
-    taskApi
-      .listTasks()
-      .then((list) => {
-        if (!cancelled) setTaskTitles(Object.fromEntries(list.map((task) => [task.id, task.title])))
-      })
-      .catch(() => undefined)
-
-    return () => {
-      cancelled = true
-    }
-  }, [setEvaluations])
+  const [loadErrorShown, setLoadErrorShown] = useState(false)
+  if (!loadErrorShown && (evaluationsError || internsError)) {
+    setLoadErrorShown(true)
+    setToast({
+      message: evaluationsError ? 'Failed to load evaluations.' : 'Failed to load interns.',
+      severity: 'error',
+    })
+  }
 
   const evaluationsWithRelations = useMemo(
     () =>
@@ -205,16 +182,10 @@ function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
     try {
       const targetId = evaluation.id > 0 ? evaluation.id : null
       if (targetId !== null) {
-        const updated = await evaluationApi.updateEvaluation(targetId, payload)
-        setEvaluations((prev) =>
-          prev.map((item) =>
-            item.id === targetId ? toUiEvaluation(updated, availableInterns) : item,
-          ),
-        )
+        await updateEvaluation({ id: targetId, payload }).unwrap()
         setToast({ message: 'Evaluation updated successfully.', severity: 'success' })
       } else {
-        const created = await evaluationApi.createEvaluation(payload)
-        setEvaluations((prev) => [...prev, toUiEvaluation(created, availableInterns)])
+        await createEvaluation(payload).unwrap()
         setToast({ message: 'Evaluation created successfully.', severity: 'success' })
       }
 
@@ -236,8 +207,7 @@ function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
     setDeleteTarget(null)
 
     try {
-      await evaluationApi.deleteEvaluation(evaluation.id)
-      setEvaluations((prev) => prev.filter((item) => item.id !== evaluation.id))
+      await removeEvaluation(evaluation.id).unwrap()
       setToast({ message: 'Evaluation deleted successfully.', severity: 'success' })
     } catch {
       setToast({ message: 'Failed to delete evaluation.', severity: 'error' })
@@ -357,7 +327,6 @@ function Evaluations({ evaluations, setEvaluations }: EvaluationsProps) {
         handleClose={handleClose}
         addEvaluation={saveEvaluation}
         selectedEvaluation={selectedEvaluation}
-        interns={availableInterns}
       />
 
       <Snackbar

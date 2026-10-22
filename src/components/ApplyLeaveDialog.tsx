@@ -59,7 +59,7 @@ function ApplyLeaveDialog({ open, hrName, onClose, onSubmit }: Props) {
       })
       close()
     } catch (e) {
-      const message = (e as { response?: { data?: { message?: string } } })?.response?.data?.message
+      const message = (e as { message?: string })?.message
       setError(message || 'Failed to submit leave request.')
     } finally {
       setSubmitting(false)

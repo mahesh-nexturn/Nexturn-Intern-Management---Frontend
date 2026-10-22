@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
   Box,
@@ -31,15 +31,17 @@ import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 
-import type { Hr, Intern, Mentor } from '../types'
-import { hrApi, internApi } from '../services'
+import type { Hr, Intern } from '../types'
+import { internApi } from '../services'
+import {
+  useCreateInternMutation,
+  useDeleteInternMutation,
+  useListHrsQuery,
+  useListInternsQuery,
+  useUpdateInternMutation,
+} from '../store'
+import { useMentors } from '../hooks/useAppData'
 import { useDialogs } from '../context/dialogState'
-
-type InternsProps = {
-  interns: Intern[]
-  setInterns: React.Dispatch<React.SetStateAction<Intern[]>>
-  mentors: Mentor[]
-}
 
 type Role = 'HR' | 'MENTOR' | 'INTERN' | null
 
@@ -71,7 +73,7 @@ function toUiIntern(dto: internApi.InternDto): Intern {
   }
 }
 
-function Interns({ interns, setInterns, mentors }: InternsProps) {
+function Interns() {
   const { confirm, notify } = useDialogs()
   const role = (sessionStorage.getItem('role') as Role) || 'HR'
 
@@ -79,9 +81,18 @@ function Interns({ interns, setInterns, mentors }: InternsProps) {
 
   const isHr = role === 'HR'
   const isAdmin = sessionStorage.getItem('backendRole') === 'ADMIN'
-  const [hrs, setHrs] = useState<Hr[]>([])
   const isMentor = role === 'MENTOR'
   const isIntern = role === 'INTERN'
+
+  // Mapped locally (not via useInterns) because this page needs the hrId/hrName fields.
+  const { data: internDtos, isError: internsFailed } = useListInternsQuery()
+  const interns = useMemo(() => internDtos?.map(toUiIntern) ?? [], [internDtos])
+  const { mentors } = useMentors()
+  const { data: hrData } = useListHrsQuery(undefined, { skip: !isAdmin })
+  const hrs = useMemo<Hr[]>(() => hrData ?? [], [hrData])
+  const [createIntern] = useCreateInternMutation()
+  const [updateIntern] = useUpdateInternMutation()
+  const [deleteIntern] = useDeleteInternMutation()
 
   const [open, setOpen] = useState(false)
   const [toast, setToast] = useState<{ message: string; severity: 'success' | 'error' } | null>(
@@ -106,29 +117,11 @@ function Interns({ interns, setInterns, mentors }: InternsProps) {
     endDate: defaultEndDate(),
   })
 
-  useEffect(() => {
-    let cancelled = false
-    internApi
-      .listInterns()
-      .then((list) => {
-        if (!cancelled) setInterns(list.map(toUiIntern))
-      })
-      .catch(() => {
-        if (!cancelled) setToast({ message: 'Failed to load interns.', severity: 'error' })
-      })
-    return () => {
-      cancelled = true
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
-    if (!isAdmin) return
-    hrApi
-      .listHrs()
-      .then(setHrs)
-      .catch(() => {})
-  }, [isAdmin])
+  const [prevFailed, setPrevFailed] = useState(false)
+  if (internsFailed !== prevFailed) {
+    setPrevFailed(internsFailed)
+    if (internsFailed) setToast({ message: 'Failed to load interns.', severity: 'error' })
+  }
 
   const visibleInterns = useMemo(() => {
     if (isHr) return interns
@@ -196,18 +189,17 @@ function Interns({ interns, setInterns, mentors }: InternsProps) {
 
     if (actualIndex !== -1) {
       if (await confirm(`Delete ${selected.name}?`)) {
-        internApi
-          .deleteIntern(selected.id)
-          .then(() => {
-            setInterns(interns.filter((_, i) => i !== actualIndex))
-            setToast({ message: 'Intern deleted.', severity: 'success' })
-          })
-          .catch(() => setToast({ message: 'Failed to delete intern.', severity: 'error' }))
+        try {
+          await deleteIntern(selected.id).unwrap()
+          setToast({ message: 'Intern deleted.', severity: 'success' })
+        } catch {
+          setToast({ message: 'Failed to delete intern.', severity: 'error' })
+        }
       }
     }
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedIntern.name.trim() || !selectedIntern.department.trim()) {
       notify('Please enter Name and Department.')
       return
@@ -231,28 +223,24 @@ function Interns({ interns, setInterns, mentors }: InternsProps) {
     }
     if (isAdmin) payload.hrId = selectedIntern.hrId ?? null
 
-    if (editIndex !== null) {
-      internApi
-        .updateIntern(selectedIntern.id, payload)
-        .then((dto) => {
-          const updated = [...interns]
-          updated[editIndex] = toUiIntern(dto)
-          setInterns(updated)
-          setToast({ message: 'Intern updated.', severity: 'success' })
-        })
-        .catch(() => setToast({ message: 'Failed to update intern.', severity: 'error' }))
-    } else {
-      internApi
-        .createIntern(payload)
-        .then((dto) => {
-          setInterns([...interns, toUiIntern(dto)])
-          setToast({ message: 'Intern created.', severity: 'success' })
-        })
-        .catch(() => setToast({ message: 'Failed to create intern.', severity: 'error' }))
-    }
-
+    const wasEditing = editIndex !== null
     setOpen(false)
     setEditIndex(null)
+
+    try {
+      if (wasEditing) {
+        await updateIntern({ id: selectedIntern.id, payload }).unwrap()
+        setToast({ message: 'Intern updated.', severity: 'success' })
+      } else {
+        await createIntern(payload).unwrap()
+        setToast({ message: 'Intern created.', severity: 'success' })
+      }
+    } catch {
+      setToast({
+        message: wasEditing ? 'Failed to update intern.' : 'Failed to create intern.',
+        severity: 'error',
+      })
+    }
   }
 
   const handleClose = () => {

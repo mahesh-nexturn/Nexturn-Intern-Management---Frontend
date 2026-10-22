@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
 import Login from '../pages/Login'
@@ -27,358 +28,41 @@ import HrManagement from '../pages/HrManagement'
 import MainLayout from '../layouts/MainLayout'
 import ProtectedRoute from '../components/ProtectedRoute'
 
-import type {
-  Announcement,
-  Attendance as AttendanceType,
-  Certificate,
-  Document,
-  Evaluation,
-  Intern,
-  Meeting,
-  Mentor,
-  Notification,
-  PPO as PPOType,
-  Report,
-  Task,
-  Training as TrainingType,
-} from '../types'
-
-type AppRoutesProps = {
-  mentors: Mentor[]
-  setMentors: React.Dispatch<React.SetStateAction<Mentor[]>>
-
-  interns: Intern[]
-  setInterns: React.Dispatch<React.SetStateAction<Intern[]>>
-
-  tasks: Task[]
-  setTasks: React.Dispatch<React.SetStateAction<Task[]>>
-
-  attendance: AttendanceType[]
-  setAttendance: React.Dispatch<React.SetStateAction<AttendanceType[]>>
-
-  meetings: Meeting[]
-  setMeetings: React.Dispatch<React.SetStateAction<Meeting[]>>
-
-  documents: Document[]
-  setDocuments: React.Dispatch<React.SetStateAction<Document[]>>
-
-  trainings: TrainingType[]
-  setTrainings: React.Dispatch<React.SetStateAction<TrainingType[]>>
-
-  evaluations: Evaluation[]
-  setEvaluations: React.Dispatch<React.SetStateAction<Evaluation[]>>
-
-  notifications: Notification[]
-  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>
-
-  ppoData: PPOType[]
-  setPPOData: React.Dispatch<React.SetStateAction<PPOType[]>>
-
-  announcements: Announcement[]
-  setAnnouncements: React.Dispatch<React.SetStateAction<Announcement[]>>
-
-  certificates: Certificate[]
-  setCertificates: React.Dispatch<React.SetStateAction<Certificate[]>>
-
-  reports: Report[]
-  setReports: React.Dispatch<React.SetStateAction<Report[]>>
+// Pages fetch their own data through RTK Query, so routes only wrap them in the layout.
+function protectedPage(page: ReactElement, adminOnly = false) {
+  return (
+    <ProtectedRoute adminOnly={adminOnly}>
+      <MainLayout>{page}</MainLayout>
+    </ProtectedRoute>
+  )
 }
 
-function AppRoutes({
-  mentors,
-  setMentors,
-  interns,
-  setInterns,
-  tasks,
-  setTasks,
-  attendance,
-  setAttendance,
-  meetings,
-  setMeetings,
-  documents,
-  setDocuments,
-  trainings,
-  setTrainings,
-  evaluations,
-  setEvaluations,
-  notifications,
-  setNotifications,
-  ppoData,
-  setPPOData,
-  announcements,
-  setAnnouncements,
-  certificates,
-  setCertificates,
-  reports,
-}: AppRoutesProps) {
+function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
-
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Dashboard
-                  interns={interns}
-                  attendance={attendance}
-                  meetings={meetings}
-                  documents={documents}
-                  trainings={trainings}
-                  evaluations={evaluations}
-                  notifications={notifications}
-                />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/mentor-dashboard"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <MentorDashboard
-                  interns={interns}
-                  meetings={meetings}
-                  tasks={tasks}
-                  evaluations={evaluations}
-                />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/intern-dashboard"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <InternDashboard
-                  tasks={tasks}
-                  meetings={meetings}
-                  attendance={attendance}
-                  evaluations={evaluations}
-                />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/interns"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Interns interns={interns} setInterns={setInterns} mentors={mentors} />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/mentors"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Mentors mentors={mentors} setMentors={setMentors} />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/tasks"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Tasks tasks={tasks} setTasks={setTasks} interns={interns} />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/tasks/:id"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <TaskDetail />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/meetings"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Meetings
-                  meetings={meetings}
-                  setMeetings={setMeetings}
-                  interns={interns}
-                  mentors={mentors}
-                />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/attendance"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Attendance
-                  attendance={attendance}
-                  setAttendance={setAttendance}
-                  interns={interns}
-                  mentors={mentors}
-                />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/feedback"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Feedback />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/documents"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Documents documents={documents} setDocuments={setDocuments} />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/training"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Training
-                  trainings={trainings}
-                  setTrainings={setTrainings}
-                  interns={interns}
-                  mentors={mentors}
-                />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/evaluations"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Evaluations evaluations={evaluations} setEvaluations={setEvaluations} />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/ppo"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <PPOPage ppoData={ppoData} setPPOData={setPPOData} />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/announcements"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Announcements announcements={announcements} setAnnouncements={setAnnouncements} />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/certificates"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Certificates certificates={certificates} setCertificates={setCertificates} />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/notifications"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Notifications notifications={notifications} setNotifications={setNotifications} />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/reports"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Reports reports={reports} />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/hr"
-          element={
-            <ProtectedRoute adminOnly>
-              <MainLayout>
-                <HrManagement />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Profile />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Settings />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/dashboard" element={protectedPage(<Dashboard />)} />
+        <Route path="/mentor-dashboard" element={protectedPage(<MentorDashboard />)} />
+        <Route path="/intern-dashboard" element={protectedPage(<InternDashboard />)} />
+        <Route path="/interns" element={protectedPage(<Interns />)} />
+        <Route path="/mentors" element={protectedPage(<Mentors />)} />
+        <Route path="/tasks" element={protectedPage(<Tasks />)} />
+        <Route path="/tasks/:id" element={protectedPage(<TaskDetail />)} />
+        <Route path="/meetings" element={protectedPage(<Meetings />)} />
+        <Route path="/attendance" element={protectedPage(<Attendance />)} />
+        <Route path="/feedback" element={protectedPage(<Feedback />)} />
+        <Route path="/documents" element={protectedPage(<Documents />)} />
+        <Route path="/training" element={protectedPage(<Training />)} />
+        <Route path="/evaluations" element={protectedPage(<Evaluations />)} />
+        <Route path="/ppo" element={protectedPage(<PPOPage />)} />
+        <Route path="/announcements" element={protectedPage(<Announcements />)} />
+        <Route path="/certificates" element={protectedPage(<Certificates />)} />
+        <Route path="/notifications" element={protectedPage(<Notifications />)} />
+        <Route path="/reports" element={protectedPage(<Reports />)} />
+        <Route path="/hr" element={protectedPage(<HrManagement />, true)} />
+        <Route path="/profile" element={protectedPage(<Profile />)} />
+        <Route path="/settings" element={protectedPage(<Settings />)} />
       </Routes>
     </BrowserRouter>
   )

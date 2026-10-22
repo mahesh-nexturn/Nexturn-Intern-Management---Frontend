@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
   Alert,
@@ -21,25 +21,19 @@ import {
   Snackbar,
 } from '@mui/material'
 
-import type { Report } from '../types'
-
 import ReportChart from '../components/ReportChart'
-import { reportApi } from '../services'
-
-type ReportsProps = {
-  reports: Report[]
-}
+import { useExportReportsExcelMutation, useListReportsQuery } from '../store'
 
 type Role = 'HR' | 'MENTOR' | 'INTERN' | null
 
-function Reports({ reports: _reports }: ReportsProps) {
+function Reports() {
   const [searchTerm, setSearchTerm] = useState('')
 
   const [statusFilter, setStatusFilter] = useState('All')
 
-  const [reports, setReports] = useState<reportApi.InternReportDto[]>([])
-
-  const [loading, setLoading] = useState(true)
+  const { data: reportData, isLoading: loading, isError: loadFailed } = useListReportsQuery()
+  const reports = useMemo(() => reportData ?? [], [reportData])
+  const [exportReportsExcel] = useExportReportsExcelMutation()
 
   const [toast, setToast] = useState<{
     message: string
@@ -50,34 +44,9 @@ function Reports({ reports: _reports }: ReportsProps) {
 
   const canExport = role === 'HR' || role === 'MENTOR'
 
-  useEffect(() => {
-    let cancelled = false
-
-    reportApi
-      .listReports()
-      .then((list) => {
-        if (!cancelled) {
-          setReports(list)
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setToast({
-            message: 'Failed to load reports.',
-            severity: 'error',
-          })
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoading(false)
-        }
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const activeToast =
+    toast ??
+    (loadFailed ? { message: 'Failed to load reports.', severity: 'error' as const } : null)
 
   const filteredReports = reports
     .filter((report) => report.internName.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -103,7 +72,7 @@ function Reports({ reports: _reports }: ReportsProps) {
 
   const exportReport = async () => {
     try {
-      await reportApi.exportReportsExcel()
+      await exportReportsExcel().unwrap()
       setToast({
         message: 'Report export started.',
         severity: 'success',
@@ -252,7 +221,7 @@ function Reports({ reports: _reports }: ReportsProps) {
       </TableContainer>
 
       <Snackbar
-        open={!!toast}
+        open={!!activeToast}
         autoHideDuration={3000}
         onClose={() => setToast(null)}
         anchorOrigin={{
@@ -260,9 +229,9 @@ function Reports({ reports: _reports }: ReportsProps) {
           horizontal: 'right',
         }}
       >
-        {toast ? (
-          <Alert severity={toast.severity} onClose={() => setToast(null)}>
-            {toast.message}
+        {activeToast ? (
+          <Alert severity={activeToast.severity} onClose={() => setToast(null)}>
+            {activeToast.message}
           </Alert>
         ) : undefined}
       </Snackbar>

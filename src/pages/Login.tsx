@@ -48,7 +48,7 @@ function Login() {
           setError('Unknown role.')
       }
     } catch (err) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      const msg = (err as { message?: string })?.message
       setError(
         msg && msg.toLowerCase().includes('login expired') ? msg : 'Invalid email or password.',
       )

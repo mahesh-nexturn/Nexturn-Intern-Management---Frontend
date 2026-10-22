@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
   Box,
@@ -31,13 +31,15 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 
 import type { Hr, Mentor } from '../types'
-import { hrApi, mentorApi } from '../services'
+import { mentorApi } from '../services'
+import {
+  useCreateMentorMutation,
+  useDeleteMentorMutation,
+  useListHrsQuery,
+  useListMentorsQuery,
+  useUpdateMentorMutation,
+} from '../store'
 import { useDialogs } from '../context/dialogState'
-
-type MentorsProps = {
-  mentors: Mentor[]
-  setMentors: Dispatch<SetStateAction<Mentor[]>>
-}
 
 function toUiMentor(dto: mentorApi.MentorDto): Mentor {
   return {
@@ -52,12 +54,19 @@ function toUiMentor(dto: mentorApi.MentorDto): Mentor {
   }
 }
 
-function Mentors({ mentors, setMentors }: MentorsProps) {
+function Mentors() {
   const { confirm, notify } = useDialogs()
   const role = sessionStorage.getItem('role') || 'HR'
   const isHr = role === 'HR'
   const isAdmin = sessionStorage.getItem('backendRole') === 'ADMIN'
-  const [hrs, setHrs] = useState<Hr[]>([])
+  // Mapped locally (not via useMentors) because this page needs the hrId/hrName fields.
+  const { data: mentorDtos, isError: mentorsFailed } = useListMentorsQuery()
+  const mentors = useMemo(() => mentorDtos?.map(toUiMentor) ?? [], [mentorDtos])
+  const { data: hrData } = useListHrsQuery(undefined, { skip: !isAdmin })
+  const hrs = useMemo<Hr[]>(() => hrData ?? [], [hrData])
+  const [createMentor] = useCreateMentorMutation()
+  const [updateMentor] = useUpdateMentorMutation()
+  const [deleteMentor] = useDeleteMentorMutation()
 
   const [open, setOpen] = useState(false)
   const [editIndex, setEditIndex] = useState<number | null>(null)
@@ -78,29 +87,11 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
     status: 'Active',
   })
 
-  useEffect(() => {
-    let cancelled = false
-    mentorApi
-      .listMentors()
-      .then((list) => {
-        if (!cancelled) setMentors(list.map(toUiMentor))
-      })
-      .catch(() => {
-        if (!cancelled) setToast({ message: 'Failed to load mentors.', severity: 'error' })
-      })
-    return () => {
-      cancelled = true
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
-    if (!isAdmin) return
-    hrApi
-      .listHrs()
-      .then(setHrs)
-      .catch(() => {})
-  }, [isAdmin])
+  const [prevFailed, setPrevFailed] = useState(false)
+  if (mentorsFailed !== prevFailed) {
+    setPrevFailed(mentorsFailed)
+    if (mentorsFailed) setToast({ message: 'Failed to load mentors.', severity: 'error' })
+  }
 
   const departments = useMemo(() => {
     return ['All', ...Array.from(new Set(mentors.map((m) => m.department)))]
@@ -154,18 +145,17 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
     if (actualIndex !== -1) {
       const ok = await confirm(`Delete mentor "${selected.name}"?`)
       if (ok) {
-        mentorApi
-          .deleteMentor(selected.id)
-          .then(() => {
-            setMentors(mentors.filter((_, i) => i !== actualIndex))
-            setToast({ message: 'Mentor deleted.', severity: 'success' })
-          })
-          .catch(() => setToast({ message: 'Failed to delete mentor.', severity: 'error' }))
+        try {
+          await deleteMentor(selected.id).unwrap()
+          setToast({ message: 'Mentor deleted.', severity: 'success' })
+        } catch {
+          setToast({ message: 'Failed to delete mentor.', severity: 'error' })
+        }
       }
     }
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (
       !selectedMentor.name.trim() ||
       !selectedMentor.email.trim() ||
@@ -185,28 +175,24 @@ function Mentors({ mentors, setMentors }: MentorsProps) {
     }
     if (isAdmin) payload.hrId = selectedMentor.hrId ?? null
 
-    if (editIndex !== null) {
-      mentorApi
-        .updateMentor(selectedMentor.id, payload)
-        .then((dto) => {
-          const updated = [...mentors]
-          updated[editIndex] = toUiMentor(dto)
-          setMentors(updated)
-          setToast({ message: 'Mentor updated.', severity: 'success' })
-        })
-        .catch(() => setToast({ message: 'Failed to update mentor.', severity: 'error' }))
-    } else {
-      mentorApi
-        .createMentor(payload)
-        .then((dto) => {
-          setMentors([...mentors, toUiMentor(dto)])
-          setToast({ message: 'Mentor created.', severity: 'success' })
-        })
-        .catch(() => setToast({ message: 'Failed to create mentor.', severity: 'error' }))
-    }
-
+    const wasEditing = editIndex !== null
     setOpen(false)
     setEditIndex(null)
+
+    try {
+      if (wasEditing) {
+        await updateMentor({ id: selectedMentor.id, payload }).unwrap()
+        setToast({ message: 'Mentor updated.', severity: 'success' })
+      } else {
+        await createMentor(payload).unwrap()
+        setToast({ message: 'Mentor created.', severity: 'success' })
+      }
+    } catch {
+      setToast({
+        message: wasEditing ? 'Failed to update mentor.' : 'Failed to create mentor.',
+        severity: 'error',
+      })
+    }
   }
 
   const handleClose = () => {

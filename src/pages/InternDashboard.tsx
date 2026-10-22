@@ -2,15 +2,8 @@ import { Box, Typography, Paper, Chip, Divider } from '@mui/material'
 
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts'
 
-import type { Attendance, Evaluation, Meeting, Task } from '../types'
 import { getUpcomingMeetings } from '../utils'
-
-type InternDashboardProps = {
-  tasks: Task[]
-  meetings: Meeting[]
-  attendance: Attendance[]
-  evaluations: Evaluation[]
-}
+import { useAttendance, useEvaluations, useMeetings, useTasks } from '../hooks/useAppData'
 
 type DashboardCardProps = {
   title: string
@@ -63,7 +56,11 @@ function DashboardCard({ title, value, subtitle, color }: DashboardCardProps) {
   )
 }
 
-function InternDashboard({ tasks, meetings, attendance, evaluations }: InternDashboardProps) {
+function InternDashboard() {
+  const { tasks } = useTasks()
+  const { meetings } = useMeetings()
+  const { attendance } = useAttendance()
+  const { evaluations } = useEvaluations()
   const internName = sessionStorage.getItem('name') || 'John'
 
   const myTasks = tasks.filter((t) => t.assignedTo === internName)

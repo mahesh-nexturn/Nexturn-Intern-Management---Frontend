@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
   Alert,
@@ -27,14 +27,17 @@ import DeleteIcon from '@mui/icons-material/Delete'
 
 import AddPPODialog from '../components/AddPPODialog'
 import PPOChart from '../components/PPOChart'
-import type { Intern, PPO } from '../types'
-import { internApi, ppoApi } from '../services'
+import type { PPO } from '../types'
+import type { ppoApi } from '../services'
 import { useDialogs } from '../context/dialogState'
-
-type PPOProps = {
-  ppoData: PPO[]
-  setPPOData: React.Dispatch<React.SetStateAction<PPO[]>>
-}
+import { useInterns } from '../hooks/useAppData'
+import {
+  useCreatePpoMutation,
+  useDeletePpoMutation,
+  useGetMyPpoQuery,
+  useListPpoQuery,
+  useUpdatePpoMutation,
+} from '../store'
 
 type Role = 'HR' | 'MENTOR' | 'INTERN' | null
 
@@ -56,20 +59,7 @@ function toUiPpo(dto: ppoApi.PpoDto): PPO {
   }
 }
 
-function toUiIntern(dto: internApi.InternDto): Intern {
-  return {
-    id: dto.id,
-    name: dto.name,
-    email: dto.email,
-    department: dto.department ?? '',
-    mentor: dto.mentorName ?? '',
-    mentorId: dto.mentorId,
-    status: dto.status ?? 'Active',
-    userId: dto.userId,
-  }
-}
-
-function PPOPage({ ppoData, setPPOData }: PPOProps) {
+function PPOPage() {
   const { confirm, notify } = useDialogs()
   const role = sessionStorage.getItem('role') as Role
   const userName = sessionStorage.getItem('name') || ''
@@ -80,6 +70,13 @@ function PPOPage({ ppoData, setPPOData }: PPOProps) {
   const canEditPPO = isHr || isMentor
   const canDeletePPO = isHr
 
+  const { data: ppoList, isError: listFailed } = useListPpoQuery(undefined, { skip: isIntern })
+  const { data: myPpo, isError: myPpoFailed } = useGetMyPpoQuery(undefined, { skip: !isIntern })
+  const { interns: availableInterns } = useInterns()
+  const [createPpo] = useCreatePpoMutation()
+  const [updatePpo] = useUpdatePpoMutation()
+  const [removePpo] = useDeletePpoMutation()
+
   const [open, setOpen] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -87,7 +84,6 @@ function PPOPage({ ppoData, setPPOData }: PPOProps) {
   const [toast, setToast] = useState<{ message: string; severity: 'success' | 'error' } | null>(
     null,
   )
-  const [availableInterns, setAvailableInterns] = useState<Intern[]>([])
 
   const [selectedPPO, setSelectedPPO] = useState<PPO>({
     id: 0,
@@ -105,39 +101,16 @@ function PPOPage({ ppoData, setPPOData }: PPOProps) {
     status: 'Eligible',
   })
 
-  useEffect(() => {
-    let cancelled = false
+  const ppoData = useMemo(() => {
+    if (isIntern) return myPpo ? [toUiPpo(myPpo)] : []
+    return (ppoList ?? []).map(toUiPpo)
+  }, [isIntern, myPpo, ppoList])
 
-    const loadPpo = async () => {
-      try {
-        if (role === 'INTERN') {
-          const item = await ppoApi.getMyPpo()
-          if (!cancelled) setPPOData(item ? [toUiPpo(item)] : [])
-          return
-        }
-
-        const list = await ppoApi.listPpo()
-        if (!cancelled) setPPOData(list.map(toUiPpo))
-      } catch {
-        if (!cancelled) setToast({ message: 'Failed to load PPO records.', severity: 'error' })
-      }
-    }
-
-    void loadPpo()
-
-    internApi
-      .listInterns()
-      .then((list) => {
-        if (!cancelled) setAvailableInterns(list.map(toUiIntern))
-      })
-      .catch(() => {
-        if (!cancelled) setToast({ message: 'Failed to load interns.', severity: 'error' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [role, setPPOData])
+  const activeToast =
+    toast ??
+    (listFailed || myPpoFailed
+      ? { message: 'Failed to load PPO records.', severity: 'error' as const }
+      : null)
 
   const visiblePPO = useMemo(() => {
     if (isHr) return ppoData
@@ -205,12 +178,10 @@ function PPOPage({ ppoData, setPPOData }: PPOProps) {
 
     try {
       if (editId !== null) {
-        const updated = await ppoApi.updatePpo(editId, payload)
-        setPPOData((prev) => prev.map((item) => (item.id === editId ? toUiPpo(updated) : item)))
+        await updatePpo({ id: editId, payload }).unwrap()
         setToast({ message: 'PPO record updated successfully.', severity: 'success' })
       } else {
-        const created = await ppoApi.createPpo(payload)
-        setPPOData((prev) => [...prev, toUiPpo(created)])
+        await createPpo(payload).unwrap()
         setToast({ message: 'PPO record created successfully.', severity: 'success' })
       }
 
@@ -236,8 +207,7 @@ function PPOPage({ ppoData, setPPOData }: PPOProps) {
     }
 
     try {
-      await ppoApi.deletePpo(ppo.id)
-      setPPOData((prev) => prev.filter((item) => item.id !== ppo.id))
+      await removePpo(ppo.id).unwrap()
       setToast({ message: 'PPO record deleted successfully.', severity: 'success' })
     } catch {
       setToast({ message: 'Failed to delete PPO record.', severity: 'error' })
@@ -356,13 +326,13 @@ function PPOPage({ ppoData, setPPOData }: PPOProps) {
       />
 
       <Snackbar
-        open={!!toast}
+        open={!!activeToast}
         autoHideDuration={4000}
         onClose={() => setToast(null)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert onClose={() => setToast(null)} severity={toast?.severity} variant="filled">
-          {toast?.message}
+        <Alert onClose={() => setToast(null)} severity={activeToast?.severity} variant="filled">
+          {activeToast?.message}
         </Alert>
       </Snackbar>
     </>

@@ -1,7 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
-import { hrApi, isAdminUser } from '../services'
+import { isAdminUser } from '../services'
 import { getUpcomingMeetings } from '../utils'
+import { useListHrsQuery } from '../store'
+import {
+  useDocuments,
+  useEvaluations,
+  useInterns,
+  useMeetings,
+  useNotifications,
+  useTrainings,
+} from '../hooks/useAppData'
 import { Box, Chip, Divider, Paper, Typography } from '@mui/material'
 
 import {
@@ -16,26 +25,6 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-
-import type {
-  Attendance,
-  Document,
-  Evaluation,
-  Intern,
-  Meeting,
-  Notification,
-  Training,
-} from '../types'
-
-type DashboardProps = {
-  interns: Intern[]
-  attendance: Attendance[]
-  meetings: Meeting[]
-  documents: Document[]
-  trainings: Training[]
-  evaluations: Evaluation[]
-  notifications: Notification[]
-}
 
 type Role = 'HR' | 'MENTOR' | 'INTERN' | null
 
@@ -93,14 +82,13 @@ function MetricCard({ title, value, subtitle, accent }: MetricCardProps) {
   )
 }
 
-function Dashboard({
-  interns,
-  meetings,
-  documents,
-  trainings,
-  evaluations,
-  notifications,
-}: DashboardProps) {
+function Dashboard() {
+  const { interns } = useInterns()
+  const { meetings } = useMeetings()
+  const { documents } = useDocuments()
+  const { trainings } = useTrainings()
+  const { evaluations } = useEvaluations()
+  const { notifications } = useNotifications()
   const role = (sessionStorage.getItem('role') as Role) || 'HR'
   const userName = sessionStorage.getItem('name') || 'Gayathri'
 
@@ -128,15 +116,8 @@ function Dashboard({
   const mentors = new Set(interns.map((i) => i.mentor)).size
 
   const isAdmin = isAdminUser()
-  const [hrCount, setHrCount] = useState(0)
-
-  useEffect(() => {
-    if (!isAdmin) return
-    hrApi
-      .listHrs()
-      .then((list) => setHrCount(list.length))
-      .catch(() => setHrCount(0))
-  }, [isAdmin])
+  const { data: hrList } = useListHrsQuery(undefined, { skip: !isAdmin })
+  const hrCount = hrList?.length ?? 0
 
   const departmentData = useMemo(() => {
     const map = new Map<string, number>()

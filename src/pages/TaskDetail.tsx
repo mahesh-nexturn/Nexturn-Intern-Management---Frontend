@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   Alert,
@@ -20,7 +20,16 @@ import EditIcon from '@mui/icons-material/Edit'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import AssignmentIcon from '@mui/icons-material/Assignment'
 
-import { evaluationApi, mentorApi, taskApi } from '../services'
+import { taskApi } from '../services'
+import { useMentors } from '../hooks/useAppData'
+import {
+  useAddTaskCommentMutation,
+  useCreateEvaluationMutation,
+  useEditTaskCommentMutation,
+  useGetTaskQuery,
+  useListTaskCommentsQuery,
+  useUpdateTaskWorkMutation,
+} from '../store'
 import TaskCompletionEvaluationDialog from '../components/TaskCompletionEvaluationDialog'
 import type { CriteriaRatings } from '../utils'
 
@@ -55,12 +64,24 @@ function TaskDetail() {
   const taskId = Number(id)
   const navigate = useNavigate()
 
-  const [task, setTask] = useState<taskApi.TaskDto | null>(null)
-  const [mentorName, setMentorName] = useState('')
-  const [comments, setComments] = useState<taskApi.TaskCommentDto[]>([])
+  const { data: task, isLoading: taskLoading, isError: taskError } = useGetTaskQuery(taskId)
+  const {
+    data: commentsData,
+    isLoading: commentsLoading,
+    isError: commentsError,
+  } = useListTaskCommentsQuery(taskId)
+  const { mentors } = useMentors()
+  const [updateTaskWork] = useUpdateTaskWorkMutation()
+  const [addComment] = useAddTaskCommentMutation()
+  const [editComment] = useEditTaskCommentMutation()
+  const [createEvaluation] = useCreateEvaluationMutation()
+  const comments = commentsData ?? []
+  const mentorName = task?.mentorId ? (mentors.find((m) => m.id === task.mentorId)?.name ?? '') : ''
+  const loading = taskLoading || commentsLoading
+  const loadFailed = taskError || commentsError
   const [text, setText] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [errorMsg, setError] = useState('')
+  const error = errorMsg || (loadFailed ? 'Unable to load this task.' : '')
   const [posting, setPosting] = useState(false)
 
   const myUserId = Number(sessionStorage.getItem('userId'))
@@ -86,7 +107,7 @@ function TaskDetail() {
   }) => {
     setSaving(true)
     try {
-      setTask(await taskApi.updateTaskWork(taskId, payload))
+      await updateTaskWork({ id: taskId, payload }).unwrap()
       return true
     } catch {
       setError('Failed to save changes.')
@@ -126,13 +147,13 @@ function TaskDetail() {
     }
     setSaving(true)
     try {
-      await evaluationApi.createEvaluation({
+      await createEvaluation({
         internId: task.internId,
         mentorId: task.mentorId,
         taskId: task.id,
         ...ratings,
         feedback,
-      })
+      }).unwrap()
     } catch {
       setSaving(false)
       setError('Failed to save the evaluation.')
@@ -148,8 +169,7 @@ function TaskDetail() {
     if (!content) return
     setSaving(true)
     try {
-      const updated = await taskApi.editComment(taskId, commentId, content)
-      setComments((prev) => prev.map((c) => (c.id === commentId ? updated : c)))
+      await editComment({ taskId, commentId, content }).unwrap()
       setEditingCommentId(null)
     } catch {
       setError('Failed to update comment.')
@@ -158,34 +178,12 @@ function TaskDetail() {
     }
   }
 
-  useEffect(() => {
-    Promise.all([taskApi.getTask(taskId), taskApi.listComments(taskId)])
-      .then(([t, c]) => {
-        setTask(t)
-        setComments(c)
-
-        if (t.mentorId) {
-          mentorApi
-            .listMentors()
-            .then((list) => setMentorName(list.find((m) => m.id === t.mentorId)?.name ?? ''))
-            .catch(() => undefined)
-        }
-      })
-      .catch(() => {
-        setError('Unable to load this task.')
-      })
-      .finally(() => {
-        setLoading(false)
-      })
-  }, [taskId])
-
   const post = async () => {
     const content = text.trim()
     if (!content) return
     setPosting(true)
     try {
-      const created = await taskApi.addComment(taskId, content)
-      setComments((prev) => [...prev, created])
+      await addComment({ taskId, content }).unwrap()
       setText('')
     } catch {
       setError('Failed to post comment.')
