@@ -4,12 +4,7 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
-  FormControl,
-  InputLabel,
-  MenuItem,
   Paper,
-  Select,
   Table,
   TableBody,
   TableCell,
@@ -29,8 +24,6 @@ type Role = 'HR' | 'MENTOR' | 'INTERN' | null
 function Reports() {
   const [searchTerm, setSearchTerm] = useState('')
 
-  const [statusFilter, setStatusFilter] = useState('All')
-
   const { data: reportData, isLoading: loading, isError: loadFailed } = useListReportsQuery()
   const reports = useMemo(() => reportData ?? [], [reportData])
   const [exportReportsExcel] = useExportReportsExcelMutation()
@@ -48,9 +41,9 @@ function Reports() {
     toast ??
     (loadFailed ? { message: 'Failed to load reports.', severity: 'error' as const } : null)
 
-  const filteredReports = reports
-    .filter((report) => report.internName.toLowerCase().includes(searchTerm.toLowerCase()))
-    .filter((report) => statusFilter === 'All' || (report.ppoStatus ?? 'N/A') === statusFilter)
+  const filteredReports = reports.filter((report) =>
+    report.internName.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
 
   const total = reports.length
 
@@ -64,11 +57,6 @@ function Reports() {
         reports.length
 
   const ppoOffered = reports.filter((report) => report.ppoStatus === 'Offered').length
-
-  const statusOptions = useMemo(
-    () => ['All', ...Array.from(new Set(reports.map((report) => report.ppoStatus ?? 'N/A')))],
-    [reports],
-  )
 
   const exportReport = async () => {
     try {
@@ -129,26 +117,6 @@ function Reports() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-
-        <FormControl
-          sx={{
-            minWidth: 180,
-          }}
-        >
-          <InputLabel>PPO Status</InputLabel>
-
-          <Select
-            value={statusFilter}
-            label="PPO Status"
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            {statusOptions.map((status) => (
-              <MenuItem key={status} value={status}>
-                {status}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
       </Box>
 
       <TableContainer component={Paper}>
@@ -168,15 +136,13 @@ function Reports() {
               <TableCell>Training</TableCell>
 
               <TableCell>Evaluation</TableCell>
-
-              <TableCell>PPO</TableCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
             {filteredReports.length === 0 ? (
               <TableRow>
-                <TableCell align="center" colSpan={8} sx={{ py: 5 }}>
+                <TableCell align="center" colSpan={7} sx={{ py: 5 }}>
                   <Typography color="text.secondary">
                     {loading ? 'Loading reports...' : 'No reports found.'}
                   </Typography>
@@ -198,21 +164,6 @@ function Reports() {
                   <TableCell>{report.trainingCompletionPct.toFixed(1)}%</TableCell>
 
                   <TableCell>{report.averageEvaluationScore?.toFixed(1) ?? '-'}</TableCell>
-
-                  <TableCell>
-                    <Chip
-                      label={report.ppoStatus ?? 'N/A'}
-                      color={
-                        report.ppoStatus === 'Offered'
-                          ? 'primary'
-                          : report.ppoStatus === 'Eligible'
-                            ? 'success'
-                            : report.ppoStatus === 'Not Eligible'
-                              ? 'error'
-                              : 'default'
-                      }
-                    />
-                  </TableCell>
                 </TableRow>
               ))
             )}
