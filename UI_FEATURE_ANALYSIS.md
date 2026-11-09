@@ -7,7 +7,7 @@ Last updated: 2026-10-22.
 
 **Nexturn Intern Management** is a role-based single-page app for running an internship
 program. It talks to a Spring Boot REST API (`VITE_API_BASE_URL`, default
-`http://localhost:8082/api`) and uses JWT login with automatic token refresh.
+`http://localhost:8080/api`) and uses JWT login with automatic token refresh.
 
 | Backend role | UI role  | What they can do                                                          |
 | ------------ | -------- | ------------------------------------------------------------------------- |

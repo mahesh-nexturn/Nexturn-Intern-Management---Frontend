@@ -8,6 +8,7 @@
 // and the default admin seed user (admin@nexturn.com / Admin@123) to exist.
 
 const BASE_URL = 'http://localhost:8080/api'
+import crypto from 'node:crypto'
 const ADMIN_EMAIL = 'admin@nexturn.com'
 const ADMIN_PASSWORD = 'Admin@123'
 const DEMO_PASSWORD = 'Demo@123'
@@ -37,10 +38,25 @@ async function request(path, options = {}, token) {
   return json
 }
 
+async function encryptPassword(password) {
+  const keyRes = await request('/auth/public-key')
+  const publicKey = crypto.createPublicKey({
+    key: Buffer.from(keyRes.data, 'base64'),
+    format: 'der',
+    type: 'spki',
+  })
+  return crypto
+    .publicEncrypt(
+      { key: publicKey, padding: crypto.constants.RSA_PKCS1_OAEP_PADDING, oaepHash: 'sha256' },
+      Buffer.from(password, 'utf8'),
+    )
+    .toString('base64')
+}
+
 async function login() {
   const res = await request('/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD }),
+    body: JSON.stringify({ email: ADMIN_EMAIL, password: await encryptPassword(ADMIN_PASSWORD) }),
   })
   return res.data.accessToken
 }

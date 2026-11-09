@@ -1,5 +1,6 @@
 import api, { setTokens, clearTokens } from './api'
 import type { ApiResponse } from './api'
+import { encryptPassword } from './passwordCrypto'
 
 export type BackendRole = 'ADMIN' | 'HR' | 'MENTOR' | 'INTERN'
 
@@ -23,7 +24,7 @@ export type CurrentUser = {
 export async function login(email: string, password: string) {
   const { data } = await api.post<ApiResponse<AuthResponseData>>('/auth/login', {
     email,
-    password,
+    password: await encryptPassword(password),
   })
   setTokens(data.data.accessToken, data.data.refreshToken)
   return data.data
@@ -46,5 +47,8 @@ export async function logout() {
 }
 
 export async function changePassword(currentPassword: string, newPassword: string) {
-  await api.post('/auth/change-password', { currentPassword, newPassword })
+  await api.post('/auth/change-password', {
+    currentPassword: await encryptPassword(currentPassword),
+    newPassword: await encryptPassword(newPassword),
+  })
 }
