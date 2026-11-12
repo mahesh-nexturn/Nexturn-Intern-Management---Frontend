@@ -141,7 +141,7 @@ function Login() {
         </Button>
 
         <Divider sx={{ my: 3 }} />
-
+        {/* 
         <Box>
           <Typography
             variant="subtitle2"
@@ -161,7 +161,7 @@ function Login() {
             <strong>Mentors</strong> and <strong>Interns</strong> use the accounts created via the
             HR &rarr; Mentors / Interns pages.
           </Typography>
-        </Box>
+        </Box> */}
       </Paper>
     </Box>
   )
