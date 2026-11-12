@@ -1,14 +1,5 @@
 import { useState } from 'react'
-import {
-  Box,
-  Paper,
-  Typography,
-  TextField,
-  Button,
-  Divider,
-  Alert,
-  CircularProgress,
-} from '@mui/material'
+import { Box, Paper, Typography, TextField, Button, Alert, CircularProgress } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../context/useAuth'
@@ -140,7 +131,7 @@ function Login() {
           {submitting ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
         </Button>
 
-        <Divider sx={{ my: 3 }} />
+        {/* <Divider sx={{ my: 3 }} /> */}
         {/* 
         <Box>
           <Typography
